@@ -1,0 +1,108 @@
+function generate_flash_pattern(arena_size, px_intensity, px_rng_to_use, flash_sz_px, patName, save_dir)
+% Generate pattern of ON / OFF square flashes pattern.
+
+% Add parameters:
+% 'arena_size' = [n_rows, n_cols, n_pix_per_panel] - [3,12,16]
+% 'px_intensity' = [bkg_color, off_color, on_color] - [6, 0, 15]
+% 'px_rng_to_use' = [row_start, row_end, col_start, col_end] - [1, 48, 17, 112]
+% 'flash_sz_px' = size of flash squares in pixels. - 12
+% 'patName' = name used for saving the pattern = '12px_square_RF_ON_OFF';
+% 'save_dir' = directory to save the pattern - '/Users/burnettl/Documents/Projects/G4_arena/G4-1_Tests'
+
+% Creates a pattern where the first frame is a uniform pattern of intensity
+% 'px_intensity(1)'. Then the subsequent frames contain individual flashes,
+% squares of size 'flash_sz_px' x 'flash_sz_px'. Flash frames are ordered
+% going down column one, then column two etc. So frame 2 would have a flash
+% in position [1,1], then frame 3 in position [2,1] etc. This is useful for
+% using the function 'sub2ind' later when making the position function to
+% access these positions. All OFF flashes are ordered first, then all OFF
+% flashes. 
+% ______________________________________________________________________
+
+% Arena specs:
+n_rows = arena_size(1);
+n_cols = arena_size(2);  
+px_per_panel = arena_size(3);
+
+h_display = n_rows*px_per_panel;
+w_display = n_cols*px_per_panel; 
+
+% Light intensity values for the pattern:
+bkg_color = px_intensity(1);
+off_color = px_intensity(2);
+on_color = px_intensity(3);
+
+% Subregion of screen over which to present the flashes.
+screen_start_pixel_w = px_rng_to_use(3);
+screen_end_pixel_w = px_rng_to_use(4);
+
+screen_start_pixel_h = px_rng_to_use(1);
+screen_end_pixel_h = px_rng_to_use(2);
+
+% Stimulus size in pixels.
+flash_px = flash_sz_px;
+
+% Find the specs of the grid of flshes.
+edge_st_w = screen_start_pixel_w:flash_px:screen_end_pixel_w;
+edge_end_w = edge_st_w + flash_px - 1;
+fl_cols = numel(edge_st_w);
+
+edge_st_h = screen_start_pixel_h:flash_px:screen_end_pixel_h;
+edge_end_h = edge_st_h + flash_px - 1;
+
+fl_rows = numel(edge_st_h);
+n_flashes = fl_rows*fl_cols;
+disp(strcat("Flashes of size ", string(flash_px), "px form a ", string(fl_rows), "x", string(fl_cols), " grid of ", string(n_flashes), " flashes."))
+
+%% Generate the pattern: 
+
+% First frame = background. 
+Bkg = ones(h_display, w_display, 1)*bkg_color;
+
+% Start by making every frame a uniform gray background. 
+OFF_Pats = ones(h_display, w_display, n_flashes)*bkg_color;
+ON_Pats = ones(h_display, w_display, n_flashes)*bkg_color;
+
+idx = 1;
+% Start with the OFF flashes
+for c = 1:fl_cols
+    y_st = edge_st_w(c);
+    y_end = edge_end_w(c);
+
+    for r = 1:fl_rows
+        x_st = edge_st_h(r);
+        x_end = edge_end_h(r);
+    
+        % Add flash
+        OFF_Pats(x_st:x_end, y_st:y_end, idx) = off_color;
+        ON_Pats(x_st:x_end, y_st:y_end, idx) = on_color;
+    
+        % Update frame number 
+        idx = idx+1;
+
+    end 
+end 
+
+Pats = cat(3, Bkg, OFF_Pats, ON_Pats);
+
+param.stretch = zeros(w_display, 1);
+param.gs_val = 4;
+param.arena_pitch = 0; 
+
+param.ID = get_pattern_ID(save_dir);
+
+save_pattern_G4(Pats, param, save_dir, patName);
+
+
+% TEST % % % % % % % 
+% 
+% Total number of frames in the pattern - both ON and OFF.
+% n_frames = n_flashes*2+1;
+
+% figure
+% for i = 1:n_frames
+% aa = Pats(:, :, i);
+% imagesc(aa)
+% pause(0.2)
+% end 
+% % 
