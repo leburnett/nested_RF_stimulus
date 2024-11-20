@@ -1,7 +1,11 @@
 function outputSequence = generate_flash_order(screen_size, pixel_size)
 
 % Generate the order in which flashes should be presented in the RF
-% stimulus. This works with a pattern that has the flashes ordered going down the
+% stimulus. The screen is split up into a grid based on the size of the
+% flashes. This grid is then split into quadrants and flashes are shown
+% sequenctially in the same position within each quadrant in order.
+
+% This works with a pattern that has the flashes ordered going down the
 % ROWS first, then across the COLUMNS. 
 
 % Required inputs:
@@ -11,38 +15,41 @@ function outputSequence = generate_flash_order(screen_size, pixel_size)
 
 % ______________________________________________________________
 
-% Define the dimensions of the image and quadrants
-imageWidth = screen_size(2)/pixel_size; % Total width of the image
-imageHeight = screen_size(1)/pixel_size; % Total height of the image
-quadrantWidth = imageWidth / 2; % Width of each quadrant
-quadrantHeight = imageHeight / 2; % Height of each quadrant
-
-% Initialize the output sequence
-outputSequence = zeros(1, imageWidth * imageHeight);
-index = 1;
-
-% Loop through all the positions within each quadrant
-for row = 1:quadrantHeight
-    for col = 1:quadrantWidth
-        % Define the top-left pixels of the four quadrants
-        % Quadrant 1 (top-left)
-        outputSequence(index) = sub2ind([imageHeight, imageWidth], row, col);
-        index = index + 1;
-
-        % Quadrant 2 (top-right)
-        outputSequence(index) = sub2ind([imageHeight, imageWidth], row, col + quadrantWidth);
-        index = index + 1;
-
-        % Quadrant 3 (bottom-left)
-        outputSequence(index) = sub2ind([imageHeight, imageWidth], row + quadrantHeight, col);
-        index = index + 1;
-
-        % Quadrant 4 (bottom-right)
-        outputSequence(index) = sub2ind([imageHeight, imageWidth], row + quadrantHeight, col + quadrantWidth);
-        index = index + 1;
+    % Determine the size of the grid of flashes
+    grid_cols = screen_size(2)/pixel_size; % Total width of the image
+    grid_rows = screen_size(1)/pixel_size; % Total height of the image
+    
+    % Determine the size of the grid quadrants.
+    quadrant_cols = grid_cols / 2; % Width of each quadrant
+    quadrant_rows = grid_rows / 2; % Height of each quadrant
+    
+    % Initialize the output sequence
+    outputSequence = zeros(1, grid_cols * grid_rows);
+    index = 1;
+    
+    % Loop through all the positions within each quadrant
+    for row = 1:quadrant_rows
+        for col = 1:quadrant_cols
+            % Define the top-left pixels of the four quadrants
+            % Quadrant 1 (top-left)
+            outputSequence(index) = sub2ind([grid_rows, grid_cols], row, col);
+            index = index + 1;
+    
+            % Quadrant 2 (top-right)
+            outputSequence(index) = sub2ind([grid_rows, grid_cols], row, col + quadrant_cols);
+            index = index + 1;
+    
+            % Quadrant 3 (bottom-left)
+            outputSequence(index) = sub2ind([grid_rows, grid_cols], row + quadrant_rows, col);
+            index = index + 1;
+    
+            % Quadrant 4 (bottom-right)
+            outputSequence(index) = sub2ind([grid_rows, grid_cols], row + quadrant_rows, col + quadrant_cols);
+            index = index + 1;
+        end
     end
-end
 
+end 
 
 
 
