@@ -1,4 +1,4 @@
-function generate_flash_pattern(arena_size, px_intensity, px_rng_to_use, flash_sz_px, patName, save_dir)
+function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_use, flash_sz_px, patName, save_dir)
 % Generate pattern of ON / OFF square flashes pattern.
 
 % Add parameters:
@@ -94,12 +94,13 @@ function generate_flash_pattern(arena_size, px_intensity, px_rng_to_use, flash_s
     
     save_pattern_G4(Pats, param, save_dir, patName);
     
+    % Total number of frames in the pattern - both ON and OFF.
+    n_frames = n_flashes*2+1;
     
     % TEST % % % % % % % 
     % Visualise the pattern in order.
     
-    % Total number of frames in the pattern - both ON and OFF.
-    % n_frames = n_flashes*2+1;
+    
     
     % figure
     % for i = 1:n_frames
