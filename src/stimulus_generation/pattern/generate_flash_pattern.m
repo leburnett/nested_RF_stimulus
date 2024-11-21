@@ -86,7 +86,7 @@ function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_u
     Pats = cat(3, Bkg, OFF_Pats, ON_Pats);
     
     % Check if there are other parameters that are required.
-    param.stretch = zeros(w_display, 1);
+    param.stretch = zeros(size(Pats, 3), 1);
     param.gs_val = 4;
     param.arena_pitch = 0; 
     
@@ -100,13 +100,11 @@ function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_u
     % TEST % % % % % % % 
     % Visualise the pattern in order.
     
-    
-    
     % figure
     % for i = 1:n_frames
     % aa = Pats(:, :, i);
     % imagesc(aa)
-    % pause(0.2)
+    % pause(0.1)
     % end 
     % % 
 

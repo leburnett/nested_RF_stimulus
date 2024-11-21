@@ -16,7 +16,7 @@ px_intensity = [6, 0, 15];
 px_rng_to_use = [1, arena_size(1)*arena_size(3), 17, 112];
 
 % Size of flash in pixels:
-flash_sz_px = 12;
+flash_sz_px = 6;
 
 % String used for saving pattern: 
 patName = strcat(string(flash_sz_px),'px_square_RF_ON_OFF_', string(px_rng_to_use(3)), '_', string(px_rng_to_use(4)));
