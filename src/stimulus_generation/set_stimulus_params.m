@@ -13,14 +13,15 @@ disp_y2 = 48;
 %  2 - For the 1/2 screen area. 6 panels. LHS of screen when look from the
 %  front. RHS from fly's perspective. For recording from right hemisphere. 
 
-% disp_x1 = 17;
-% disp_x2 = 112;
+% disp_x1 = 101;
+% disp_x2 = 196;
 % disp_y1 = 1;
 % disp_y2 = 48;
 
 % 3 - 30 x 30 pixel square
 
-% For 30 x 30 pixel area 
+% All possible 30 x 30 pixel squares in the area 17:196 , 1:48. 
+
 % disp_x1 = 17;
 % disp_x2 = 46;
 % disp_y1 = 1;
