@@ -33,7 +33,7 @@ function generate_flash_function(fl_rows, fl_cols, bkg_frame, interval_dur, flas
     
     % String to use for function name.
     n_flashes = fl_rows*fl_cols;
-    filename = strcat(string(flash_sz_px), 'px_flashes_', string(px_rng(3)), '_', string(px_rng(4)), '_', string(n_frames_func), 'frames_', string(n_flashes), 'flashes');
+    filename = strcat(string(flash_sz_px), 'px_flashes_', string(px_rng(3)), '_', string(px_rng(4)), '_', string(n_flashes), 'flashes_', string(flash_dur*1000), 'ms_', string(interval_dur*1000), 'ms');
     
     save_function_G4(func, param, func_save_dir, filename);
 
