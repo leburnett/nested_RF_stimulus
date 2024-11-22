@@ -1,4 +1,6 @@
-% Generate both the pattern and position function for RF flash stimuli.   
+% Generate both the pattern and position function for RF flash stimuli - protocol 1. 
+% Non-overlapping grid of flashes that cover ~1/2 of the arena.
+% Initial protocol to find the centre of the receptive field.
 
 %% Region of arena on which to present the stimulus. 
 
@@ -18,16 +20,6 @@ disp_y2 = 48;
 % disp_y1 = 1;
 % disp_y2 = 48;
 
-% 3 - 30 x 30 pixel square
-
-% All possible 30 x 30 pixel squares in the area 17:196 , 1:48. 
-
-% disp_x1 = 17;
-% disp_x2 = 46;
-% disp_y1 = 1;
-% disp_y2 = 30;
-
-
 %% Other parameters which don't change with the area of the screen that the
 % pattern is being presented. 
 
@@ -42,56 +34,3 @@ params.flash_dur = 0.2; % duration of flash in seconds.
 
 generate_stimulus(params)
 
-
-
-
-
-
-% Screen dimensions and limits
-screen_width_start = 17;
-screen_width_end = 196;
-screen_height_start = 1;
-screen_height_end = 48;
-
-% Square size
-square_size = 30;
-
-% Initialize array to store possible square positions
-positions = [];
-
-% Loop through all possible row and column start positions
-for row_start = screen_height_start:(screen_height_end - square_size + 1)
-    row_end = row_start + square_size - 1;  % Calculate row end
-    for col_start = screen_width_start:(screen_width_end - square_size + 1)
-        col_end = col_start + square_size - 1;  % Calculate column end
-        
-        % Append the position to the list
-        positions = [positions; row_start, row_end, col_start, col_end];
-    end
-end
-
-% Display all possible positions
-disp(positions);
-
-
-function [row_start, row_end, col_start, col_end] = centeredSquare(x, y)
-    % Screen dimensions
-    screen_width_start = 17;
-    screen_width_end = 196;
-    screen_height_start = 1;
-    screen_height_end = 48;
-
-    % Square size and half-size for centering
-    square_size = 30;
-    half_size = square_size / 2;
-
-    % Calculate row and column start and end positions
-    row_start = max(screen_height_start, min(y - half_size + 1, screen_height_end - square_size + 1));
-    row_end = row_start + square_size - 1;
-
-    col_start = max(screen_width_start, min(x - half_size + 1, screen_width_end - square_size + 1));
-    col_end = col_start + square_size - 1;
-
-    % Output the square boundaries
-    fprintf('Square bounds: [%d, %d, %d, %d]\n', row_start, row_end, col_start, col_end);
-end
