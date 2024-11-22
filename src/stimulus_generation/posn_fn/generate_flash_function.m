@@ -1,4 +1,4 @@
-function generate_flash_function(fl_rows, fl_cols, bkg_frame, interval_dur, flash_dur, func_save_dir)
+function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_frame, interval_dur, flash_dur, func_save_dir)
 
 % Generate position function for nested RF flash stimuli.
 
@@ -27,13 +27,14 @@ function generate_flash_function(fl_rows, fl_cols, bkg_frame, interval_dur, flas
     function_type = 'pfn';
     ID = get_function_ID(function_type, func_save_dir);
     param.ID = ID;
+
     param.frames = n_frames; % number of frames in the pattern.
     param.gs_val = 4;
     param.type = function_type;
     
     % String to use for function name.
     n_flashes = fl_rows*fl_cols;
-    filename = strcat(string(flash_sz_px), 'px_flashes_', string(px_rng(3)), '_', string(px_rng(4)), '_', string(n_flashes), 'flashes_', string(flash_dur*1000), 'ms_', string(interval_dur*1000), 'ms');
+    filename = strcat(string(flash_sz_px), 'px_flashes_', string(n_flashes), 'flashes_', string(flash_dur*1000), 'ms_', string(interval_dur*1000), 'ms');
     
     save_function_G4(func, param, func_save_dir, filename);
 

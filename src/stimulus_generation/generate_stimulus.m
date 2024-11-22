@@ -1,8 +1,5 @@
 %% Generate nested flash protocol for determining the receptive field of T4 / T5 cells
 function generate_stimulus(params)
-
-    clearvars
-    close all
     
     ROOT_DIR = 'C:\matlabroot\GitHub\nested_RF_stimulus';
     
@@ -43,7 +40,7 @@ function generate_stimulus(params)
         mkdir(func_save_dir);
     end 
     
-    generate_flash_function(fl_rows, fl_cols, bkg_frame, interval_dur, flash_dur, func_save_dir);
+    generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_frame, interval_dur, flash_dur, func_save_dir);
     
     % _________________________________________________________________________
     

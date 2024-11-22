@@ -105,15 +105,20 @@ function [n_frames, fl_rows, fl_cols] = generate_flash_pattern(px_intensity, px_
     
     % TEST % % % % % % % 
     % Visualise the pattern in order.
-    % 
-    % figure
-    % for i = 1:196 %n_frames
-    % idx = flash_seq(i)+1;
-    % aa = Pats(:, :, idx);
-    % imagesc(aa)
-    % pause(0.2)
-    % end 
     
+    figure
+    for i = 1:196 %n_frames
+    idx = flash_seq(i)+1;
+    aa = Pats(:, :, idx);
+    imagesc(aa)
+    pause(0.2)
+    end 
+    
+    p = sum(Pats, 3);
+    q = sum(Pats(:,:, 2:15), 3);
+    figure; imagesc(q)
+  
+    figure; imagesc(Pats(:, :, 1))
     % % 
 
 end 
