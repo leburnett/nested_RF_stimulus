@@ -1,4 +1,4 @@
-function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_use, flash_sz_px, patName, save_dir)
+function [n_frames, fl_rows, fl_cols] = generate_flash_pattern(px_intensity, px_rng, flash_sz_px, overlap, patName, save_dir)
 % Generate pattern of ON / OFF square flashes pattern.
 
 % Add parameters:
@@ -18,7 +18,10 @@ function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_u
 % access these positions. All OFF flashes are ordered first, then all OFF
 % flashes. 
 % ______________________________________________________________________
-    
+
+    % Arena parameters - [n_rows, n_cols, n_pix_per_panel]
+    arena_size = [3, 12, 16];    
+
     % Arena specs:
     n_rows = arena_size(1);
     n_cols = arena_size(2);  
@@ -33,26 +36,28 @@ function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_u
     on_color = px_intensity(3);
     
     % Subregion of screen over which to present the flashes.
-    screen_start_pixel_w = px_rng_to_use(3);
-    screen_end_pixel_w = px_rng_to_use(4);
+    start_pixel_w = px_rng(3);
+    end_pixel_w = px_rng(4);
     
-    screen_start_pixel_h = px_rng_to_use(1);
-    screen_end_pixel_h = px_rng_to_use(2);
+    start_pixel_h = px_rng(1);
+    end_pixel_h = px_rng(2);
     
     % Stimulus size in pixels.
     flash_px = flash_sz_px;
+
+    grid_step = flash_px * (1-overlap);
     
     % Find the specs of the grid of flshes.
-    edge_st_w = screen_start_pixel_w:flash_px:screen_end_pixel_w;
+    edge_st_w = start_pixel_w:grid_step:(end_pixel_w - flash_px +1);
     edge_end_w = edge_st_w + flash_px - 1;
     fl_cols = numel(edge_st_w);
     
-    edge_st_h = screen_start_pixel_h:flash_px:screen_end_pixel_h;
+    edge_st_h = start_pixel_h:grid_step:(end_pixel_h - flash_px +1);
     edge_end_h = edge_st_h + flash_px - 1;
     
     fl_rows = numel(edge_st_h);
     n_flashes = fl_rows*fl_cols;
-    disp(strcat("Flashes of size ", string(flash_px), "px form a ", string(fl_rows), "x", string(fl_cols), " grid of ", string(n_flashes), " flashes."))
+    disp(strcat("Flashes of size ", string(flash_px), "px with a ", string(overlap*100), "% overlap form a ", string(fl_rows), "x", string(fl_cols), " grid of ", string(n_flashes), " flashes."))
     
     %% Generate the pattern: 
     
@@ -95,7 +100,7 @@ function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_u
     save_pattern_G4(Pats, param, save_dir, patName);
     
     % Total number of frames in the pattern - both ON and OFF.
-    n_frames = n_flashes*2+1;
+    n_frames = size(Pats, 3);
     
     % TEST % % % % % % % 
     % Visualise the pattern in order.
@@ -105,7 +110,9 @@ function n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_u
     % aa = Pats(:, :, i);
     % imagesc(aa)
     % pause(0.1)
+    % axis square
     % end 
+    
     % % 
 
 end 

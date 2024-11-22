@@ -1,4 +1,4 @@
-function outputSequence = generate_flash_order(screen_size, pixel_size)
+function outputSequence = generate_flash_order(fl_rows, fl_cols)
 
 % Generate the order in which flashes should be presented in the RF
 % stimulus. The screen is split up into a grid based on the size of the
@@ -16,8 +16,8 @@ function outputSequence = generate_flash_order(screen_size, pixel_size)
 % ______________________________________________________________
 
     % Determine the size of the grid of flashes
-    grid_cols = screen_size(2)/pixel_size; % Total width of the image
-    grid_rows = screen_size(1)/pixel_size; % Total height of the image
+    grid_cols = fl_cols; % Total width of the image
+    grid_rows = fl_rows; % Total height of the image
     
     % Determine the size of the grid quadrants.
     quadrant_cols = grid_cols / 2; % Width of each quadrant

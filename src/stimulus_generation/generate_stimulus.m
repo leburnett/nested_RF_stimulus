@@ -1,80 +1,64 @@
-
 %% Generate nested flash protocol for determining the receptive field of T4 / T5 cells
-ROOT_DIR = 'C:\matlabroot\GitHub\nested_RF_stimulus';
+function generate_stimulus(params)
 
-% Arena parameters - [n_rows, n_cols, n_pix_per_panel]
-arena_size = [3, 12, 16];
+    clear
+    close all
+    
+    ROOT_DIR = 'C:\matlabroot\GitHub\nested_RF_stimulus';
+    
+    %% Generate pattern:
 
-% _________________________________________________________________________
+    px_intensity = params.px_intensity;
+    px_rng = params.px_rng;
+    flash_sz_px = params.flash_sz_px;
+    overlap = params.overlap;
 
-% Generate pattern:
+    % String used for saving pattern: 
+    patName = strcat(string(flash_sz_px),'px_square_RF_ON_OFF_', string(px_rng(3)), '_', string(px_rng(4)), '_overlap', string(overlap*100));
+    
+    % Directory to save pattern:
+    patt_save_dir = fullfile(ROOT_DIR, 'results\patterns');
+    if ~isfolder(patt_save_dir)
+        mkdir(patt_save_dir);
+    end 
+    
+    % Generate and save flash pattern:
+    [n_frames, fl_rows, fl_cols] = generate_flash_pattern(px_intensity, px_rng, flash_sz_px, overlap, patName, patt_save_dir);
+    
+    % _________________________________________________________________________
+    
+    %% Generate position function:
+  
+    bkg_frame = params.bkg_frame; 
+    interval_dur = params.interval_dur; 
+    flash_dur = params.flash_dur;
 
-% Intensity parameters of flash stimulus - [bkg_color, off_color, on_color]
-px_intensity = [6, 0, 15];
+    func_save_dir = fullfile(ROOT_DIR, 'results\functions');
+        if ~isfolder(func_save_dir)
+            mkdir(func_save_dir);
+        end 
+    
+    generate_flash_function(fl_rows, fl_cols, bkg_frame, interval_dur, flash_dur, func_save_dir);
+    
+    % _________________________________________________________________________
+    
+    %% Save parameters
+    params.n_frames = n_frames; 
+    params.patName = patName;
+    params.fl_rows = fl_rows; 
+    params.fl_cols = fl_cols;
+   
+    % Directory to save parameters:
+    params_save_dir = fullfile(ROOT_DIR, 'results\params');
+    if ~isfolder(params_save_dir)
+        mkdir(params_save_dir);
+    end 
+    
+    save(fullfile(params_save_dir, patName), 'params');
 
-% Pixel range of screen to present on - [row_start, row_end, col_start, col_end]
-px_rng_to_use = [1, arena_size(1)*arena_size(3), 17, 112];
-
-% Size of flash in pixels:
-flash_sz_px = 6;
-
-% String used for saving pattern: 
-patName = strcat(string(flash_sz_px),'px_square_RF_ON_OFF_', string(px_rng_to_use(3)), '_', string(px_rng_to_use(4)));
-
-% Directory to save pattern:
-patt_save_dir = fullfile(ROOT_DIR, 'results\patterns');
-if ~isfolder(patt_save_dir)
-    mkdir(patt_save_dir);
 end 
-
-% Generate and save flash pattern:
-n_frames = generate_flash_pattern(arena_size, px_intensity, px_rng_to_use, flash_sz_px, patName, patt_save_dir);
-
-% _________________________________________________________________________
-
-% Generate position function:
-
-% Determine the order in which to display the flashes.
-screen_size = [px_rng_to_use(2)-px_rng_to_use(1)+1, px_rng_to_use(4)-px_rng_to_use(3)+1];
-flash_seq = generate_flash_order(screen_size, flash_sz_px);
-
-% Generate 'func' - linear array of what frame to present every 2ms.
-bkg_frame = 1; % The background frame = frame 1 in the pattern:
-bkg_dur = 0.1; % duration of interval background screen in seconds.
-flash_dur = 0.2; % duration of flash in seconds.
-
-func = generate_func_for_flash(bkg_frame, bkg_dur, flash_seq, flash_dur);
-
-% Output checking metrics:
-n_frames_func = numel(func);
-disp(strcat("Number of elements in 'func': ", string(n_frames_func)))
-
-n_unique_frame_pos = numel(unique(func));
-disp(strcat("Number of unique frames in 'func': ", string(n_unique_frame_pos)))
-
-func_save_dir = fullfile(ROOT_DIR, 'results\functions');
-if ~isfolder(func_save_dir)
-    mkdir(func_save_dir);
-end 
-
-% Generate 'param' struct for making position function:
-param.func = func;
-function_type = 'pfn';
-ID = get_function_ID(function_type, func_save_dir);
-param.ID = ID;
-param.frames = 65; % n_frames; % number of frames in the pattern.
-param.gs_val = 4;
-param.type = function_type;
-% String to use for function name.
-filename = strcat(string(flash_sz_px), 'px_flashes_', string(px_rng_to_use(3)), '_', string(px_rng_to_use(4)), '_', string(n_frames_func), 'frames');
-
-save_function_G4(func, param, func_save_dir, filename);
-
-% _________________________________________________________________________
+%%
 
 % time to run:
 % If every element is 2ms
 % run_t_s = (n_frames_func*2)/1000;
-
-
-
