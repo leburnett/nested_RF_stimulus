@@ -1,7 +1,7 @@
 %% Generate nested flash protocol for determining the receptive field of T4 / T5 cells
 function generate_stimulus(params)
 
-    clear
+    clearvars
     close all
     
     ROOT_DIR = 'C:\matlabroot\GitHub\nested_RF_stimulus';
@@ -9,7 +9,12 @@ function generate_stimulus(params)
     %% Generate pattern:
 
     px_intensity = params.px_intensity;
+
+    % Range of pixels of which to display the stimulus
     px_rng = params.px_rng;
+    px_rng_formatted = arrayfun(@(x) sprintf('%02d', x), px_rng, 'UniformOutput', false);
+    disp_pixel_str = strjoin(px_rng_formatted, '_');
+
     flash_sz_px = params.flash_sz_px;
     overlap = params.overlap;
 
@@ -17,7 +22,7 @@ function generate_stimulus(params)
     patName = strcat(string(flash_sz_px),'px_square_RF_ON_OFF_', string(px_rng(3)), '_', string(px_rng(4)), '_overlap', string(overlap*100));
     
     % Directory to save pattern:
-    patt_save_dir = fullfile(ROOT_DIR, 'results\patterns');
+    patt_save_dir = fullfile(ROOT_DIR, 'results', disp_pixel_str, 'patterns');
     if ~isfolder(patt_save_dir)
         mkdir(patt_save_dir);
     end 
@@ -33,10 +38,10 @@ function generate_stimulus(params)
     interval_dur = params.interval_dur; 
     flash_dur = params.flash_dur;
 
-    func_save_dir = fullfile(ROOT_DIR, 'results\functions');
-        if ~isfolder(func_save_dir)
-            mkdir(func_save_dir);
-        end 
+    func_save_dir = fullfile(ROOT_DIR, 'results', disp_pixel_str, 'functions');
+    if ~isfolder(func_save_dir)
+        mkdir(func_save_dir);
+    end 
     
     generate_flash_function(fl_rows, fl_cols, bkg_frame, interval_dur, flash_dur, func_save_dir);
     
@@ -49,7 +54,7 @@ function generate_stimulus(params)
     params.fl_cols = fl_cols;
    
     % Directory to save parameters:
-    params_save_dir = fullfile(ROOT_DIR, 'results\params');
+    params_save_dir = fullfile(ROOT_DIR, 'results', disp_pixel_str, 'params');
     if ~isfolder(params_save_dir)
         mkdir(params_save_dir);
     end 
