@@ -2,9 +2,8 @@ function generate_stimulus_xy(x, y)
 % Generate the patterns and functions for the 4 x 4 pixel flashes - on a
 % 50% overlapping grid of size 30 x 30 pixels, centred on the 'peak' of 
 % responses to Protocol 1 [x,y]. 
-    tic
     
-    [disp_y1, disp_y2, disp_x1, disp_x2] = centeredSquare(x, y);
+    [disp_y1, disp_y2, disp_x1, disp_x2] = centeredSquare(x, y, 30);
     
     % disp_x1 = 17;
     % disp_x2 = 46;
@@ -23,10 +22,9 @@ function generate_stimulus_xy(x, y)
     
     generate_stimulus(params)
     
-    toc
 end 
     
-function [row_start, row_end, col_start, col_end] = centeredSquare(x, y)
+function [row_start, row_end, col_start, col_end] = centeredSquare(x, y, square_size)
     % Screen dimensions
     screen_width_start = 17;
     screen_width_end = 196;
@@ -34,7 +32,7 @@ function [row_start, row_end, col_start, col_end] = centeredSquare(x, y)
     screen_height_end = 48;
 
     % Square size and half-size for centering
-    square_size = 30;
+    % square_size = 30;
     half_size = square_size / 2;
 
     % Calculate row and column start and end positions
