@@ -43,3 +43,32 @@ params.flash_dur = 0.2; % duration of flash in seconds.
 generate_stimulus(params)
 
 
+
+
+
+
+% Screen dimensions and limits
+screen_width_start = 17;
+screen_width_end = 196;
+screen_height_start = 1;
+screen_height_end = 48;
+
+% Square size
+square_size = 30;
+
+% Initialize array to store possible square positions
+positions = [];
+
+% Loop through all possible row and column start positions
+for row_start = screen_height_start:(screen_height_end - square_size + 1)
+    row_end = row_start + square_size - 1;  % Calculate row end
+    for col_start = screen_width_start:(screen_width_end - square_size + 1)
+        col_end = col_start + square_size - 1;  % Calculate column end
+        
+        % Append the position to the list
+        positions = [positions; row_start, row_end, col_start, col_end];
+    end
+end
+
+% Display all possible positions
+disp(positions);
