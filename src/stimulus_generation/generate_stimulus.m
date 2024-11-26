@@ -10,7 +10,13 @@ function generate_stimulus(params)
     % Range of pixels of which to display the stimulus
     px_rng = params.px_rng;
     px_rng_formatted = arrayfun(@(x) sprintf('%02d', x), px_rng, 'UniformOutput', false);
-    disp_pixel_str = strjoin(px_rng_formatted, '_');
+
+    protocol = params.protocol;
+    if protocol == "protocol1" % if protocol 1 - set folder as range of pixels
+        disp_pixel_str = strjoin(px_rng_formatted, '_');
+    elseif protocol == "protocol2" % if protocol 2 set folder as x y centred coord
+        disp_pixel_str = strcat(string(params.x), '_', string(params.y));
+    end
 
     flash_sz_px = params.flash_sz_px;
     overlap = params.overlap;
@@ -18,8 +24,10 @@ function generate_stimulus(params)
     % String used for saving pattern: 
     patName = strcat(string(flash_sz_px),'px_square_RF_ON_OFF_', string(px_rng(3)), '_', string(px_rng(4)), '_overlap', string(overlap*100));
     
+    stim_name = strcat('flash_', string(flash_sz_px));
+
     % Directory to save pattern:
-    patt_save_dir = fullfile(ROOT_DIR, 'results', disp_pixel_str, 'patterns');
+    patt_save_dir = fullfile(ROOT_DIR, 'results', protocol, stim_name, disp_pixel_str, 'patterns');
     if ~isfolder(patt_save_dir)
         mkdir(patt_save_dir);
     end 
@@ -35,7 +43,7 @@ function generate_stimulus(params)
     interval_dur = params.interval_dur; 
     flash_dur = params.flash_dur;
 
-    func_save_dir = fullfile(ROOT_DIR, 'results', disp_pixel_str, 'functions');
+    func_save_dir = fullfile(ROOT_DIR, 'results', protocol, stim_name, disp_pixel_str, 'functions');
     if ~isfolder(func_save_dir)
         mkdir(func_save_dir);
     end 
@@ -51,7 +59,7 @@ function generate_stimulus(params)
     params.fl_cols = fl_cols;
    
     % Directory to save parameters:
-    params_save_dir = fullfile(ROOT_DIR, 'results', disp_pixel_str, 'params');
+    params_save_dir = fullfile(ROOT_DIR, 'results', protocol, stim_name, disp_pixel_str, 'params');
     if ~isfolder(params_save_dir)
         mkdir(params_save_dir);
     end 

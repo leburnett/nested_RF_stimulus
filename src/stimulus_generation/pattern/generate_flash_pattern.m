@@ -1,11 +1,12 @@
 function [n_frames, fl_rows, fl_cols] = generate_flash_pattern(px_intensity, px_rng, flash_sz_px, overlap, patName, save_dir)
-% Generate pattern of ON / OFF square flashes pattern.
+% Generate pattern of ON / OFF square flashes.
 
 % Add parameters:
 % 'arena_size' = [n_rows, n_cols, n_pix_per_panel] - [3,12,16]
 % 'px_intensity' = [bkg_color, off_color, on_color] - [6, 0, 15]
 % 'px_rng_to_use' = [row_start, row_end, col_start, col_end] - [1, 48, 17, 112]
 % 'flash_sz_px' = size of flash squares in pixels. - 12
+% 'overlap' = overlap of grid of flashes. Between 0 and 1. 
 % 'patName' = name used for saving the pattern = '12px_square_RF_ON_OFF';
 % 'save_dir' = directory to save the pattern - '/Users/burnettl/Documents/Projects/G4_arena/G4-1_Tests'
 
