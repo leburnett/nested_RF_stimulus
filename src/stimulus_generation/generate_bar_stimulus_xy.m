@@ -6,15 +6,15 @@ function generate_bar_stimulus_xy(x, y, px_intensity, px_crop, exp_folder)
     % y = 1;
     % px_intensity = [6, 0, 15];
     % px_crop = 45;
-    coord_str = strcat(string(x), '_', string(y));
+    % coord_str = strcat(string(x), '_', string(y));
     
-    save_dir = strcat(exp_folder, '\patterns\bar_', string(px_crop),'\', coord_str);
+    save_dir = strcat(exp_folder, '\patterns');
     if ~isfolder(save_dir)
         mkdir(save_dir);
     end
     
     % Path to the folder with the full field bar stimuli.
-    full_bar_patterns_dir = 'C:\matlabroot\GitHub\nested_RF_stimulus\results\patterns\full_field_bars';
+    full_bar_patterns_dir = 'C:\matlabroot\GitHub\nested_RF_stimulus\results\Patterns\protocol2\full_field_bars';
     cd(full_bar_patterns_dir)
     
     bar_patts = dir('*.mat');
