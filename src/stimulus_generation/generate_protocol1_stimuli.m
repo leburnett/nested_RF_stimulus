@@ -43,5 +43,11 @@ function generate_protocol1_stimuli(hemi)
         generate_stimulus(params)
     
     end 
+
+    % Generate static position function for presenting background frame at
+    % the beginning of the protocol:
+    func_save_dir = fullfile(params.root_dir, 'Functions');
+    t_bkg_s = 2; % time in seconds to display the background frame before beginning the flashes.
+    generate_static_pos_fn(func_save_dir, t_bkg_s)
     
 end 

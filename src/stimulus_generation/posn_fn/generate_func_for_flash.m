@@ -39,9 +39,9 @@ func = bkg_array;
 for fl = 1:n_flashes*2
 
     if fl<=n_flashes
-        frame_idx = flash_seq(fl);
+        frame_idx = flash_seq(fl)+1;
     elseif fl >n_flashes
-        frame_idx = flash_seq(fl-n_flashes)+n_flashes; % Should be  up to 64! 
+        frame_idx = flash_seq(fl-n_flashes)+n_flashes+1; % Should be  up to 64! 
     end 
 
     array_to_add = flash_array*frame_idx;
