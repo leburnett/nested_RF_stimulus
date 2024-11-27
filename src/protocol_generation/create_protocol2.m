@@ -1,0 +1,65 @@
+function create_protocol2(exp_folder)
+
+%% check for correct folders
+pattern_folder = fullfile(exp_folder, 'Patterns');
+function_folder = fullfile(exp_folder, 'Functions');
+AO_folder = fullfile(exp_folder, 'Analog Output Functions');
+
+assert(exist(pattern_folder,'dir')==7,'did not detect pattern folder')
+assert(exist(function_folder,'dir')==7,'did not detect position function folder')
+assert(exist(AO_folder,'dir')==7,'did not detect AO function folder')
+
+
+%% read patterns
+matinfo = dir(fullfile(pattern_folder, "*.mat"));
+patinfo = dir(fullfile(pattern_folder, '*.pat'));
+% num_files is the number of patterns.
+num_files = length({patinfo.name});
+
+flash_patt = 1;
+bar_patt = 2:17;
+n_bar_patt = numel(bar_patt);
+n_dir = 2;
+n_speeds = 3;
+% 2 reps = forward and reverse direction
+% 3 reps = n_speeds
+pattern_order = [flash_patt, repmat(repelem(bar_patt, n_dir), [1, n_speeds])];
+n_patts = numel(pattern_order);
+
+for p = 1:n_patts
+    f = pattern_order(p);
+    currentExp.pattern.pattNames{p} = matinfo(f).name;
+    currentExp.pattern.patternList{p} = patinfo(f).name;
+    patternIN = load(fullfile(pattern_folder, matinfo(f).name));
+    currentExp.pattern.x_num(p) = patternIN.pattern.x_num; % Matlab now has its own built in class "pattern" which conflicts here.
+    currentExp.pattern.y_num(p) = patternIN.pattern.y_num;
+    currentExp.pattern.gs_val(p) = patternIN.pattern.gs_val;
+    currentExp.pattern.arena_pitch(p) = round(rad2deg(patternIN.pattern.param.arena_pitch));
+end
+currentExp.pattern.num_patterns = num_files;
+
+
+%% read position functions
+matinfo = dir(fullfile(function_folder, "*.mat"));
+pfninfo = dir(fullfile(function_folder, "*.pfn"));
+num_files = length({pfninfo.name});
+trial_dur = 0;
+
+% pat1 = func1 - 4 pixel flashes
+func_order = [1, repmat([2,3], [1,n_bar_patt]), repmat([4,5], [1,n_bar_patt]), repmat([6,7], [1,n_bar_patt])];
+
+for p = 1:n_patts
+    f = func_order(p);
+    currentExp.function.functionName{p} = matinfo(f).name;
+    currentExp.function.functionList{p} = pfninfo(f).name;
+    load(fullfile(function_folder, matinfo(f).name))
+    currentExp.function.functionSize(p) = pfnparam.size;
+    trial_dur = trial_dur + sum(pfnparam.dur);
+end
+currentExp.trialDuration = trial_dur;
+currentExp.function.numFunc = num_files;
+
+%% save currentExp structure
+save(fullfile(exp_folder, 'currentExp.mat'),'currentExp');
+
+end

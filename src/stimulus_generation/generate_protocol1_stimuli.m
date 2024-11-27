@@ -17,7 +17,7 @@ function generate_protocol1_stimuli(hemi)
             disp_x2 = 112;
             disp_y1 = 1;
             disp_y2 = 48;
-            params.root_dir = 'C:\matlabroot\nested_RF_protocols\LHS\protocol1\';
+            params.root_dir = 'C:\matlabroot\nested_RF_protocols\protocol1\LHS';
         elseif hemi == "right"
             %  2 - For the 1/2 screen area. 6 panels. LHS of screen when look from the
             %  front. RHS from fly's perspective. For recording from right hemisphere. 
@@ -25,7 +25,7 @@ function generate_protocol1_stimuli(hemi)
             disp_x2 = 196;
             disp_y1 = 1;
             disp_y2 = 48;
-            params.root_dir = 'C:\matlabroot\nested_RF_protocols\RHS\protocol1\';
+            params.root_dir = 'C:\matlabroot\nested_RF_protocols\protocol1\RHS';
         end 
         
         %% Other parameters which don't change with the area of the screen that the
