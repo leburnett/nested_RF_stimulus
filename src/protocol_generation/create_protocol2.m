@@ -1,4 +1,4 @@
-function create_protocol2(exp_folder)
+function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder)
 
 %% check for correct folders
 pattern_folder = fullfile(exp_folder, 'Patterns');
@@ -43,7 +43,8 @@ currentExp.pattern.num_patterns = num_files;
 matinfo = dir(fullfile(function_folder, "*.mat"));
 pfninfo = dir(fullfile(function_folder, "*.pfn"));
 num_files = length({pfninfo.name});
-trial_dur = 0;
+total_dur = 0;
+trial_dur = nan([1, n_patts]);
 
 % pat1 = func1 - 4 pixel flashes
 func_order = [1, repmat([2,3], [1,n_bar_patt]), repmat([4,5], [1,n_bar_patt]), repmat([6,7], [1,n_bar_patt])];
@@ -54,12 +55,14 @@ for p = 1:n_patts
     currentExp.function.functionList{p} = pfninfo(f).name;
     load(fullfile(function_folder, matinfo(f).name))
     currentExp.function.functionSize(p) = pfnparam.size;
-    trial_dur = trial_dur + sum(pfnparam.dur);
+    currentExp.function.trial_dur(p) = pfnparam.dur;
+    total_dur = total_dur + pfnparam.dur;
+    trial_dur(p) = pfnparam.dur;
 end
-currentExp.trialDuration = trial_dur;
+currentExp.totalDuration = total_dur;
 currentExp.function.numFunc = num_files;
 
 %% save currentExp structure
-save(fullfile(exp_folder, 'currentExp.mat'),'currentExp');
+save(fullfile(exp_folder, 'currentExp.mat'),'currentExp', 'pattern_order', 'func_order', 'trial_dur');
 
 end

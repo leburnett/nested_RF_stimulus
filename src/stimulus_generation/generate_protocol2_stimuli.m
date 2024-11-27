@@ -31,9 +31,10 @@ function generate_protocol2_stimuli(x, y)
             generate_bar_pos_fns(bar_pos_fn_dir)
     
     % 5 - generate protocol from these components. 
-            create_protocol2(exp_folder)
+           [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder);
     % start with the 4 px - 50% overlap - centred on the [X,Y]
     
+            run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     %       16 patterns generated within the structure: 
     %       results/ patterns/ protocol2/bar_"45" / "X_Y"
     
@@ -41,23 +42,5 @@ function generate_protocol2_stimuli(x, y)
     %       Runs through each pattern 'orientation' ON - forward and flip
     %       direction - then OFF pattern forward and flip - at one speed, then
     %       repeats through the two other speeds.
-    
-    %       14 dps
-    %       0001 pattern - 0001 function
-    %       0001 pattern - 0002 function
-    %       0002 pattern - 0001 function
-    %       0002 pattern - 0002 function
-    %       ...
-    %       28 dps
-    %       0001 pattern - 0003 function
-    %       0001 pattern - 0004 function
-    %       0002 pattern - 0003 function
-    %       0002 pattern - 0004 function
-    %       ...
-    %       56 dps
-    %       0001 pattern - 0005 function
-    %       0001 pattern - 0006 function
-    %       0002 pattern - 0005 function
-    %       0002 pattern - 0006 function
 end 
 
