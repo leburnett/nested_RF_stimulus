@@ -36,7 +36,7 @@ function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_fr
     n_flashes = fl_rows*fl_cols;
 
     % add duration of the stimulus
-    param.dur = n_flashes*flash_dur + (n_flashes-1)*interval_dur;
+    param.dur = (n_flashes*flash_dur + (n_flashes)*interval_dur)*2; %  x2 for ON / OFF
 
     filename = strcat(string(flash_sz_px), 'px_flashes_', string(n_flashes), 'flashes_', string(flash_dur*1000), 'ms_', string(interval_dur*1000), 'ms');
     

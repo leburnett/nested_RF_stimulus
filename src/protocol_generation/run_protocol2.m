@@ -9,7 +9,7 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     % Check the use of this
     userSettings;
     
-    load([exp_folder '\currentExp.mat']);
+    load(fullfile(exp_folder,'currentExp.mat'));
     num_conditions = numel(pattern_order);
     if ~exist(fullfile(exp_folder,'Log Files'),'dir')
         mkdir(exp_folder,'Log Files');
@@ -23,8 +23,8 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     ctlr.setRootDirectory(exp_folder);
     
     %check if log files already present for this experiment
-    assert(~exist([exp_folder '\Log Files\*'],'file'),'unsorted log files present in save folder, remove before restarting experiment\n');
-    assert(~exist([exp_folder '\Results\' fly_name],'dir'),'Results folder already exists with that fly name\n');
+    assert(~exist(fullfile(exp_folder, 'Log Files\*'),'file'),'unsorted log files present in save folder, remove before restarting experiment\n');
+    assert(~exist(fullfile(exp_folder, 'Results\', fly_name),'dir'),'Results folder already exists with that fly name\n');
     
     %finish setting up for experiment
     exp_seconds = currentExp.totalDuration;
