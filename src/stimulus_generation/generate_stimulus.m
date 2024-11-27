@@ -11,13 +11,6 @@ function generate_stimulus(params)
     px_rng = params.px_rng;
     % px_rng_formatted = arrayfun(@(x) sprintf('%02d', x), px_rng, 'UniformOutput', false);
 
-    protocol = params.protocol;
-    if protocol == "protocol1" 
-        patt_save_dir = fullfile(ROOT_DIR, 'results', 'Patterns', protocol);
-    elseif protocol == "protocol2" 
-        patt_save_dir = fullfile(ROOT_DIR, 'Patterns');
-    end
-
     flash_sz_px = params.flash_sz_px;
     overlap = params.overlap;
 
@@ -27,6 +20,7 @@ function generate_stimulus(params)
     % stim_name = strcat('flash_', string(flash_sz_px));
 
     % Directory to save pattern:
+    patt_save_dir = fullfile(ROOT_DIR, 'Patterns');
     if ~isfolder(patt_save_dir)
         mkdir(patt_save_dir);
     end 
@@ -42,11 +36,7 @@ function generate_stimulus(params)
     interval_dur = params.interval_dur; 
     flash_dur = params.flash_dur;
 
-    if protocol == "protocol1" 
-        func_save_dir = fullfile(ROOT_DIR, 'results', 'Functions', protocol);
-    elseif protocol == "protocol2" 
-        func_save_dir = fullfile(ROOT_DIR, 'Functions');
-    end
+    func_save_dir = fullfile(ROOT_DIR, 'Functions');
     if ~isfolder(func_save_dir)
         mkdir(func_save_dir);
     end 
@@ -62,11 +52,7 @@ function generate_stimulus(params)
     params.fl_cols = fl_cols;
    
     % Directory to save parameters:
-    if protocol == "protocol1" 
-        params_save_dir = fullfile(ROOT_DIR, 'results', 'params', protocol);
-    elseif protocol == "protocol2" 
-        params_save_dir = fullfile(ROOT_DIR, 'params');
-    end
+    params_save_dir = fullfile(ROOT_DIR, 'params');
     if ~isfolder(params_save_dir)
         mkdir(params_save_dir);
     end 
