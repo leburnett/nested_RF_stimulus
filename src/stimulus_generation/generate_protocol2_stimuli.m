@@ -1,11 +1,35 @@
-function generate_protocol2_stimuli(x, y)
+function generate_protocol2_stimuli(peak_frames)
     % check that [x,y] from lisa will be in the same register. 1,1 etc and 17,1.
     % x = 1;
     % y = 1;
+    % [1,1] is the bottom left pixel on the screen from the fly's view.
+    % x and y are the coordinates of the pixel of the screen with the
+    % highest response. 
 % _________________________________________________________________________
     px_intensity = [6, 0 , 15];
     px_crop_flash = 30;
     px_crop_bar = 45;
+
+    % Pixel limits of the screen:
+    screen_width_start = 17;
+    screen_width_end = 192;
+    screen_height_start = 1;
+    screen_height_end = 48;
+
+    x,y = frame_to_coord(peak_frames);
+
+    % Warning message if [x,y] is close to the edge of the screen.
+    if x < screen_width_start+px_crop_flash || x > screen_width_end-px_crop_flash
+        warning('x coordinate is close to the edge of the screen. The stimulus will not be centred on the x coordinate.')
+    end 
+
+    if y < screen_height_start+px_crop_flash
+        warning('y coordinate is close to the bottom edge of the screen. The stimulus will not be centred on the y coordinate, consider moving the screen up.')
+    end 
+
+    if y > screen_height_end-px_crop_flash
+        warning('y coordinate is close to the top edge of the screen. The stimulus will not be centred on the y coordinate, consider moving the screen down.')
+    end
     
     % 1 - create experiment folder for protocol 2 
             exp_path = 'C:\matlabroot\nested_RF_protocols\protocol2';

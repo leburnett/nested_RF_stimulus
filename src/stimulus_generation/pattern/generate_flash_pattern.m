@@ -16,7 +16,7 @@ function [n_frames, fl_rows, fl_cols] = generate_flash_pattern(px_intensity, px_
 % going down column one, then column two etc. So frame 2 would have a flash
 % in position [1,1], then frame 3 in position [2,1] etc. This is useful for
 % using the function 'sub2ind' later when making the position function to
-% access these positions. All OFF flashes are ordered first, then all OFF
+% access these positions. All OFF flashes are ordered first, then all ON
 % flashes. 
 % ______________________________________________________________________
 
@@ -108,7 +108,7 @@ function [n_frames, fl_rows, fl_cols] = generate_flash_pattern(px_intensity, px_
     % Visualise the pattern in order.
     % 
     % figure
-    % for i = 1:196 %n_frames
+    % for i = 1:n_frames
     % idx = flash_seq(i)+1;
     % aa = Pats(:, :, idx);
     % imagesc(aa)
