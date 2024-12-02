@@ -15,7 +15,7 @@ function generate_protocol2_stimuli(peak_frames)
 % 'peak_frames' - [n_condition, n_rep, [peak_frame, peak_voltage]]
 
 % _________________________________________________________________________
-    px_intensity = [6, 0 , 15];
+    px_intensity = [6, 0, 15];
     px_crop_flash = 30;
     px_crop_bar = 45;
 
