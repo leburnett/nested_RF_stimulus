@@ -14,7 +14,7 @@ function generate_bar_stimulus_xy(x, y, px_intensity, px_crop, exp_folder)
     end
     
     % Path to the folder with the full field bar stimuli.
-    full_bar_patterns_dir = 'C:\matlabroot\GitHub\nested_RF_stimulus\results\Patterns\protocol2\full_field_bars';
+    full_bar_patterns_dir = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\results\patterns\protocol2\full_field_bars';
     cd(full_bar_patterns_dir)
     
     bar_patts = dir('*.mat');

@@ -1,4 +1,4 @@
-function [x, y] = frame_to_coord(peak_frames, bkg_color, threshold_distance)
+function [x, y] = frame_to_coord(peak_frames, bkg_color, threshold_distance, hemi)
 % Find the [x,y] coordinate of the screen from the identifying which frames 
 % of protocol 1 the cell responded to best.
 
@@ -9,12 +9,15 @@ function [x, y] = frame_to_coord(peak_frames, bkg_color, threshold_distance)
 % flash centroids across all of the peak frames found across the
 % repeitions. Tuple because the first number is for condition 1, 12 pixel
 % flashes, and the second is for condition 2 with pixel flashes.
+% 'hemi' - hemisphere that is being recorded from. 
 %_______________________________________________________________________
 
 %% Load the patterns used: 
-
-% WILL NEED TO UPDATE THIS:
-pattern_path = 'C:\matlabroot\nested_RF_protocols\protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_11-27-24_15-02-95\Patterns';
+if hemi == "left"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_11-27-24_15-02-95\Patterns';
+elseif hemi == "right"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\RHS\protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-02-24_16-35-72\Patterns';
+end 
 cd(pattern_path)
 
 pat1 = dir('0001_*');

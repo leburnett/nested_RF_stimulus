@@ -1,4 +1,4 @@
-function generate_protocol2_stimuli(peak_frames)
+function generate_protocol2_stimuli(peak_frames, hemi)
 % Takes an array containing the frames of the patterns displayed in
 % protocol 1 to which the cell had the strongest voltage response. It then
 % uses these frames to determine the pixel on the screen on which to centre
@@ -29,7 +29,7 @@ function generate_protocol2_stimuli(peak_frames)
     % stimuli can be for condition 1 (12 pixel squares) and condition 2 (6 pixel squares).
     threshold_distance = [200, 200]; %[30, 15];
 
-    [x, y] = frame_to_coord(peak_frames, px_intensity(1), threshold_distance);
+    [x, y] = frame_to_coord(peak_frames, px_intensity(1), threshold_distance, hemi);
 
     % Warning message if [x,y] is close to the edge of the screen.
     if x < screen_width_start+px_crop_flash || x > screen_width_end-px_crop_flash
@@ -45,7 +45,7 @@ function generate_protocol2_stimuli(peak_frames)
     end
     
     % 1 - create experiment folder for protocol 2 
-            exp_path = 'C:\matlabroot\nested_RF_protocols\protocol2';
+            exp_path = 'C:\matlabroot\G4_Protocols\nested_RF_protocol2';
             exp_name = string(datetime('now','TimeZone','local','Format','yyyy_MM_dd_HH_mm'));
             exp_folder = create_exp_dir_G4(exp_name, exp_path);
     
