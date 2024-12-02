@@ -1,10 +1,19 @@
 function generate_protocol2_stimuli(peak_frames)
-    % check that [x,y] from lisa will be in the same register. 1,1 etc and 17,1.
-    % x = 1;
-    % y = 1;
-    % [1,1] is the bottom left pixel on the screen from the fly's view.
-    % x and y are the coordinates of the pixel of the screen with the
-    % highest response. 
+% Takes an array containing the frames of the patterns displayed in
+% protocol 1 to which the cell had the strongest voltage response. It then
+% uses these frames to determine the pixel on the screen on which to centre
+% the stimuli that are presented in this following protocol. 
+
+% This script calls the functions that generate the 4 pixel, 50%
+% overlapping flash stimulus and also the moving bar stimulus.
+
+% It creates the position functions for these stimuli and runs the
+% protocol. 
+
+% Inputs:
+% ______
+% 'peak_frames' - [n_condition, n_rep, [peak_frame, peak_voltage]]
+
 % _________________________________________________________________________
     px_intensity = [6, 0 , 15];
     px_crop_flash = 30;
@@ -16,7 +25,11 @@ function generate_protocol2_stimuli(peak_frames)
     screen_height_start = 1;
     screen_height_end = 48;
 
-    x,y = frame_to_coord(peak_frames);
+    % threshold_distance - how many pixels apart the centre of the flash
+    % stimuli can be for condition 1 (12 pixel squares) and condition 2 (6 pixel squares).
+    threshold_distance = [200, 200]; %[30, 15];
+
+    [x, y] = frame_to_coord(peak_frames, px_intensity(1), threshold_distance);
 
     % Warning message if [x,y] is close to the edge of the screen.
     if x < screen_width_start+px_crop_flash || x > screen_width_end-px_crop_flash

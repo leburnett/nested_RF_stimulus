@@ -1,11 +1,14 @@
 function [x, y] = frame_to_coord(peak_frames, bkg_color, threshold_distance)
-% Find the [x,y] coordinate of the screen from the peak frame responses.
+% Find the [x,y] coordinate of the screen from the identifying which frames 
+% of protocol 1 the cell responded to best.
 
 % 'peak_frames' - [n_condition, n_rep, [peak_frame, peak_voltage]]
-% bkg_color - pixel intensityvalue used as the background color in the
+% bkg_color - int - pixel intensityvalue used as the background color in the
 % patterns. 
-% 'threshold_distance' the maximum desired distance (in pixels) between
-% flash centroids across all of the peak frames.
+% 'threshold_distance' - tuple - the maximum desired distance (in pixels) between
+% flash centroids across all of the peak frames found across the
+% repeitions. Tuple because the first number is for condition 1, 12 pixel
+% flashes, and the second is for condition 2 with pixel flashes.
 %_______________________________________________________________________
 
 %% Load the patterns used: 
@@ -22,7 +25,7 @@ pat2 = dir('0002_*');
 pattern2 = load(pat2.name, 'pattern');
 allf2 = pattern2.pattern.Pats;
 
-%% print the variances in the voltage and frame with the peak response per condition.
+%% Print the variances in the peak voltage across the reps per condition.
 
 % Variance in peak voltage between reps for condition 1.
 varV1 = var(peak_frames(1, :, 2));
@@ -31,19 +34,12 @@ disp(strcat("Variance in voltage across reps for condition 1: ", string(varV1)))
 varV2 = var(peak_frames(2, :, 2));
 disp(strcat("Variance in voltage across reps for condition 2: ", string(varV2)))
 
-% Variance in peak frame between reps for condition 1.
-varF1 = var(peak_frames(1, :, 1));
-disp(strcat("Variance in peak frame across reps for condition 1: ", string(varF1)))
-% Variance in peak frame between reps for condition 2.
-varF2 = var(peak_frames(2, :, 1));
-disp(strcat("Variance in peak frame across reps for condition 2: ", string(varF2)))
-
 %% Find the centre coordinate of the flash that was presented during the peak frame.
 
 n_reps = numel(peak_frames(1, :, 1));
 
 % Go through each rep - extract the frame that was presented - find the
-% position of the flash and find the centre of the flash.
+% centre of the flash.
 coords = zeros(2, n_reps, 2);
 
 for c = 1:2 % per condition
@@ -69,10 +65,9 @@ end
 % Determine whether any of the central points are further than
 % 'threshold_distance' away from the other centroids. 
 % If there are 'outlier' points, remove them and find the middle point of
-% the rest of the points to get [x,y]. 
+% the remaining points to get [x,y]. 
 
 % Should I do this for condition 1, then condition 2, or altogether????????????
-
 % ________________________________________________________________________
 
 for i = 1:2
@@ -119,7 +114,9 @@ end
 dist_centroids = pdist2(centroid1, centroid2);
 disp(['Distance between centroids from condition 1 & 2: ', num2str(dist_centroids), ' pixels.'])
 
+% Take the mean of the centroids found for condition 1 and condition 2.
 x = mean(centroid1(1), centroid2(1));
 y = mean(centroid1(2), centroid2(2));
+disp(['Final coordinate to centre stimuli on: [', num2str(x), ',', num2str(y), ']'])
 
 end 

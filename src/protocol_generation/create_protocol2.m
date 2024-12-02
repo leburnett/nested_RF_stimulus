@@ -3,12 +3,9 @@ function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder)
 %% check for correct folders
 pattern_folder = fullfile(exp_folder, 'Patterns');
 function_folder = fullfile(exp_folder, 'Functions');
-AO_folder = fullfile(exp_folder, 'Analog Output Functions');
 
 assert(exist(pattern_folder,'dir')==7,'did not detect pattern folder')
 assert(exist(function_folder,'dir')==7,'did not detect position function folder')
-assert(exist(AO_folder,'dir')==7,'did not detect AO function folder')
-
 
 %% read patterns
 matinfo = dir(fullfile(pattern_folder, "*.mat"));
