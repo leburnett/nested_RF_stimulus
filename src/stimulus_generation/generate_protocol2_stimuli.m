@@ -29,7 +29,7 @@ function generate_protocol2_stimuli(peak_frames)
     % stimuli can be for condition 1 (12 pixel squares) and condition 2 (6 pixel squares).
     threshold_distance = [200, 200]; %[30, 15];
 
-    [x, y] = frame_to_coord(peak_frames, px_intensity(1), threshold_distance);
+    [x, y, on_off] = frame_to_coord(peak_frames, px_intensity(1), threshold_distance);
 
     % Warning message if [x,y] is close to the edge of the screen.
     if x < screen_width_start+px_crop_flash || x > screen_width_end-px_crop_flash
@@ -51,10 +51,10 @@ function generate_protocol2_stimuli(peak_frames)
     
     % 2 - create 4 pixel flash stimuli with 50% overlapping grid, centred on [X,Y]
     % - this makes both the patterns and the functions for the flash.         
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, exp_folder)
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, exp_folder)
     
     % 3 - create patterns with bar stimulus centred on [x,y] 
-            generate_bar_stimulus_xy(x, y, px_intensity, px_crop_bar, exp_folder)
+            generate_bar_stimulus_xy(x, y, px_intensity, px_crop_bar, on_off, exp_folder)
     
     % 4 - generate cropped bar position functions.
             bar_pos_fn_dir = fullfile(exp_folder, 'Functions');

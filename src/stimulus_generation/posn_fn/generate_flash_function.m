@@ -1,4 +1,4 @@
-function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_frame, interval_dur, flash_dur, func_save_dir)
+function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_frame, interval_dur, flash_dur, on_off, func_save_dir)
 
 % Generate position function for nested RF flash stimuli.
 
@@ -13,7 +13,7 @@ function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_fr
     % Determine the order in which to display the flashes.
     flash_seq = generate_flash_order(fl_rows, fl_cols);
     
-    func = generate_func_for_flash(bkg_frame, interval_dur, flash_seq, flash_dur);
+    func = generate_func_for_flash(bkg_frame, interval_dur, flash_seq, flash_dur, on_off);
     
     % Output checking metrics:
     n_frames_func = numel(func);
@@ -38,7 +38,7 @@ function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_fr
     % add duration of the stimulus
     param.dur = (n_flashes*flash_dur + (n_flashes)*interval_dur)*2; %  x2 for ON / OFF
 
-    filename = strcat(string(flash_sz_px), 'px_flashes_', string(n_flashes), 'flashes_', string(flash_dur*1000), 'ms_', string(interval_dur*1000), 'ms');
+    filename = strcat(string(flash_sz_px), 'px_flashes_', string(n_flashes), 'flashes_', string(flash_dur*1000), 'ms_', string(interval_dur*1000), 'ms_', on_off);
     
     save_function_G4(func, param, func_save_dir, filename);
 

@@ -40,8 +40,10 @@ function generate_stimulus(params)
     if ~isfolder(func_save_dir)
         mkdir(func_save_dir);
     end 
+
+    on_off = params.on_off;
     
-    generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_frame, interval_dur, flash_dur, func_save_dir);
+    generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_frame, interval_dur, flash_dur, on_off, func_save_dir);
     
     % _________________________________________________________________________
     

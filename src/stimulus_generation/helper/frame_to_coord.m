@@ -1,4 +1,4 @@
-function [x, y] = frame_to_coord(peak_frames, bkg_color, threshold_distance)
+function [x, y, on_off] = frame_to_coord(peak_frames, bkg_color, threshold_distance)
 % Find the [x,y] coordinate of the screen from the identifying which frames 
 % of protocol 1 the cell responded to best.
 
@@ -41,6 +41,8 @@ n_reps = numel(peak_frames(1, :, 1));
 % Go through each rep - extract the frame that was presented - find the
 % centre of the flash.
 coords = zeros(2, n_reps, 2);
+on_off_array = NaN(2, n_reps); % array to store whether the flash that 
+% elicited the maximal response was an ON or an OFF flash. 
 
 for c = 1:2 % per condition
     for r = 1:n_reps % per rep
@@ -54,10 +56,25 @@ for c = 1:2 % per condition
         end 
 
         [a, b] = find(f~=bkg_color);
+        max_col = max(f);
+        if max_col>bkg_color % contains pixels higher than bkg - ON 
+            on_off_array(c, r) = 1;
+        else 
+            on_off_array(c, r) = 0;
+        end 
         coords(c,r,1) = ceil(median(a));
         coords(c,r,2) = ceil(median(b));
     end 
 end 
+
+% Determine whether the cell is responding to on / off stimuli.
+mean_on_off = mean(mean(on_off_array));
+disp(["Mean on-off score:", mean_on_off])
+if mean_on_off > 0.5
+    on_off = "on";
+else 
+    on_off = "off";
+end
 
 %% Find the euclidean distance between the centre of the flashes that were
 % presented during the 'peak frames'. 

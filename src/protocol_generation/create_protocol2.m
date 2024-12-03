@@ -14,7 +14,7 @@ patinfo = dir(fullfile(pattern_folder, '*.pat'));
 num_files = length({patinfo.name});
 
 flash_patt = 1;
-bar_patt = 2:17;
+bar_patt = 2:num_files;
 n_bar_patt = numel(bar_patt);
 n_dir = 2;
 n_speeds = 3;

@@ -39,6 +39,7 @@ function generate_protocol1_stimuli(hemi)
         params.bkg_frame = 1; % The background frame = frame 1 in the pattern:
         params.interval_dur = 0.05; % duration of interval background screen in seconds.
         params.flash_dur = 0.2; % duration of flash in seconds.
+        params.on_off = "both"; % For protocol 1, show both ON and OFF flashes.
         
         generate_stimulus(params)
     

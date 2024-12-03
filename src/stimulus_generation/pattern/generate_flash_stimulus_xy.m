@@ -1,4 +1,4 @@
-function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, exp_folder)
+function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp_folder)
 % Generate the patterns and functions for the 4 x 4 pixel flashes - on a
 % 50% overlapping grid of size 30 x 30 pixels, centred on the 'peak' of 
 % responses to Protocol 1 [x,y]. 
@@ -21,6 +21,7 @@ function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, exp_folder)
     params.bkg_frame = 1; % The background frame = frame 1 in the pattern:
     params.interval_dur = 0.05; % duration of interval background screen in seconds.
     params.flash_dur = 0.2; % duration of flash in seconds.
+    params.on_off = on_off;
 
     params.root_dir = exp_folder;
     

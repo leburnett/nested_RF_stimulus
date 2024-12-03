@@ -1,4 +1,4 @@
-function generate_bar_stimulus_xy(x, y, px_intensity, px_crop, exp_folder)
+function generate_bar_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp_folder)
 % Generate inset bar patterns centred on [X, Y]
     
     % Make patterns of bars moving within 45px areas.
@@ -18,10 +18,17 @@ function generate_bar_stimulus_xy(x, y, px_intensity, px_crop, exp_folder)
     cd(full_bar_patterns_dir)
     
     bar_patts = dir('*.mat');
-    n_patts = height(bar_patts);
+
+    if on_off == "on"
+        patt_ids = 1:1:8;
+    elseif on_off == "off"
+        patt_ids = 9:1:16;
+    elseif on_off == "both"
+        patt_ids = 1:1:16;
+    end 
     
     % Generate 'cropped' bar stimuli centred on the [x,y] coordinates.
-    for p = 1:n_patts
+    for p = patt_ids
         fname = bar_patts(p).name;
         patt_file = fullfile(bar_patts(p).folder, fname);
         patName = strcat(fname(6:end-14), 'CROP', string(px_crop), '_X', string(x), '_Y', string(y));

@@ -18,6 +18,6 @@ function generate_static_pos_fn(save_dir, dur_t)
     
     %% save function
     pfnparam.ID = get_function_ID('pfn',save_dir);
-    filename = strcat(string(dur_t), 's_static_frame1_24frames_');
+    filename = strcat(string(dur_t), 's_static_frame1_24frames');
     save_function_G4(func, pfnparam, save_dir, filename);
 end 
