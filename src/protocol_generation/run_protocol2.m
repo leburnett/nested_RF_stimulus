@@ -10,8 +10,9 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     
     load(fullfile(exp_folder,'currentExp.mat'));
     num_conditions = numel(pattern_order);
-    if ~exist(fullfile(exp_folder,'Log Files'),'dir')
-        mkdir(exp_folder,'Log Files');
+    log_folder = fullfile(exp_folder,'Log Files');
+    if ~exist(log_folder,'dir')
+        mkdir(log_folder);
     end
     
     %% Open new Panels controller instance
@@ -49,7 +50,10 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     exp_name = exp_folder{1};
     exp_name = exp_name(end-15:end);
     save(fullfile(exp_folder, strcat('metadata_', exp_name, '.mat')), 'metadata');
-   
+
+    % Convert TDMS files to mat file.
+    G4_TDMS_folder2struct(log_folder)
+
     ctlr.close()
     ctlr.stopDisplay()
     disp('finished');
