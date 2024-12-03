@@ -47,6 +47,7 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     ctlr.stopLog('showTimeoutMessage', true);
 
     % save metadata
+    exp_folder = char(exp_folder);
     exp_name = exp_folder(end-15:end);
     save(fullfile(exp_folder, strcat('metadata_', exp_name, '.mat')), 'metadata');
 

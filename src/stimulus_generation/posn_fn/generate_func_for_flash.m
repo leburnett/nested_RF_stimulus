@@ -58,7 +58,7 @@ if on_off == "off"
 elseif on_off == "on"
 
     for fl = 1:n_flashes
-        frame_idx = flash_seq(fl-n_flashes)+n_flashes+1; 
+        frame_idx = flash_seq(fl)+n_flashes+1; 
         array_to_add = flash_array*frame_idx;
         func = cat(2, func, array_to_add, bkg_array);
     end 
