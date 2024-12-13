@@ -1,4 +1,4 @@
-function generate_protocol2(peak_frame, on_off)
+function generate_protocol2(peak_frame)
 % Takes an array containing the frames of the patterns displayed in
 % protocol 1 to which the cell had the strongest voltage response. It then
 % uses these frames to determine the pixel on the screen on which to centre
@@ -25,24 +25,18 @@ function generate_protocol2(peak_frame, on_off)
     screen_height_start = 1;
     screen_height_end = 48;
 
-    if on_off == 1
-        on_off = 'on';
-    elseif on_off == 0
-        on_off = 'off';
-    end 
-
-    [x, y] = patt_frame_to_coord(peak_frame, px_intensity(1));
+    [x, y, on_off] = patt_frame_to_coord(peak_frame, px_intensity(1));
 
     % Warning message if [x,y] is close to the edge of the screen.
-    if x < screen_width_start+px_crop_flash || x > screen_width_end-px_crop_flash
+    if x < screen_width_start+(px_crop_flash/2) || x > screen_width_end-(px_crop_flash/2)
         warning('x coordinate is close to the edge of the screen. The stimulus will not be centred on the x coordinate.')
     end 
 
-    if y < screen_height_start+px_crop_flash
+    if y < screen_height_start+(px_crop_flash/2)
         warning('y coordinate is close to the bottom edge of the screen. The stimulus will not be centred on the y coordinate, consider moving the screen up.')
     end 
 
-    if y > screen_height_end-px_crop_flash
+    if y > screen_height_end-(px_crop_flash/2)
         warning('y coordinate is close to the top edge of the screen. The stimulus will not be centred on the y coordinate, consider moving the screen down.')
     end
     
