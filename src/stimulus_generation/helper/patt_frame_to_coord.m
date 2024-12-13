@@ -33,8 +33,8 @@ if ~isnan(peakf)
     else 
         on_off = 'off';
     end 
-    x = int16(median(a));
-    y = int16(median(b));
+    y = int16(median(a));
+    x = int16(median(b));
 end
 
 disp(['Final coordinate to centre stimuli on: [', num2str(x), ',', num2str(y), '] and ', on_off, ' flashes.'])
