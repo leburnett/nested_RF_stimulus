@@ -4,7 +4,7 @@ function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp_fol
 % responses to Protocol 1 [x,y]. 
     
     [disp_y1, disp_y2, disp_x1, disp_x2] = centeredSquare(x, y, px_crop);
-    fprintf('Square bounds: [%d, %d, %d, %d]\n', disp_y1, disp_y2, disp_x1, disp_x2);
+    fprintf('Square bounds of area to present stimulus within [y1, y2, x1, x2]: [%d, %d, %d, %d]\n', disp_y1, disp_y2, disp_x1, disp_x2);
     
     % disp_x1 = 17;
     % disp_x2 = 46;
