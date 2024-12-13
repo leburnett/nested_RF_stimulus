@@ -51,22 +51,26 @@ for c = 1:2 % per condition
     for r = 1:n_reps % per rep
         peakf = peak_frames(c, r, 1);
 
-        % Find the coord of the centre of the flash.
-        if c == 1
-            f = allf1(:, :, peakf);
-        elseif c == 2
-            f = allf2(:, :, peakf);
-        end 
+        % If the peak frame found is not NaN.
+        if ~isnan(peakf)
+            % Find the coord of the centre of the flash.
+            if c == 1
+                f = allf1(:, :, peakf);
+            elseif c == 2
+                f = allf2(:, :, peakf);
+            end 
+    
+            [a, b] = find(f~=bkg_color);
+            max_col = max(f);
+            if max_col>bkg_color % contains pixels higher than bkg - ON 
+                on_off_array(c, r) = 1;
+            else 
+                on_off_array(c, r) = 0;
+            end 
+            coords(c,r,1) = ceil(median(a));
+            coords(c,r,2) = ceil(median(b));
+        end
 
-        [a, b] = find(f~=bkg_color);
-        max_col = max(f);
-        if max_col>bkg_color % contains pixels higher than bkg - ON 
-            on_off_array(c, r) = 1;
-        else 
-            on_off_array(c, r) = 0;
-        end 
-        coords(c,r,1) = ceil(median(a));
-        coords(c,r,2) = ceil(median(b));
     end 
 end 
 
@@ -135,8 +139,8 @@ dist_centroids = pdist2(centroid1, centroid2);
 disp(['Distance between centroids from condition 1 & 2: ', num2str(dist_centroids), ' pixels.'])
 
 % Take the mean of the centroids found for condition 1 and condition 2.
-x = mean(centroid1(1), centroid2(1));
-y = mean(centroid1(2), centroid2(2));
+x = int16(mean([centroid1(1), centroid2(1)]));
+y = int16(mean([centroid1(2), centroid2(2)]));
 disp(['Final coordinate to centre stimuli on: [', num2str(x), ',', num2str(y), ']'])
 
 end 

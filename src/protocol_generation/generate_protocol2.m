@@ -1,4 +1,4 @@
-function generate_protocol2_stimuli(peak_frame, on_off)
+function generate_protocol2(peak_frame, on_off)
 % Takes an array containing the frames of the patterns displayed in
 % protocol 1 to which the cell had the strongest voltage response. It then
 % uses these frames to determine the pixel on the screen on which to centre
