@@ -17,7 +17,8 @@ function generate_protocol2(peak_frame)
 % _________________________________________________________________________
     px_intensity = [6, 0, 15];
     px_crop_flash = 30;
-    px_crop_bar = 45;
+    px_crop_bar = 30;
+    int_dur = 0.2;
 
     % Pixel limits of the screen:
     screen_width_start = 17;
@@ -46,8 +47,15 @@ function generate_protocol2(peak_frame)
             exp_folder = create_exp_dir_G4(exp_name, exp_path);
     
     % 2 - create 4 pixel flash stimuli with 50% overlapping grid, centred on [X,Y]
-    % - this makes both the patterns and the functions for the flash.         
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, exp_folder)
+    % - this makes both the patterns and the functions for the flash.  
+            
+        % 28 dps - slower
+            flash_dur_slow = 0.268;
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_slow, int_dur, exp_folder)
+    
+        % 56 dps - faster
+            flash_dur_fast = 0.134;
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_fast, int_dur, exp_folder)
     
     % 3 - create patterns with bar stimulus centred on [x,y] 
             generate_bar_stimulus_xy(x, y, px_intensity, px_crop_bar, on_off, exp_folder)

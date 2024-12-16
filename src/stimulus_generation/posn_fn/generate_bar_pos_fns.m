@@ -3,7 +3,7 @@ function generate_bar_pos_fns(save_dir)
 % Create functions for the forward and 'flip' direction. 
 % 3 different speeds - 14 dps, 28 dps and 56 dps.
 
-    for dps = [14, 28, 56]
+    for dps = [28, 56]
     
         if dps == 14
             dur = 6.08;
