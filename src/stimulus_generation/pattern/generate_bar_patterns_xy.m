@@ -23,10 +23,10 @@ arena_px_centre_w = arena_px_w/2;
 % 45 pixel area total - therefore +/- 22 either side. 
 % [2:46, 74:118]
 px_side = (px_crop-1)/2;
-crop_h_st = arena_px_centre_h-px_side; 
-crop_h_end = arena_px_centre_h+px_side;
-crop_w_st = arena_px_centre_w-px_side;
-crop_w_end = arena_px_centre_w+px_side;
+crop_h_st = int8(arena_px_centre_h-px_side); 
+crop_h_end = int8(arena_px_centre_h+px_side);
+crop_w_st = int8(arena_px_centre_w-px_side);
+crop_w_end = int8(arena_px_centre_w+px_side);
 px_rng = [crop_h_st, crop_h_end, crop_w_st, crop_w_end];
 
 % Fill in the location with the central part of pattern. 
