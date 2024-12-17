@@ -1,7 +1,7 @@
 function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
 % Run protocol 2 
     %% Experiment metadata from user input:
-    metadata = get_input_parameters();
+    % metadata = get_input_parameters();
     n_reps = 3;
     
     %% set up for experiment
@@ -52,7 +52,7 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     % save metadata
     exp_folder = char(exp_folder);
     exp_name = exp_folder(end-15:end);
-    save(fullfile(exp_folder, strcat('metadata_', exp_name, '.mat')), 'metadata');
+    % save(fullfile(exp_folder, strcat('metadata_', exp_name, '.mat')), 'metadata');
 
     ctlr.stopDisplay()
     ctlr.close()

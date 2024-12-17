@@ -17,7 +17,8 @@ function generate_protocol2(peak_frame)
 % _________________________________________________________________________
     px_intensity = [6, 0, 15];
     px_crop_flash = 30;
-    px_crop_bar = 45;
+    px_crop_bar = 30;
+    int_dur = 0.25;
 
     % Pixel limits of the screen:
     screen_width_start = 17;
@@ -46,15 +47,24 @@ function generate_protocol2(peak_frame)
             exp_folder = create_exp_dir_G4(exp_name, exp_path);
     
     % 2 - create 4 pixel flash stimuli with 50% overlapping grid, centred on [X,Y]
-    % - this makes both the patterns and the functions for the flash.         
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, exp_folder)
+    % - this makes both the patterns and the functions for the flash.  
+            
+        % 28 dps - slower
+            flash_dur_slow = 0.160;
+            int_dur_slow = 0.340; % total = 500ms
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
+    
+        % 56 dps - faster
+            flash_dur_fast = 0.08;
+            int_dur_fast = 0.17; % total = 250ms
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_fast, int_dur_fast, exp_folder)
     
     % 3 - create patterns with bar stimulus centred on [x,y] 
             generate_bar_stimulus_xy(x, y, px_intensity, px_crop_bar, on_off, exp_folder)
     
     % 4 - generate cropped bar position functions.
             bar_pos_fn_dir = fullfile(exp_folder, 'Functions');
-            generate_bar_pos_fns(bar_pos_fn_dir)
+            generate_bar_pos_fns(bar_pos_fn_dir, px_crop_bar)
     
     % 5 - generate 'CurrentExp' from these components. 
            [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder);

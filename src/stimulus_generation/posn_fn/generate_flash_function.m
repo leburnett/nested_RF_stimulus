@@ -8,6 +8,8 @@ function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_fr
 % the first frame. 
 % 'interval_dur' = duration of interval background screen in seconds.
 % 'flash_dur' = duration of flash in seconds.
+% 'on_off' = whether to present bright "on", dark "off" or both "both"
+% flashes.
 % ______________________________________________________________________
 
     % Determine the order in which to display the flashes.
@@ -36,7 +38,7 @@ function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_fr
     n_flashes = fl_rows*fl_cols;
 
     % add duration of the stimulus
-    param.dur = (n_flashes*flash_dur + (n_flashes)*interval_dur)*2; %  x2 for ON / OFF
+    param.dur = (numel(func)*2)/1000; % func consists of 1 element every 2ms. n_elements*2 = time in ms. Divide by 100 to get time in seconds. %(n_flashes*flash_dur + (n_flashes)*interval_dur); 
 
     filename = strcat(string(flash_sz_px), 'px_flashes_', string(n_flashes), 'flashes_', string(flash_dur*1000), 'ms_', string(interval_dur*1000), 'ms_', on_off);
     

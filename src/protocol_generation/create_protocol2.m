@@ -13,11 +13,11 @@ patinfo = dir(fullfile(pattern_folder, '*.pat'));
 % num_files is the number of patterns.
 num_files = length({patinfo.name});
 
-flash_patt = 1;
-bar_patt = 2:num_files;
+flash_patt = [1, 2];
+bar_patt = flash_patt(end)+1:num_files;
 n_bar_patt = numel(bar_patt);
 n_dir = 2;
-n_speeds = 3;
+n_speeds = 2;
 % 2 reps = forward and reverse direction
 % 3 reps = n_speeds
 pattern_order = [flash_patt, repmat(repelem(bar_patt, n_dir), [1, n_speeds])];
@@ -43,8 +43,11 @@ num_files = length({pfninfo.name});
 total_dur = 0;
 trial_dur = nan([1, n_patts]);
 
-% pat1 = func1 - 4 pixel flashes
-func_order = [1, repmat([2,3], [1,n_bar_patt]), repmat([4,5], [1,n_bar_patt]), repmat([6,7], [1,n_bar_patt])];
+fns_flash = [1,2];
+fns_28dps = [3,4];
+fns_56dps = [5,6];
+
+func_order = [fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_56dps, [1,n_bar_patt])];
 
 for p = 1:n_patts
     f = func_order(p);

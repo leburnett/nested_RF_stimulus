@@ -1,11 +1,11 @@
 function generate_bar_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp_folder)
 % Generate inset bar patterns centred on [X, Y]
     
-    % Make patterns of bars moving within 45px areas.
+    % Make patterns of bars moving within 'px_crop' pixel areas.
     % x = 1;
     % y = 1;
     % px_intensity = [6, 0, 15];
-    % px_crop = 45;
+    % px_crop = 30;
     % coord_str = strcat(string(x), '_', string(y));
     
     save_dir = strcat(exp_folder, '\patterns');

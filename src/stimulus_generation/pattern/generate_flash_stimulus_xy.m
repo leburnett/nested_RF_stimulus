@@ -1,7 +1,18 @@
-function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp_folder)
+function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, flash_dur, int_dur, exp_folder)
 % Generate the patterns and functions for the 4 x 4 pixel flashes - on a
 % 50% overlapping grid of size 30 x 30 pixels, centred on the 'peak' of 
-% responses to Protocol 1 [x,y]. 
+% responses to Protocol 1 [x,y].
+
+% x - x coordinate of pixel (horizontally across screen) to centre stimulus
+% on. 
+% y - y coordinate of pixel (vertically across screen) to centre stimulus
+% on. 
+% px_intensity - [background intensity, high intensity, low intensity] - [6, 15, 0]
+% px_crop - number of pixels square to present stimuli within.
+% on_off - 'on' for bright flashes, 'off' for dark flashes.
+% flash_dur - duration of flash in seconds (0.2 = 200ms)
+% int_dur - duration of interval between flashes in seconds.
+% exp_folder - 
     
     [disp_y1, disp_y2, disp_x1, disp_x2] = centeredSquare(x, y, px_crop);
     fprintf('Square bounds of area to present stimulus within [y1, y2, x1, x2]: [%d, %d, %d, %d]\n', disp_y1, disp_y2, disp_x1, disp_x2);
@@ -19,8 +30,8 @@ function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp_fol
     params.protocol = 'protocol2';
     
     params.bkg_frame = 1; % The background frame = frame 1 in the pattern:
-    params.interval_dur = 0.05; % duration of interval background screen in seconds.
-    params.flash_dur = 0.2; % duration of flash in seconds.
+    params.interval_dur = int_dur; % duration of interval background screen in seconds.
+    params.flash_dur = flash_dur; % duration of flash in seconds.
     params.on_off = on_off;
 
     params.root_dir = exp_folder;
