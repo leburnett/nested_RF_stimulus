@@ -81,8 +81,24 @@ for i = 1:48
     data{i, 3} = v_data(idxs3(i):idxs3(i+1)-1);
 end 
 
+% Add 4th column for mean.
 
+for j = 1:height(data)
 
+    d1 = data{j, 1};
+    n_per_col(1) = numel(d1);
+    d2 = data{j, 2};
+    n_per_col(2) = numel(d2);
+    d3 = data{j, 3};
+    n_per_col(3) = numel(d3);
+
+    min_val = min(n_per_col);
+
+    d = vertcat(d1(1:min_val), d2(1:min_val), d3(1:min_val));
+    mean_resp = nanmean(d);
+
+    data{j, 4} = mean_resp;
+end 
 
 %% PLOT
 
@@ -99,48 +115,101 @@ radius = 0.35; % Normalized radius of the circle
 plot_order= [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
 
 %% Create the figure
-figure;
 
-% Loop to create subplots
-for i = 1:numPlots
-    % Compute subplot center position in normalized units
-    x = centerX + radius * cos(theta(i)); % X-coordinate
-    y = centerY + radius * sin(theta(i)); % Y-coordinate
+max_v = zeros(numPlots, 3);
+
+for sp = 1:3
+
+    figure;
+
+    % Loop to create subplots
+    for i = 1:numPlots
+
+        % Compute subplot center position in normalized units
+        x = centerX + radius * cos(theta(i)); % X-coordinate
+        y = centerY + radius * sin(theta(i)); % Y-coordinate
+        
+        % Define the size of each subplot
+        subplotWidth = 0.15; % Normalized width
+        subplotHeight = 0.15; % Normalized height
+        
+        % Define position of subplot [x, y, width, height]
+        subplotPosition = [x - subplotWidth/2, y - subplotHeight/2, subplotWidth, subplotHeight];
+        
+        % Create the axes at the specified position
+        ax = axes('Position', subplotPosition);
     
-    % Define the size of each subplot
-    subplotWidth = 0.15; % Normalized width
-    subplotHeight = 0.15; % Normalized height
+        % plot data for each rep
+        d_idx = plot_order(i) + 16*(sp-1);
     
-    % Define position of subplot [x, y, width, height]
-    subplotPosition = [x - subplotWidth/2, y - subplotHeight/2, subplotWidth, subplotHeight];
+        for r = 1:4
+            d2plot = data{d_idx, r}*10;
+            x_vals = 1:numel(d2plot);
     
-    % Create the axes at the specified position
-    ax = axes('Position', subplotPosition);
-
-    % plot data for each rep
-    d_idx = plot_order(i);
-
-    for r = 1:3
-        d2plot = data{d_idx, r}*10;
-        x = 1:numel(d2plot);
-
-        if r ==1 
-            % Plot median voltage acrss entire recording in background. 
-            plot(ax, [1 x(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1) 
-            hold on
+            if r ==1 
+                % Plot median voltage acrss entire recording in background. 
+                plot(ax, [1 x_vals(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1) 
+                hold on
+            end 
+    
+            if r<4
+                plot(ax, x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
+            else 
+                plot(ax, x_vals, d2plot, 'Color', 'k', 'LineWidth', 1.2);
+            end
+    
         end 
-
-        plot(ax, x, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
-    end 
-
-    ylim([-80 -10])
     
-    % Turn off the axes for better visualization
-    axis(ax, 'off');
-end
+        ylim([-80 -10])
 
-f = gcf;
-f.Position = [303 78 961 969];
+        max_rep_voltage = max(data{d_idx, 4}*10);
+        max_v(i, sp) = max_rep_voltage;
+
+        % Add a text annotation in the bottom-left corner
+        text(ax, x_vals(end)*0.75, median_voltage*1.2, sprintf('%.2f', max_rep_voltage), 'FontSize', 8, 'Color', 'k');
+        
+        % Turn off the axes for better visualization
+        axis(ax, 'off');
+    end
+
+    if sp == 1
+        sgtitle('14 dps - 4 pixel bar stimuli - 45 pix square')
+    elseif sp == 2
+        sgtitle('28 dps - 4 pixel bar stimuli - 45 pix square')
+    elseif sp == 3 
+        sgtitle('56 dps - 4 pixel bar stimuli - 45 pix square')
+    end 
+    
+    f = gcf;
+    f.Position = [303 78 961 969];
+
+end 
+
+
+%% Plot heat map of the max voltage reached during each rep. 
+
+figure; imagesc(max_v); hcb = colorbar;
+cm_inferno=inferno(1000);
+colormap(cm_inferno)
+ax_c= gca;
+ax_c.TickDir = 'out';
+ax_c.LineWidth = 1;
+ax_c.FontSize = 12; 
+box off
+
+yticks([1,5,9, 13])
+yticklabels({'0', '90', '180', '270'});
+ylabel('Direction - deg')
+
+xticks([1,2,3])
+xticklabels({'14', '28', '56'})
+xlabel('Speed - dps')
+
+colorTitleHandle = get(hcb,'Title');
+set(colorTitleHandle ,'String','Max voltage (mV)');
+
+f2 = gcf;
+f2.Position = [620   386   190   581];
 
 
 
