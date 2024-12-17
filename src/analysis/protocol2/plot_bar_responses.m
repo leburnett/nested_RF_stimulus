@@ -8,10 +8,14 @@ median_voltage = median(v_data)*10;
 
 % Manually finding the timepoints at which the stimuli occur. 
 
-% Rep 1
-rep1_rng = [1959080, 5329750];
-rep2_rng = [7287720, 10656500];
-rep3_rng = [12615800, 15984550]; 
+% 12_12_12
+% rep1_rng = [1959080, 5329750];
+% rep2_rng = [7287720, 10656500];
+% rep3_rng = [12615800, 15984550]; 
+
+rep1_rng = [1958950, 5329650];
+rep2_rng = [7287040, 10657500];
+rep3_rng = [12615000, 15984300]; 
 
 % 16 directions within each rep. 
 
@@ -33,6 +37,7 @@ all_idxs = [r1_st, r1_nd];
 idxs = sort(all_idxs);
 
 % TEST
+% a = Log.ADC.Volts(1, :);
 % figure; plot(a)
 % hold on
 % for i = 1:49
