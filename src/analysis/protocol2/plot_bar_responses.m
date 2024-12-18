@@ -1,5 +1,6 @@
 
-% Analysing responses to bar stimuli
+% Analysing responses to bar stimuli - Jin Yong ephys data from T4T5 cells
+% Dec 2024. 
 
 f_data = Log.ADC.Volts(1, :);
 v_data = Log.ADC.Volts(2, :);
@@ -117,7 +118,13 @@ centerX = 0.5; % Normalized X-center of the circle
 centerY = 0.5; % Normalized Y-center of the circle
 radius = 0.35; % Normalized radius of the circle
 
+% For a central polar plot:
+centralWidth = (2 * radius)*0.65; % Diameter of the circle
+centralHeight = (2 * radius)*0.65; % Diameter of the circle
+centralPosition = [centerX - centralWidth/2, centerY - centralHeight/2, centralWidth, centralHeight];
+
 plot_order= [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+angls = linspace(0, 2*pi, 17); % 17 points include both 0 and 2*pi
 
 %% Create the figure
 
@@ -176,6 +183,12 @@ for sp = 1:3
         % Turn off the axes for better visualization
         axis(ax, 'off');
     end
+
+    % Add polar plot in the middle:
+    axCentral = axes('Position', centralPosition);
+    max_v_polar = vertcat(max_v(:, sp), max_v(1, sp));
+    set(axCentral);
+    polarplot(angls, max_v_polar-median_voltage, 'Color', [0.8 0.8 0.8], 'LineWidth', 2);
 
     if sp == 1
         sgtitle('14 dps - 4 pixel bar stimuli - 45 pix square')
