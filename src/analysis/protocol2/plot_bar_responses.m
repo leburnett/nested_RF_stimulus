@@ -3,6 +3,7 @@
 % Dec 2024. 
 
 f_data = Log.ADC.Volts(1, :);
+% figure; plot(f_data)
 v_data = Log.ADC.Volts(2, :);
 
 median_voltage = median(v_data)*10;
@@ -14,9 +15,18 @@ median_voltage = median(v_data)*10;
 % rep2_rng = [7287720, 10656500];
 % rep3_rng = [12615800, 15984550]; 
 
-rep1_rng = [1958950, 5329650];
-rep2_rng = [7287040, 10657500];
-rep3_rng = [12615000, 15984300]; 
+% rep1_rng = [1958950, 5329650];
+% rep2_rng = [7287040, 10657500];
+% rep3_rng = [12615000, 15984300]; 
+
+% 24_12_18 - 1
+% rep1_rng = [1474780, 2022120];
+% rep2_rng = [3496410, 4043720];
+% rep3_rng = [5518010, 6065147];
+
+rep1_rng = [1474710, 2022040];
+rep2_rng = [3496300, 4043600];
+rep3_rng = [5517920, 6065030];
 
 % 16 directions within each rep. 
 
@@ -62,7 +72,7 @@ r1_nd = r1_max_vals+st_val;
 all_idxs = [r1_st, r1_nd];
 idxs2 = sort(all_idxs);
 
-%% Rep 1 
+%% Rep 3
 st_val = rep3_rng(1);
 end_val = rep3_rng(2);
 
@@ -81,7 +91,8 @@ idxs3 = sort(all_idxs);
 
 %% Combine the data into one data structure. 
 
-for i = 1:48 
+% Different reps
+for i = 1:numel(idxs)-1
     data{i, 1} = v_data(idxs(i):idxs(i+1)-1);
     data{i, 2} = v_data(idxs2(i):idxs2(i+1)-1);
     data{i, 3} = v_data(idxs3(i):idxs3(i+1)-1);
@@ -128,11 +139,25 @@ angls = linspace(0, 2*pi, 17); % 17 points include both 0 and 2*pi
 
 %% Create the figure
 
-max_v = zeros(numPlots, 3);
+max_v = zeros(numPlots, 2);
 
-for sp = 1:3
+figure
+for sp = 1:2
 
-    figure;
+    % figure;
+    % if sp == 1
+    %     col = 'k';
+    % elseif sp == 2
+    %     col = [0.2 0.4 0.7];  % 28 dps = dark blue
+    % elseif sp == 3
+    %     col = [0.4 0.8 1]; % 56 dps = light blue.
+    % end 
+
+    if sp == 1
+        col = [0.2 0.4 0.7];  % 28 dps = dark blue
+    elseif sp == 3
+        col = [0.4 0.8 1]; % 56 dps = light blue.
+    end 
 
     % Loop to create subplots
     for i = 1:numPlots
@@ -167,7 +192,7 @@ for sp = 1:3
             if r<4
                 plot(ax, x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
             else 
-                plot(ax, x_vals, d2plot, 'Color', 'k', 'LineWidth', 1.2);
+                plot(ax, x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
             end
     
         end 
@@ -184,19 +209,38 @@ for sp = 1:3
         axis(ax, 'off');
     end
 
-    % Add polar plot in the middle:
-    axCentral = axes('Position', centralPosition);
-    max_v_polar = vertcat(max_v(:, sp), max_v(1, sp));
-    set(axCentral);
-    polarplot(angls, max_v_polar-median_voltage, 'Color', [0.8 0.8 0.8], 'LineWidth', 2);
-
-    if sp == 1
-        sgtitle('14 dps - 4 pixel bar stimuli - 45 pix square')
-    elseif sp == 2
-        sgtitle('28 dps - 4 pixel bar stimuli - 45 pix square')
-    elseif sp == 3 
-        sgtitle('56 dps - 4 pixel bar stimuli - 45 pix square')
+    if sp ==2 
+        % Add polar plot in the middle:
+        axCentral = axes('Position', centralPosition);
+        max_v_polar = vertcat(max_v(:, sp-1), max_v(1, sp-1));
+        max_v_polar2 = vertcat(max_v(:, sp), max_v(1, sp));
+        set(axCentral);
+        polarplot(angls, max_v_polar-median_voltage, 'Color', [0.2 0.4 0.7], 'LineWidth', 2);
+        hold on
+        polarplot(angls, max_v_polar2-median_voltage, 'Color', [0.4 0.8 1], 'LineWidth', 2);
     end 
+
+    %  if sp ==3
+    %     % Add polar plot in the middle:
+    %     axCentral = axes('Position', centralPosition);
+    %     max_v_polar = vertcat(max_v(:, sp-2), max_v(1, sp-2));
+    %     max_v_polar2 = vertcat(max_v(:, sp-1), max_v(1, sp-1));
+    %     max_v_polar3 = vertcat(max_v(:, sp), max_v(1, sp));
+    %     set(axCentral);
+    %     polarplot(angls, max_v_polar-median_voltage, 'Color', 'k', 'LineWidth', 2);
+    %     hold on
+    %     polarplot(angls, max_v_polar2-median_voltage, 'Color', [0.2 0.4 0.7], 'LineWidth', 2);
+    %     polarplot(angls, max_v_polar3-median_voltage, 'Color', [0.4 0.8 1], 'LineWidth', 2);
+    % end 
+
+
+    % if sp == 1
+        sgtitle('28 / 56 dps - 4 pixel bar stimuli - 30 pix square - 2024-12-18-15-49')
+    % elseif sp == 2
+    %     sgtitle('28 dps - 4 pixel bar stimuli - 45 pix square')
+    % elseif sp == 3 
+    %     sgtitle('56 dps - 4 pixel bar stimuli - 45 pix square')
+    % end 
     
     f = gcf;
     f.Position = [303 78 961 969];
@@ -219,8 +263,8 @@ yticks([1,5,9, 13])
 yticklabels({'0', '90', '180', '270'});
 ylabel('Direction - deg')
 
-xticks([1,2,3])
-xticklabels({'14', '28', '56'})
+xticks([1,2])
+xticklabels({'28', '56'})
 xlabel('Speed - dps')
 
 colorTitleHandle = get(hcb,'Title');
