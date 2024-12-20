@@ -6,6 +6,51 @@ f_data = Log.ADC.Volts(1, :);
 % figure; plot(f_data)
 v_data = Log.ADC.Volts(2, :);
 
+% Check data quality: 
+figure; subplot(2,1,1); plot(f_data);
+subplot(2,1,2); plot(v_data)
+% f = gcf;
+% f.Position = [23 611 1674 402];
+maxv = max(v_data);
+stdv = std(v_data);
+minv = min(v_data);
+disp(strcat("For this recording, the max voltage was: ", string(maxv)))
+disp(strcat("For this recording, the std was: ", string(stdv)))
+disp(strcat("For this recording, the min voltage was: ", string(minv)))
+
+maxv = max(v_data2);
+stdv = std(v_data2);
+minv = min(v_data2);
+disp(strcat("For this recording, the max voltage was: ", string(maxv)))
+disp(strcat("For this recording, the std was: ", string(stdv)))
+disp(strcat("For this recording, the min voltage was: ", string(minv)))
+
+
+% Parameters (replace these with actual values)
+samplingRate = 10000; % Sampling rate in Hz
+baselineVoltage = v_data2; % Replace with your baseline voltage data
+
+% Compute the PSD using Welch's method
+[pxx, f] = pwelch(baselineVoltage, [], [], [], samplingRate);
+
+% Plot the PSD
+figure;
+plot(f, 10*log10(pxx)); % Convert power to dB
+xlabel('Frequency (Hz)');
+ylabel('Power/Frequency (dB/Hz)');
+title('Power Spectral Density (PSD)');
+grid on;
+
+% Highlight 60 Hz line noise (if applicable)
+hold on;
+line([60 60], ylim, 'Color', 'r', 'LineStyle', '--', 'DisplayName', '60 Hz');
+legend;
+hold off;
+
+
+
+%%
+
 median_voltage = median(v_data)*10;
 
 % Manually finding the timepoints at which the stimuli occur. 
@@ -235,7 +280,7 @@ for sp = 1:2
 
 
     % if sp == 1
-        sgtitle('28 / 56 dps - 4 pixel bar stimuli - 30 pix square - 2024-12-18-15-49')
+        sgtitle('28 / 56 dps - 4 pixel bar stimuli - 30 pix square - 2024-12-19-15-53')
     % elseif sp == 2
     %     sgtitle('28 dps - 4 pixel bar stimuli - 45 pix square')
     % elseif sp == 3 
