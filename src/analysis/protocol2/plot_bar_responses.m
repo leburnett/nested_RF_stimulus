@@ -2,80 +2,59 @@
 % Analysing responses to bar stimuli - Jin Yong ephys data from T4T5 cells
 % Dec 2024. 
 
+% Input experiment folder with data from protocol 2:
+date_folder = cd;
+date_str = date_folder(end-15:end-6);
+time_str = date_folder(end-4:end);
+
+% Find the 'G4_TDMS_Log..mat' file and load it:
+log_folder = fullfile(date_folder, "Log Files"); cd(log_folder);
+log_file = dir('G4_TDMS*');
+load(log_file.name, 'Log');
+
 f_data = Log.ADC.Volts(1, :);
-% figure; plot(f_data)
 v_data = Log.ADC.Volts(2, :);
 
 % Check data quality: 
-figure; subplot(2,1,1); plot(f_data);
-subplot(2,1,2); plot(v_data)
-% f = gcf;
-% f.Position = [23 611 1674 402];
-maxv = max(v_data);
-stdv = std(v_data);
-minv = min(v_data);
-disp(strcat("For this recording, the max voltage was: ", string(maxv)))
-disp(strcat("For this recording, the std was: ", string(stdv)))
-disp(strcat("For this recording, the min voltage was: ", string(minv)))
-
-maxv = max(v_data2);
-stdv = std(v_data2);
-minv = min(v_data2);
-disp(strcat("For this recording, the max voltage was: ", string(maxv)))
-disp(strcat("For this recording, the std was: ", string(stdv)))
-disp(strcat("For this recording, the min voltage was: ", string(minv)))
-
-
-% Parameters (replace these with actual values)
-samplingRate = 10000; % Sampling rate in Hz
-baselineVoltage = v_data2; % Replace with your baseline voltage data
-
-% Compute the PSD using Welch's method
-[pxx, f] = pwelch(baselineVoltage, [], [], [], samplingRate);
-
-% Plot the PSD
-figure;
-plot(f, 10*log10(pxx)); % Convert power to dB
-xlabel('Frequency (Hz)');
-ylabel('Power/Frequency (dB/Hz)');
-title('Power Spectral Density (PSD)');
-grid on;
-
-% Highlight 60 Hz line noise (if applicable)
-hold on;
-line([60 60], ylim, 'Color', 'r', 'LineStyle', '--', 'DisplayName', '60 Hz');
-legend;
-hold off;
-
-
+figure; subplot(3, 1, 1); plot(f_data);
+subplot(3,1,2:3); plot(v_data)
+f2 = gcf;
+f2.Position =  [59  651  1683 375]; 
 
 %%
+% Any date after 12/12/24 - only 2 speeds and 30 pixel square area. 
+% 12/12/24 or before = 3 speeds and 45 pixel square area. 
+disp(date_str)
+
+diff_f_data = diff(f_data);
+idx = find(diff_f_data == min(diff_f_data));
+
+% Dur t = time for each speed in one direction - one flip direction. 
+% 12_12 or before: 
+% dur_t = ((6.02+3.02+1.5)*2*10000)*16;
+% After 12_12
+dur_t = (2.275+1.155)*10000*16;
+
+rep1_rng = [idx(2), idx(2)+dur_t];
+rep2_rng = [idx(4), idx(4)+dur_t];
+rep3_rng = [idx(6), idx(6)+dur_t]; 
+
+% TEST: Check the range values:
+% subplot(3, 1, 1);
+% hold on;
+% plot([rep1_rng(1), rep1_rng(1)], [-400 400], 'm');
+% plot([rep1_rng(2), rep1_rng(2)], [-400 400], 'm');
+% plot([rep2_rng(1), rep2_rng(1)], [-400 400], 'm');
+% plot([rep2_rng(2), rep2_rng(2)], [-400 400], 'm');
+% plot([rep3_rng(1), rep3_rng(1)], [-400 400], 'm');
+% plot([rep3_rng(2), rep3_rng(2)], [-400 400], 'm');
+
+%% 
 
 median_voltage = median(v_data)*10;
 
-% Manually finding the timepoints at which the stimuli occur. 
-
-% 12_12_12
-% rep1_rng = [1959080, 5329750];
-% rep2_rng = [7287720, 10656500];
-% rep3_rng = [12615800, 15984550]; 
-
-% rep1_rng = [1958950, 5329650];
-% rep2_rng = [7287040, 10657500];
-% rep3_rng = [12615000, 15984300]; 
-
-% 24_12_18 - 1
-% rep1_rng = [1474780, 2022120];
-% rep2_rng = [3496410, 4043720];
-% rep3_rng = [5518010, 6065147];
-
-rep1_rng = [1474710, 2022040];
-rep2_rng = [3496300, 4043600];
-rep3_rng = [5517920, 6065030];
-
-% 16 directions within each rep. 
-
 %% Rep 1 
+
 st_val = rep1_rng(1);
 end_val = rep1_rng(2);
 
@@ -189,18 +168,9 @@ max_v = zeros(numPlots, 2);
 figure
 for sp = 1:2
 
-    % figure;
-    % if sp == 1
-    %     col = 'k';
-    % elseif sp == 2
-    %     col = [0.2 0.4 0.7];  % 28 dps = dark blue
-    % elseif sp == 3
-    %     col = [0.4 0.8 1]; % 56 dps = light blue.
-    % end 
-
     if sp == 1
         col = [0.2 0.4 0.7];  % 28 dps = dark blue
-    elseif sp == 3
+    elseif sp == 2
         col = [0.4 0.8 1]; % 56 dps = light blue.
     end 
 
@@ -265,27 +235,7 @@ for sp = 1:2
         polarplot(angls, max_v_polar2-median_voltage, 'Color', [0.4 0.8 1], 'LineWidth', 2);
     end 
 
-    %  if sp ==3
-    %     % Add polar plot in the middle:
-    %     axCentral = axes('Position', centralPosition);
-    %     max_v_polar = vertcat(max_v(:, sp-2), max_v(1, sp-2));
-    %     max_v_polar2 = vertcat(max_v(:, sp-1), max_v(1, sp-1));
-    %     max_v_polar3 = vertcat(max_v(:, sp), max_v(1, sp));
-    %     set(axCentral);
-    %     polarplot(angls, max_v_polar-median_voltage, 'Color', 'k', 'LineWidth', 2);
-    %     hold on
-    %     polarplot(angls, max_v_polar2-median_voltage, 'Color', [0.2 0.4 0.7], 'LineWidth', 2);
-    %     polarplot(angls, max_v_polar3-median_voltage, 'Color', [0.4 0.8 1], 'LineWidth', 2);
-    % end 
-
-
-    % if sp == 1
-        sgtitle('28 / 56 dps - 4 pixel bar stimuli - 30 pix square - 2024-12-19-15-53')
-    % elseif sp == 2
-    %     sgtitle('28 dps - 4 pixel bar stimuli - 45 pix square')
-    % elseif sp == 3 
-    %     sgtitle('56 dps - 4 pixel bar stimuli - 45 pix square')
-    % end 
+    sgtitle(strcat("28 / 56 dps - 4 pixel bar stimuli - 30 pix square -",  strrep(date_str, '_', '-'), '-', strrep(time_str, '_', '-')))
     
     f = gcf;
     f.Position = [303 78 961 969];

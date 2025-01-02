@@ -1,26 +1,32 @@
 
+% Input experiment folder with data from protocol 2:
+date_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/data/2024_12_12_12_12';
 
-% 4 pixel flashes - 2 speeds. 
+% Find the 'G4_TDMS_Log..mat' file and load it:
+log_folder = fullfile(date_folder, "Log Files"); cd(log_folder);
+log_file = dir('G4_TDMS*');
+load(log_file.name, 'Log');
 
+% Load the frame and voltage data:
 f_data = Log.ADC.Volts(1, :);
 v_data = Log.ADC.Volts(2, :)*10;
 median_v = median(v_data);
 
 % pattern with 4 pix squares. 
-pat4pix = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/data/2024_12_18_15_07/Patterns/0001_4px_square_RF_ON_OFF_66_95_overlap50_G4.mat';
-load(pat4pix, 'pattern');
+pat_folder = fullfile(date_folder, "Patterns");
+cd(pat_folder)
+pat_file = dir("0001*");
+load(pat_file.name, 'pattern');
 
 % Function slow 
-func1 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/data/2024_12_18_15_07/Functions/0001_4px_flashes_196flashes_160ms_340ms_on_G4.mat';
-load(func1, 'pfnparam');
-
-% func2 =  '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/data/2024_12_18_15_07/Functions/0002_4px_flashes_196flashes_80ms_170ms_on_G4.mat'; 
-
-allf = pattern.Pats;
+func_folder = fullfile(date_folder, "Functions");
+cd(pat_folder)
+func_file = dir("0001*");
+load(func_file.name, 'pfnparam');
 
 dur_slowflashes = pfnparam.dur; % seconds. 
 sampling_rate = 10000;
-dur_ms = dur_slowflashes*10000; 
+dur_ms = dur_slowflashes*sampling_rate; 
 
 % 
 % figure; plot(f_data);
@@ -41,7 +47,9 @@ dur_ms = dur_slowflashes*10000;
 
 %% UPDATE TO RUN THROUGH ALL THREE REPS FOR EACH SUBPLOT AT THE SAME TIME. 
 
-% FIRST - run through to get overall data and make background colour plot. 
+% FIRST - run through to get overall data and find mean. 
+
+% THEN - determine whether E / I - use different time windows to find min / max then make background colour plot. 
 
 % THEN - run through a second time and plot the mean traces on top. 
 
