@@ -16,10 +16,10 @@ f_data = Log.ADC.Volts(1, :);
 v_data = Log.ADC.Volts(2, :);
 
 % Check data quality: 
-figure; subplot(3, 1, 1); plot(f_data);
-subplot(3,1,2:3); plot(v_data)
-f2 = gcf;
-f2.Position =  [59  651  1683 375]; 
+% figure; subplot(3, 1, 1); plot(f_data);
+% subplot(3,1,2:3); plot(v_data)
+% f2 = gcf;
+% f2.Position =  [59  651  1683 375]; 
 
 %%
 % Any date after 12/12/24 - only 2 speeds and 30 pixel square area. 
@@ -33,7 +33,7 @@ idx = find(diff_f_data == min(diff_f_data));
 % 12_12 or before: 
 % dur_t = ((6.02+3.02+1.5)*2*10000)*16;
 % After 12_12
-dur_t = (2.275+1.155)*10000*16;
+dur_t = (2.275+1.15)*10000*16;
 
 rep1_rng = [idx(2), idx(2)+dur_t];
 rep2_rng = [idx(4), idx(4)+dur_t];
@@ -41,6 +41,7 @@ rep3_rng = [idx(6), idx(6)+dur_t];
 
 % TEST: Check the range values:
 % subplot(3, 1, 1);
+% figure; plot(f_data);
 % hold on;
 % plot([rep1_rng(1), rep1_rng(1)], [-400 400], 'm');
 % plot([rep1_rng(2), rep1_rng(2)], [-400 400], 'm');
@@ -50,7 +51,6 @@ rep3_rng = [idx(6), idx(6)+dur_t];
 % plot([rep3_rng(2), rep3_rng(2)], [-400 400], 'm');
 
 %% 
-
 median_voltage = median(v_data)*10;
 
 %% Rep 1 
@@ -79,6 +79,20 @@ idxs = sort(all_idxs);
 % plot([idxs(i), idxs(i)], [0 100], 'r')
 % end 
 
+% Test chopping of stimuli:
+% figure; plot(f_data)
+% hold on
+% for i = 1:numel(idxs)
+% plot([idxs(i), idxs(i)], [0 100], 'r')
+% end 
+% 
+% for i = 1:numel(idxs2)
+% plot([idxs2(i), idxs2(i)], [0 100], 'r')
+% end 
+% 
+% for i = 1:numel(idxs3)
+% plot([idxs3(i), idxs3(i)], [0 100], 'r')
+% end 
 %% Rep 2
 st_val = rep2_rng(1);
 end_val = rep2_rng(2);
@@ -218,7 +232,7 @@ for sp = 1:2
         max_v(i, sp) = max_rep_voltage;
 
         % Add a text annotation in the bottom-left corner
-        text(ax, x_vals(end)*0.75, median_voltage*1.2, sprintf('%.2f', max_rep_voltage), 'FontSize', 8, 'Color', 'k');
+        % text(ax, x_vals(end)*0.75, median_voltage*1.2, sprintf('%.2f', max_rep_voltage), 'FontSize', 8, 'Color', 'k');
         
         % Turn off the axes for better visualization
         axis(ax, 'off');
