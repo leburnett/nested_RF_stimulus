@@ -2,6 +2,9 @@
 % Analysing responses to bar stimuli - Jin Yong ephys data from T4T5 cells
 % Dec 2024. 
 
+close all
+clear
+
 % Input experiment folder with data from protocol 2:
 date_folder = cd;
 date_str = date_folder(end-15:end-6);
@@ -29,18 +32,22 @@ disp(date_str)
 diff_f_data = diff(f_data);
 idx = find(diff_f_data == min(diff_f_data));
 
-% Dur t = time for each speed in one direction - one flip direction. 
+% Find the duration of each single bar movement in : 
+
 % 12_12 or before: 
 % dur_t = ((6.02+3.02+1.5)*2*10000)*16;
 % After 12_12
-dur_t = (2.275+1.15)*10000*16;
+dur_t = (2.273+1.155)*10000*16;
 
-rep1_rng = [idx(2), idx(2)+dur_t];
-rep2_rng = [idx(4), idx(4)+dur_t];
-rep3_rng = [idx(6), idx(6)+dur_t]; 
+rep1_rng = [idx(2)+1120, idx(2)+dur_t];
+rep2_rng = [idx(4)+1120, idx(4)+dur_t];
+rep3_rng = [idx(6)+1120, numel(f_data)]; % til the end.  
 
-% TEST: Check the range values:
-% subplot(3, 1, 1);
+% rep1_rng = [1474710, 2022040];
+% rep2_rng = [3496300, 4043600];
+% rep3_rng = [5517920, 6065030];
+
+% % % TEST: Check the range values:
 % figure; plot(f_data);
 % hold on;
 % plot([rep1_rng(1), rep1_rng(1)], [-400 400], 'm');
@@ -71,28 +78,6 @@ r1_nd = r1_max_vals+st_val;
 all_idxs = [r1_st, r1_nd];
 idxs = sort(all_idxs);
 
-% TEST
-% a = Log.ADC.Volts(1, :);
-% figure; plot(a)
-% hold on
-% for i = 1:49
-% plot([idxs(i), idxs(i)], [0 100], 'r')
-% end 
-
-% Test chopping of stimuli:
-% figure; plot(f_data)
-% hold on
-% for i = 1:numel(idxs)
-% plot([idxs(i), idxs(i)], [0 100], 'r')
-% end 
-% 
-% for i = 1:numel(idxs2)
-% plot([idxs2(i), idxs2(i)], [0 100], 'r')
-% end 
-% 
-% for i = 1:numel(idxs3)
-% plot([idxs3(i), idxs3(i)], [0 100], 'r')
-% end 
 %% Rep 2
 st_val = rep2_rng(1);
 end_val = rep2_rng(2);
@@ -126,6 +111,24 @@ r1_nd = r1_max_vals+st_val;
 
 all_idxs = [r1_st, r1_nd];
 idxs3 = sort(all_idxs);
+
+%% 
+
+% TEST - chopping of stimuli:
+% figure; plot(f_data)
+% hold on
+% for i = 1:numel(idxs)
+% plot([idxs(i), idxs(i)], [0 100], 'r')
+% end 
+% 
+% for i = 1:numel(idxs2)
+% plot([idxs2(i), idxs2(i)], [0 100], 'r')
+% end 
+% 
+% for i = 1:numel(idxs3)
+% plot([idxs3(i), idxs3(i)], [0 100], 'r')
+% end 
+
 
 %% Combine the data into one data structure. 
 

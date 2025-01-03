@@ -1,4 +1,7 @@
 %% Generate plots of the receptive field of T4T5 cells: 
+% First generate a receptive field estimate for the slow flashes and then
+% for the fast flashes. 
+
 
 % 1 - Load the data: 
 
@@ -10,7 +13,9 @@ log_folder = fullfile(date_folder, "Log Files"); cd(log_folder);
 log_file = dir('G4_TDMS*');
 load(log_file.name, 'Log');
 
-% Load the frame and voltage data:
+sampling_rate = 10000;
+
+% % % %  Load the frame data:
 f_data = Log.ADC.Volts(1, :);
 
 diff_f_data = diff(f_data);
@@ -23,31 +28,28 @@ idx = find(diff_f_data == min(diff_f_data));
 % plot([idx(3), idx(3)], [0 200], 'm');
 % plot([idx(1), idx(1)], [0 200], 'm');
 
-
+% % % %  Load the voltage data:
 v_data = Log.ADC.Volts(2, :)*10;
 median_v = median(v_data);
 v2_data = v_data - median_v; 
 
+% Find the standard deviation and the upper / lower bounds for finding
+% response groups later on. 
 std_v = std(v2_data);
-
 upper_bound_med = std_v;
-lower_bound_med =  -std_v;
+lower_bound_med = -std_v;
 
-% TEST 
+% TEST - plot with median and upper/lower bounds plotted for understanding
+% how groups are found. 
+
 % figure; 
-% plot(v_data);
-% hold on;
-% plot([1, numel(v_data)],[median_v, median_v], 'r');
-% % mm = movmean(v_data, 10000*30);
-% % plot(mm, 'c')
-% plot([1, numel(v_data)],[median_v+std_v/2, median_v+std_v/2], 'g');
-% plot([1, numel(v_data)],[median_v-std_v/2, median_v-std_v/2], 'g');
-
-% pattern with 4 pix squares. 
-pat_folder = fullfile(date_folder, "Patterns");
-cd(pat_folder)
-pat_file = dir("0001*");
-load(pat_file.name, 'pattern');
+plot(v_data);
+hold on;
+plot([1, numel(v_data)],[median_v, median_v], 'r');
+% mm = movmean(v_data, 10000*30);
+% plot(mm, 'c')
+plot([1, numel(v_data)],[median_v+std_v, median_v+std_v], 'm');
+plot([1, numel(v_data)],[median_v-std_v, median_v-std_v], 'm');
 
 % Function slow 
 func_folder = fullfile(date_folder, "Functions");
@@ -55,17 +57,9 @@ cd(func_folder)
 func_file = dir("0001*");
 load(func_file.name, 'pfnparam');
 pfnparam2 = pfnparam;
-func_file2 = dir("0002*");
-load(func_file2.name, 'pfnparam');
-
 dur_slowflashes = pfnparam2.dur; % seconds. 
-dur_fastflashes = pfnparam.dur; % seconds. 
-sampling_rate = 10000;
-% End of slow flashes - rep1 
 % dur_ms = dur_slowflashes*sampling_rate; % 
 dur_ms = 976700;
-% End of fast flashes - rep1 
-dur_ms_fast = dur_ms + dur_fastflashes*sampling_rate;
 
 % TEST - check timing
 % figure; plot(f_data);
@@ -73,23 +67,22 @@ dur_ms_fast = dur_ms + dur_fastflashes*sampling_rate;
 % plot([dur_ms , dur_ms], [0 400], 'r', 'LineWidth', 1.2)
 % plot([dur_ms_fast , dur_ms_fast], [0 400], 'm', 'LineWidth', 1.2)
 % 
-fc = pfnparam2.func; 
-min_frame = min(fc);
-max_frame = max(fc);
 
+% 'fc' is the function - each number corresponds to the frame that is being
+% presented. There is one data point every 2ms. 
+
+fc = pfnparam2.func; 
+
+% Find the max frame number to determine if dark or light squares were
+% presented. 
+max_frame = max(fc);
 if max_frame < 198
     on_off = "off";
 else 
     on_off = "on";
 end 
 
-%%  PLOT % % % % % % % % % % % % % % % % % % % % % % % % 
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
-% fast_flashes_dur = 2500; % 0.25s * sampling rate. 
-% edge_vals2 = dur_ms+1:fast_flashes_dur:dur_ms_fast;
-
-% SLOW FLASHES: 
+%%  SLOW FLASHES
 
 % % 340 ms OFF - bkg - 160 ms FLASH. 
 % % 500 ms = 0.5s. 
@@ -249,327 +242,30 @@ colormap(cmap)
 caxis([-0.15 1.15])
 
 
-% Test
-hold on 
-plot([idx(3), idx(3)], [0 400], 'g')
-plot([idx(5), idx(5)], [0 400], 'g')
-plot([idx(3)-dur_ms, idx(3)-dur_ms], [0 400], 'm')
-plot([idx(5)-dur_ms, idx(5)-dur_ms], [0 400], 'm')
+% % % % Test
+% % % hold on 
+% % % plot([idx(3), idx(3)], [0 400], 'g')
+% % % plot([idx(5), idx(5)], [0 400], 'g')
+% % % plot([idx(3)-dur_ms, idx(3)-dur_ms], [0 400], 'm')
+% % % plot([idx(5)-dur_ms, idx(5)-dur_ms], [0 400], 'm')
 
 
 
 
 
+%% FAST FLASHES
 
-
-
-
-
-
-
-
-
-
-%% OLD EXPERIMENTS - 20kHZ - 200ms flash - 50 ms wait
-
-
-
-% 4 pixel flashes - 2 speeds. 
-
-% f_data = Log.ADC.Volts(1, :);
-% v_data = Log.ADC.Volts(2, :)*10;
-% median_v = median(v_data);
-% 
-% allf = pattern.Pats;
-% 
-% dur_slowflashes = pfnparam.dur; % seconds. 
-% sampling_rate = 20000;
-% dur_ms = dur_slowflashes*sampling_rate; 
-% 
-% % rep1 
-% 
-% edge_vals = 6719:5000:dur_ms;
-% % 
-% figure; plot(f_data); hold on;
-% for i = 1:floor(numel(edge_vals)/2)
-%     plot([edge_vals(i) , edge_vals(i)], [0 400], 'g', 'LineWidth', 1)
-% end 
-
-% 196 flashes / values. 
-% 
-% figure
-% 
-% % Rep 1
-% for i = 1:ceil(numel(edge_vals)/2)
-% 
-%     if i < ceil(numel(edge_vals)/2)
-%         d = f_data(edge_vals(i):edge_vals(i+1)-1);
-%         v = v_data(edge_vals(i):edge_vals(i+1)-1);
-%     elseif i == ceil(numel(edge_vals)/2)
-%         d = f_data(edge_vals(ceil(numel(edge_vals)/2)):edge_vals(ceil(numel(edge_vals)/2))+5000);
-%         v = v_data(edge_vals(ceil(numel(edge_vals)/2)):edge_vals(ceil(numel(edge_vals)/2))+5000);
-%     end 
-% 
-%     flash_frame_num = max(d)-1;
-% 
-%     rows = 14 - floor((flash_frame_num) / 14);
-%     cols = mod((flash_frame_num), 14) + 1;
-% 
-%     X = (rows - 1) * 14 + cols;
-% 
-%     subplot(14, 14, X)
-%     plot(v, 'Color', [0.4 0.4 0.4])
-%     hold on 
-%     plot([4500 4500], [-70 -40], 'r')
-%     xmax = numel(v);
-%     plot([1 xmax], [median_v, median_v], 'Color', [0.7 0.7 0.7])
-%     ylim([-70 -40])
-%     box off
-%     axis off
-% end 
-% 
-% %% Rep 2 
-% 
-% start_t = 2025520;
-% edge_vals = start_t:5000:start_t+dur_ms;
-% 
-% % Test
-% % for i = 1:197
-% %     plot([edge_vals(i) , edge_vals(i)], [0 400], 'g', 'LineWidth', 1)
-% % end 
-% 
-% for i = 1:196
-% 
-%     if i < 196
-%         d = f_data(edge_vals(i):edge_vals(i+1)-1);
-%         v = v_data(edge_vals(i):edge_vals(i+1)-1);
-%     elseif i == 196
-%         d = f_data(edge_vals(196):edge_vals(196)+5000);
-%         v = v_data(edge_vals(196):edge_vals(196)+5000);
-%     end 
-% 
-%     flash_frame_num = max(d)-1;
-% 
-%     rows = 14 - floor((flash_frame_num - 196) / 14);
-%     cols = mod((flash_frame_num - 196), 14) + 1;
-% 
-%     X = (rows - 1) * 14 + cols;
-% 
-%     subplot(14, 14, X)
-%     plot(v, 'Color', [0.4 0.4 0.4])
-%     hold on 
-%     plot([1600 1600], [-70 -40], 'r')
-%     xmax = numel(v);
-%     plot([1 xmax], [median_v, median_v], 'Color', [0.7 0.7 0.7])
-%     ylim([-70 -40])
-%     box off
-%     axis off
-% end 
-% 
-% 
-% 
-% %% Rep 3
-% 
-% start_t = 4047120;
-% edge_vals = start_t:5000:start_t+dur_ms;
-% 
-% % % Test
-% % for i = 1:197
-% %     plot([edge_vals(i) , edge_vals(i)], [0 400], 'y', 'LineWidth', 1)
-% % end 
-% 
-% for i = 1:196
-% 
-%     if i < 196
-%         d = f_data(edge_vals(i):edge_vals(i+1)-1);
-%         v = v_data(edge_vals(i):edge_vals(i+1)-1);
-%     elseif i == 196
-%         d = f_data(edge_vals(196):edge_vals(196)+5000);
-%         v = v_data(edge_vals(196):edge_vals(196)+5000);
-%     end 
-% 
-%     flash_frame_num = max(d)-1;
-% 
-%     rows = 14 - floor((flash_frame_num - 196) / 14);
-%     cols = mod((flash_frame_num - 196), 14) + 1;
-% 
-%     X = (rows - 1) * 14 + cols;
-% 
-%     subplot(14, 14, X)
-%     plot(v, 'Color', [0.2 0.2 0.2])
-%     hold on 
-%     % plot([1600 1600], [-70 -40], 'r')
-%     xmax = numel(v);
-%     plot([1 xmax], [median_v, median_v], 'Color', [0.7 0.7 0.7])
-%     ylim([-70 -40])
-%     box off
-%     axis off
-% end 
-% 
-
-
-
-
-
-% % REP 1 - 
-% slow_flashes_dur = 5000; % 500 ms. 
-% fast_flashes_dur = 2500; % 250 ms.
-% 
-% edge_vals = 3865:slow_flashes_dur:dur_ms;
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% fast_flashes_dur = 2500; % 0.25s * sampling rate. 
 % edge_vals2 = dur_ms+1:fast_flashes_dur:dur_ms_fast;
-% 
-% % 196 flashes / values. 
-% data_comb = ones(14, 14);
-% 
-% % v_data_ord = reshape(permute(data_comb,[2 1]), 1, 196);
-% % min_v_ord = min(v_data_ord);
-% % max_v_ord = max(v_data_ord);
-% % v_ord_norm = (v_data_ord- min_v_ord) / (max_v_ord - min_v_ord);
-% 
-% figure
-% 
-% % for idx = 1:196
-% %     subplot(14, 14, idx)
-% %     c = v_ord_norm(idx);
-% %     rectangle('Position', [0 -70 5000, 40], "FaceColor", [c c c], "EdgeColor", 'none', "FaceAlpha", 0.5);
-% %     axis off
-% %     box off
-% %     axis square
-% %     hold on
-% % end 
-% 
-% % Rep 1
-% for i = 1:196
-% 
-%     if i < 196
-%         d = f_data(edge_vals(i):edge_vals(i+1)-1);
-%         v = v_data(edge_vals(i):edge_vals(i+1)-1);
-%     elseif i == 196
-%         d = f_data(edge_vals(196):edge_vals(196)+5000);
-%         v = v_data(edge_vals(196):edge_vals(196)+5000);
-%     end 
-% 
-%     flash_frame_num = max(d)-1;
-% 
-%     rows = 14 - floor((flash_frame_num - 196) / 14);
-%     cols = mod((flash_frame_num - 196), 14) + 1;
-% 
-%     X = (rows - 1) * 14 + cols;
-% 
-%     subplot(14, 14, X)
-%     plot(v, 'Color', 'k')
-%     hold on 
-%     % plot([1600 1600], [-70 -40], 'k')
-%     xmax = numel(v);
-%     plot([1 xmax], [median_v, median_v], 'Color', [1 0.7 0.7])
-%     ylim([-70 -30])
-%     box off
-%     axis off
-% 
-%     data_comb(rows, cols) = data_comb(rows, cols) + mean(v); 
-% end 
-% 
-% 
-% %% Rep 2 
-% 
-% start_t = 2025520;
-% edge_vals = start_t:5000:start_t+dur_ms;
-% 
-% % Test
-% % for i = 1:197
-% %     plot([edge_vals(i) , edge_vals(i)], [0 400], 'g', 'LineWidth', 1)
-% % end 
-% 
-% for i = 1:196
-% 
-%     if i < 196
-%         d = f_data(edge_vals(i):edge_vals(i+1)-1);
-%         v = v_data(edge_vals(i):edge_vals(i+1)-1);
-%     elseif i == 196
-%         d = f_data(edge_vals(196):edge_vals(196)+5000);
-%         v = v_data(edge_vals(196):edge_vals(196)+5000);
-%     end 
-% 
-%     flash_frame_num = max(d)-1;
-% 
-%     rows = 14 - floor((flash_frame_num - 196) / 14);
-%     cols = mod((flash_frame_num - 196), 14) + 1;
-% 
-%     X = (rows - 1) * 14 + cols;
-% 
-%     subplot(14, 14, X)
-%     plot(v, 'Color', 'k')
-%     hold on 
-%     % plot([1600 1600], [-70 -40], 'r')
-%     xmax = numel(v);
-%     % plot([1 xmax], [median_v, median_v], 'Color', [1 0.7 0.7])
-%     ylim([-70 -30])
-%     box off
-%     axis off
-%     data_comb(rows, cols) = data_comb(rows, cols) + mean(v); 
-% end 
-% 
-% 
-% 
-% %% Rep 3
-% 
-% start_t = 4047120;
-% edge_vals = start_t:5000:start_t+dur_ms;
-% 
-% % % Test
-% % for i = 1:197
-% %     plot([edge_vals(i) , edge_vals(i)], [0 400], 'y', 'LineWidth', 1)
-% % end 
-% 
-% for i = 1:196
-% 
-%     if i < 196
-%         d = f_data(edge_vals(i):edge_vals(i+1)-1);
-%         v = v_data(edge_vals(i):edge_vals(i+1)-1);
-%     elseif i == 196
-%         d = f_data(edge_vals(196):edge_vals(196)+5000);
-%         v = v_data(edge_vals(196):edge_vals(196)+5000);
-%     end 
-% 
-%     flash_frame_num = max(d)-1;
-% 
-%     rows = 14 - floor((flash_frame_num - 196) / 14);
-%     cols = mod((flash_frame_num - 196), 14) + 1;
-%     % 
-%     X = (rows - 1) * 14 + cols;
-% 
-%     subplot(14, 14, X)
-%     plot(v, 'Color', 'k')
-%     hold on 
-%     % plot([1600 1600], [-70 -40], 'r')
-%     xmax = numel(v);
-%     % plot([1 xmax], [median_v, median_v], 'Color', [1 0.7 0.7])
-%     ylim([-70 -30])
-%     box off
-%     axis off
-% 
-%     data_comb(rows, cols) = data_comb(rows, cols) + mean(v); 
-% end 
-% 
-% 
-% data_comb = data_comb / 3;
-% %%
-% 
-% % % Initialize the new 7x7 non-overlapping grid
-% % new_grid = zeros(7, 7);
-% % 
-% % % Loop through the 14x14 array in blocks of 2x2
-% % for i = 1:7
-% %     for j = 1:7
-% %         % Compute the mean of the corresponding 2x2 block
-% %         new_grid(i, j) = mean(mean(data_comb(2*i-1:2*i, 2*j-1:2*j)));
-% %     end
-% % end
-% % 
-% % % Display the resulting grid
-% % figure; imagesc(new_grid); title('mean')
-% 
-% figure; imagesc(data_comb); title('mean')
+
+% FAST FLASHES
+func_file2 = dir("0002*");
+load(func_file2.name, 'pfnparam');
+dur_fastflashes = pfnparam.dur; % seconds. 
+
+% End of fast flashes - rep1 
+dur_ms_fast = dur_ms + dur_fastflashes*sampling_rate;
 
 
 
@@ -578,7 +274,17 @@ plot([idx(5)-dur_ms, idx(5)-dur_ms], [0 400], 'm')
 
 
 
-% Plot the traces from the 3 different response types: 
+
+
+
+
+
+
+
+
+%% Plot the time series responses to individual flashes, grouped by which group they are in. 
+
+% TEST - - - - - Plot the traces from the 3 different response types: 
 
 figure
 for i = 1:196
@@ -635,19 +341,6 @@ for i = 1:196
 end 
 
 
- %% Create figure with coloured squares in the background: 
-
-for idx = 1:196
-    subplot(14, 14, idx)
-    c = v_ord_norm(idx);
-    rectangle('Position', [0 -70 5000, 40], "FaceColor", [c c c], "EdgeColor", 'none', "FaceAlpha", 0.5);
-    axis off
-    box off
-    axis square
-    hold on
-end 
-
-% Then plot the traces on top: 
 
 
 
