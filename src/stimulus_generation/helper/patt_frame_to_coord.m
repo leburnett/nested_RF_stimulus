@@ -10,7 +10,7 @@ function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color)
 %% Load the patterns used: 
 
 % Assuming using left at the moment:
-pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40\Patterns';
+pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03\Patterns';
 cd(pattern_path)
 
 pat2 = dir('0002_*');
@@ -27,7 +27,7 @@ if ~isnan(peakf)
     f = allf2(:, :, peakf);
 
     [a, b] = find(f~=bkg_color); 
-    max_col = max(f);
+    max_col = max(max(f));
     if max_col>bkg_color % contains pixels higher than bkg - ON 
         on_off = 'on';
     else 

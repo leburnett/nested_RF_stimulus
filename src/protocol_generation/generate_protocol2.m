@@ -18,7 +18,6 @@ function generate_protocol2(peak_frame)
     px_intensity = [6, 0, 15];
     px_crop_flash = 30;
     px_crop_bar = 30;
-    int_dur = 0.25;
 
     % Pixel limits of the screen:
     screen_width_start = 17;
