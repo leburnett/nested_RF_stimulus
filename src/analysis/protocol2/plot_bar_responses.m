@@ -181,6 +181,7 @@ angls = linspace(0, 2*pi, 17); % 17 points include both 0 and 2*pi
 %% Create the figure
 
 max_v = zeros(numPlots, 2);
+min_v = zeros(numPlots, 2);
 
 figure
 for sp = 1:2
@@ -231,8 +232,13 @@ for sp = 1:2
     
         ylim([-80 -10])
 
-        max_rep_voltage = max(data{d_idx, 4}*10);
+        d = data{d_idx, 4}*10;
+
+        max_rep_voltage = max(d);
         max_v(i, sp) = max_rep_voltage;
+
+        min_rep_voltage = min(d);
+        min_v(i, sp) = min_rep_voltage;
 
         % Add a text annotation in the bottom-left corner
         % text(ax, x_vals(end)*0.75, median_voltage*1.2, sprintf('%.2f', max_rep_voltage), 'FontSize', 8, 'Color', 'k');
@@ -262,42 +268,35 @@ end
 
 %% Plot heat map of the max voltage reached during each rep. 
 
-figure; imagesc(max_v); hcb = colorbar;
-cm_inferno=inferno(1000);
-colormap(cm_inferno)
-ax_c= gca;
-ax_c.TickDir = 'out';
-ax_c.LineWidth = 1;
-ax_c.FontSize = 12; 
-box off
-
-yticks([1,5,9, 13])
-yticklabels({'0', '90', '180', '270'});
-ylabel('Direction - deg')
-
-xticks([1,2])
-xticklabels({'28', '56'})
-xlabel('Speed - dps')
-
-colorTitleHandle = get(hcb,'Title');
-set(colorTitleHandle ,'String','Max voltage (mV)');
-
-f2 = gcf;
-f2.Position = [620   386   190   581];
-
-
+% figure; imagesc(max_v); hcb = colorbar;
+% cm_inferno=inferno(1000);
+% colormap(cm_inferno)
+% ax_c= gca;
+% ax_c.TickDir = 'out';
+% ax_c.LineWidth = 1;
+% ax_c.FontSize = 12; 
+% box off
+% 
+% yticks([1,5,9, 13])
+% yticklabels({'0', '90', '180', '270'});
+% ylabel('Direction - deg')
+% 
+% xticks([1,2])
+% xticklabels({'28', '56'})
+% xlabel('Speed - dps')
+% 
+% colorTitleHandle = get(hcb,'Title');
+% set(colorTitleHandle ,'String','Max voltage (mV)');
+% 
+% f2 = gcf;
+% f2.Position = [620   386   190   581];
 
 
+%% SAVE THE DATA
 
-
-
-
-
-
-
-
-
-
+results_save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results';
+% max_v_polar = 
+save(fullfile(results_save_folder, strcat('peak_vals_', date_str, '_', time_str, '.mat')), 'angls', 'max_v_polar', 'min_v', 'max_v', 'median_voltage', 'data');
 
 
 
