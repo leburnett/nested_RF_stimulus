@@ -3,7 +3,12 @@
 % Dec 2024. 
 
 close all
-clear
+% clear
+% clear
+
+strain = metadata.comments;
+strain = strrep(strain, ' ', '-');
+% strain = '';
 
 % Input experiment folder with data from protocol 2:
 date_folder = cd;
@@ -232,12 +237,13 @@ for sp = 1:2
     
         ylim([-80 -10])
 
-        d = data{d_idx, 4}*10;
+        d = data{d_idx, 4}*10; % mean timeseries across repetitions
+        n_vals_d = numel(d);
 
-        max_rep_voltage = max(d);
+        max_rep_voltage = max(d(n_vals_d/8:end));
         max_v(i, sp) = max_rep_voltage;
 
-        min_rep_voltage = min(d);
+        min_rep_voltage = min(d(n_vals_d/2:end));
         min_v(i, sp) = min_rep_voltage;
 
         % Add a text annotation in the bottom-left corner
@@ -258,7 +264,7 @@ for sp = 1:2
         polarplot(angls, max_v_polar2-median_voltage, 'Color', [0.4 0.8 1], 'LineWidth', 2);
     end 
 
-    sgtitle(strcat("28 / 56 dps - 4 pixel bar stimuli - 30 pix square -",  strrep(date_str, '_', '-'), '-', strrep(time_str, '_', '-')))
+    sgtitle(strcat("28 / 56 dps - 4 pixel bar stimuli - 30 pix square -",  strrep(date_str, '_', '-'), '-', strrep(time_str, '_', '-'), '-', strain))
     
     f = gcf;
     f.Position = [303 78 961 969];
@@ -268,28 +274,28 @@ end
 
 %% Plot heat map of the max voltage reached during each rep. 
 
-% figure; imagesc(max_v); hcb = colorbar;
-% cm_inferno=inferno(1000);
-% colormap(cm_inferno)
-% ax_c= gca;
-% ax_c.TickDir = 'out';
-% ax_c.LineWidth = 1;
-% ax_c.FontSize = 12; 
-% box off
-% 
-% yticks([1,5,9, 13])
-% yticklabels({'0', '90', '180', '270'});
-% ylabel('Direction - deg')
-% 
-% xticks([1,2])
-% xticklabels({'28', '56'})
-% xlabel('Speed - dps')
-% 
-% colorTitleHandle = get(hcb,'Title');
-% set(colorTitleHandle ,'String','Max voltage (mV)');
-% 
-% f2 = gcf;
-% f2.Position = [620   386   190   581];
+figure; imagesc(max_v); hcb = colorbar;
+cm_inferno=inferno(1000);
+colormap(cm_inferno)
+ax_c= gca;
+ax_c.TickDir = 'out';
+ax_c.LineWidth = 1;
+ax_c.FontSize = 12; 
+box off
+
+yticks([1,5,9, 13])
+yticklabels({'0', '90', '180', '270'});
+ylabel('Direction - deg')
+
+xticks([1,2])
+xticklabels({'28', '56'})
+xlabel('Speed - dps')
+
+colorTitleHandle = get(hcb,'Title');
+set(colorTitleHandle ,'String','Max voltage (mV)');
+
+f2 = gcf;
+f2.Position = [620   386   190   581];
 
 
 %% SAVE THE DATA
