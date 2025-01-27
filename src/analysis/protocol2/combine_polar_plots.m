@@ -228,7 +228,7 @@ mag = mag/max(mag);
 % polarplot(ang, mag, 'Color', [1 0.8 0.8], 'LineWidth', 2);
 % figure(f_polar)
 polarplot(ang, mag, 'Color', 'r', 'LineWidth', 2);
-title('RNAi ttl - ON')
+title('RNAi ttl - OFF')
 
 
 
@@ -327,7 +327,7 @@ for d = 1:32
     aligned_arrays = nan(num_arrays, new_length);  % Use NaN padding
     
     for i2 = 1:num_arrays
-        if i2<=6
+        if i2<=5
             col = [0.8 0.8 0.8];
         else 
             col = [1 0.8 0.8];
@@ -342,13 +342,14 @@ for d = 1:32
         hold on
     end
 
-    plot(nanmean(aligned_arrays(1:6, :))*10, 'Color', 'k', 'LineWidth', 1.5)
-    plot(nanmean(aligned_arrays(7:12, :))*10, 'Color', 'r', 'LineWidth', 1.5)
+    plot(nanmean(aligned_arrays(1:5, :))*10, 'Color', 'k', 'LineWidth', 1.5)
+    plot(nanmean(aligned_arrays(6:end, :))*10, 'Color', 'r', 'LineWidth', 1.5)
 
     box off
     ax = gca;
     ax.TickLength = [0.04 0.04];
     ax.TickDir = 'out';
+    xlim([0 new_length])
 
     if d>16
         ylim([-73 -45])

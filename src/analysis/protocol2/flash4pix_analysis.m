@@ -83,18 +83,31 @@ else
     on_off = "on";
 end 
 
+%% RECEPTIVE FIELD PLOT WITH TIMESERIES 
+% Plot the timeseries responses to each flash at its corresponding position - colour the background of the plot
+% Look at the difference between the peak and the trough in the timeseries.
+
+% - Check for the variance across repetitions - if the variance is high - set as grey. 
+
 %%  SLOW FLASHES
 
-% % 340 ms OFF - bkg - 160 ms FLASH. 
-% % 500 ms = 0.5s. 
+% % 340 ms OFF - bkg - 160 ms FLASH. 500 ms = 0.5s. 
+
 slow_flashes_dur = 5000; % 0.5s * sampling rate. 
 
-% 196 flashes / values. 
+% Empty arrays to fill - 196 flashes/values. 
 data_comb = zeros(14, 14);
 cmap_id = zeros(14, 14);
+var_across_reps = zeros(14, 14);
+var_within_reps = zeros(14,14);
+diff_mean = zeros(14,14);
+max_data = zeros(14,14);
+min_data = zeros(14,14);
 
+% Run through the responses to each flash.
 for i = 1:196
 
+    % Array to collect the data for each flash ovver the three repetitions.
     data_flash = ones(3, slow_flashes_dur); 
 
     for r = 1:3
@@ -111,8 +124,8 @@ for i = 1:196
         end 
 
         if i < 196
-            d = f_data(edge_vals(i):edge_vals(i+1)-1);
-            v = v2_data(edge_vals(i):edge_vals(i+1)-1);
+            d = f_data(edge_vals(i):edge_vals(i+1)-1); % frame data
+            v = v2_data(edge_vals(i):edge_vals(i+1)-1); % median-subtracted voltage data
         elseif i == 196
             d = f_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
             v = v2_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
@@ -121,28 +134,36 @@ for i = 1:196
         data_flash(r, :) = v;
     end 
     
-    % In the future - add a check for outlier reps. 
+    % Check for the variance across reps:
+    var_X_rep = var(var(data_flash));
+    % Mean variance within each rep:
+    var_W_reps = mean([var(data_flash(1, :)), var(data_flash(2, :)), var(data_flash(3, :))]);
 
+    % Mean response to flash across the 3 reps:
     mean_data_flash = mean(data_flash);
 
-    max_val_flash = max(mean_data_flash(350:2500));
-    min_val_flash = min(mean_data_flash(1250:4250));
-    
-    % choose colour of background. 
+    % Max and min of the mean flash response:
+    max_val_flash = prctile(mean_data_flash(500:end), 98); % Max 
+    min_val_flash = prctile(mean_data_flash(1250:end), 2); % Min in the second half - ignore if min is early. 
 
-    if max_val_flash > upper_bound_med % excitation - red
-        val = mean(mean_data_flash(350:2500));
-        cm = 1;
-    elseif min_val_flash < lower_bound_med % inhibition - blue 
-        val = mean(mean_data_flash(1250:4250));
-        cm = 2;
-    elseif max_val_flash <= upper_bound_med && min_val_flash >= lower_bound_med  % neither. 
-        val = mean(mean_data_flash);
-        cm = 3;
-    else 
-        disp('error')
-        val = mean(mean_data_flash);
-        cm = 3;
+    diff_resp = max_val_flash - min_val_flash; 
+
+    if abs(max_val_flash)>=abs(min_val_flash) % larger excitatory peak
+        if diff_resp>3
+            val = max_val_flash;
+            cm = 1;
+        else 
+            val = mean(mean_data_flash);
+            cm = 3;
+        end 
+    elseif abs(max_val_flash)<abs(min_val_flash) % larger inhibitory peak 
+        if diff_resp>3
+            val = min_val_flash;
+            cm = 2;
+        else 
+            val = mean(mean_data_flash);
+            cm = 3;
+        end 
     end 
 
     flash_frame_num = max(d)-1;
@@ -159,8 +180,43 @@ for i = 1:196
 
     data_comb(rows, cols) = val;
     cmap_id(rows, cols) = cm;
-
+    var_across_reps(rows, cols) = var_X_rep;
+    var_within_reps(rows, cols) = var_W_reps;
+    diff_mean(rows, cols) = diff_resp;
+    max_data(rows, cols) = max_val_flash;
+    min_data(rows, cols) = min_val_flash;
 end 
+
+%% Generate a plot with some 'quality' check plots:
+% With median value across all flashes in title.
+figure; 
+subplot(2,3,1) % 1 - variance across reps - consistency
+imagesc(var_across_reps); colorbar
+med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
+title(strcat('var across reps - ', string(med_var_X_reps)))
+
+subplot(2,3,4)
+histogram(var_across_reps);
+
+subplot(2,3,2) % 2 - variance within reps - strength of response
+imagesc(var_within_reps); colorbar
+med_var_W_reps = median(reshape(var_within_reps, [1, 196]));
+title(strcat('var within reps - ', string(med_var_W_reps)))
+
+subplot(2,3,5)
+histogram(var_within_reps);
+
+subplot(2,3,3) % 3 - difference between max and min per flash for mean.
+imagesc(diff_mean); colorbar
+med_diff_mean = median(reshape(diff_mean, [1, 196]));
+title(strcat('diff mean - ', string(med_diff_mean)))
+
+subplot(2,3,6)
+histogram(diff_mean);
+
+f = gcf;
+f.Position = [1   684   827   363];
+
 
 data_comb2 = rescale(data_comb, 0, 1);
 % figure; imagesc(data_comb); title('mean')
@@ -173,16 +229,15 @@ for i = 1:196
 
     for r = 1:3 
 
-         if r == 1
+        if r == 1
             end_t = idx(1); %3865; 
-            edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
         elseif r == 2
             end_t = idx(3);%start_t = 2025440; %2025520;
-            edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
         elseif r == 3
             end_t = idx(5); %start_t = 4047040; %4047120;
-            edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
         end 
+
+        edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
 
         if i < 196
             d = f_data(edge_vals(i):edge_vals(i+1)-1);
@@ -231,6 +286,7 @@ for i = 1:196
     axis off
     box off
     axis square
+    % title(string(i))
 
 end 
 
@@ -244,7 +300,10 @@ f.Position = [77  173  1057  874]; %[77  76   1379   971];
 figure; imagesc(data_comb2)
 cmap = redblue();
 colormap(cmap)
-clim([-0.15 1.15])
+
+med_val = median(reshape(data_comb2, [1,196]));
+clim([med_val-0.5 med_val+0.5])
+colorbar
 
 
 % % % % % Test
