@@ -188,8 +188,21 @@ radius = 0.35;
 centralSize = (2 * radius) * 0.65; 
 centralPosition = [centerX - centralSize/2, centerY - centralSize/2, centralSize, centralSize];
 
-% Order of plotting
+%% The order in which the data for the different directions are stored:
+
+% This is from looking at the movement of the bar stimuli in real life. 
+% The order should always be the same, this should not change. 
+% Bars move left to right, then right to left, then in a counter clockwise
+% fashion. Always moving in one direction then the opposite.
+
+% For plotting - in MATLAB, the first plot is positioned in the 'E'
+% position of a compass and moves counter clockwise.
+
+% PD and ND pairs are ordered sequentially in 'data'. e.g. data{1, 4} is
+% left to right and data{2, 4} is right to left.
+
 plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+
 angls = linspace(0, 2*pi, 17); % 17 points to include 0 and 2π
 
 % Preallocate max/min voltage arrays
@@ -218,7 +231,8 @@ for sp = 1:2
         ax = axes('Position', subplotPosition);
         hold on
 
-        % Get the data index
+        % Get the data index - which row in 'data' contains the data for
+        % the desired direction.
         d_idx = plot_order(i) + 16*(sp-1);
 
         % Plot data for each repetition
