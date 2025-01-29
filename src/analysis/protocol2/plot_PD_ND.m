@@ -1,71 +1,11 @@
 %% Plot PD and ND 
 
-%% Figure with the PD and ND plotted on top of each other. 
+results_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/control_RNAi/ON';
+cd(results_folder)
+files = dir('*_peak_vals*');
 
-angls_deg = [0, 180, 22.5, 202.5, 45, 225, 67.5, 247.5, 90, 270, 112.5, 292.5, 135, 315, 157.5, 337.5];
-
- % 0    22.5   45   67.5   90   112.5   135   157.5   
- % 180  202.5  225  247.5  270  292.5   315   337.5
-
-figure;
-numSubplots = 8; % Number of subplots (8 rows)
-rowsPerPlot = 2; % Each subplot contains 2 rows of data
-
-for i = 1:numSubplots
-    subplot(2, numSubplots, i); % Create subplot
-    
-    % Get the row indices for this subplot
-    row1 = (i-1) * rowsPerPlot + 1; % First row in the pair
-    row2 = row1 + 1; % Second row in the pair
-
-    ang1 = angls_deg(row1);
-    ang2 = angls_deg(row2);
-
-    for ii = 1:3
-    plot(data{row1, ii}, 'Color', [0.8 0.8 0.8]); 
-    plot(data{row2, ii}, 'Color', [1 0.8 0.8]); 
-    hold on
-    end 
-
-    % Mean 
-    plot(data{row1, 4}, 'k', 'LineWidth', 1.5); % Plot first row (blue)
-    plot(data{row2, 4}, 'r', 'LineWidth', 1.5); % Plot second row (red)
-    
-    title(sprintf('Dir %.1f (k) & %.1f (r)', ang1, ang2));
-    hold off;
-
-    ylim([-70 -30])
-end
-
-for i = 1:numSubplots
-    subplot(2, numSubplots, i+8); % Create subplot
-    
-    % Get the row indices for this subplot
-    row1 = (i-1) * rowsPerPlot + 17; % First row in the pair
-    row2 = row1 + 1; % Second row in the pair
-
-    ang1 = angls_deg(row1-16);
-    ang2 = angls_deg(row2-16);
-
-    for ii = 1:3
-        plot(data{row1, ii}, 'Color', [0.8 0.8 0.8]); 
-        plot(data{row2, ii}, 'Color', [1 0.8 0.8]); 
-        hold on
-    end 
-
-    plot(data{row1, 4}, 'k',  'LineWidth', 1.5); 
-    hold on;
-    plot(data{row2, 4}, 'r',  'LineWidth', 1.5); 
-    
-    title(sprintf('Dir %.1f (k) & %.1f (r)', ang1, ang2));
-    hold off;
-
-    ylim([-65 -40])
-end
-
-f = gcf;
-f.Position = [2  621  1799  350];
-
+% Load the data: 
+load(files(1).name)
 
 %% Plot the PD and ND - linear timeseries plot
 
@@ -75,9 +15,8 @@ figure;
 numSubplots = 8; % Number of subplots (8 rows)
 rowsPerPlot = 2; % Each subplot contains 2 rows of data
 
-% Function to plot data for a given row pair
-plot_data_pair = @(row1, row2, ang1, ang2, yLimits) ...
-    arrayfun(@(ii) plot(data{row1, ii}, 'Color', [0.8 0.8 0.8]), 1:3, 'UniformOutput', false); % Plot the first 3 columns
+plot_data_pair = @(row1, col1, col2, col3) ...
+    arrayfun(@(ii) plot(data{row1, ii}, 'Color', [col1, col2, col3]), 1:3, 'UniformOutput', false);
 
 % Combined loop for both sets of subplots
 for i = 1:numSubplots
@@ -92,14 +31,24 @@ for i = 1:numSubplots
 
     % Plot the first 3 columns for both rows
     hold on
-    plot_data_pair(row1, row2, ang1, ang2, [-70 -30]);
+    plot_data_pair(row1, 0.8, 0.8, 0.8);
+    plot_data_pair(row2, 1, 0.8, 0.8);
 
     % Plot the mean (4th column) for both rows
     plot(data{row1, 4}, 'k', 'LineWidth', 1.5); % Plot first row (black)
     plot(data{row2, 4}, 'r', 'LineWidth', 1.5); % Plot second row (red)
 
+    % Plot the median voltage for the recording:
+    plot([0 numel(data{row1, 4})], [median_voltage, median_voltage], 'k')
+
     % Title and formatting
     title(sprintf('Dir %.1f (k) & %.1f (r)', ang1, ang2));
+    if i == 1
+        ylabel('Voltage (mV)')
+        xlabel('Time (s)')
+    end 
+    xticks([0 10000 20000])
+    xticklabels({'0', '1', '2'})
     ylim([-70 -30]);
     hold off;
     
@@ -107,23 +56,32 @@ for i = 1:numSubplots
     subplot(2, numSubplots, i + numSubplots); % Create subplot for second set
 
     % Calculate row indices for the second set (rows 17-32)
-    row1 = (i-1) * rowsPerPlot + 17; % First row in the pair (17-32)
-    row2 = row1 + 1; % Second row in the pair (17-32)
+    row3 = (i-1) * rowsPerPlot + 17; % First row in the pair (17-32)
+    row4 = row3 + 1; % Second row in the pair (17-32)
 
-    ang1 = angls_deg(row1 - 16);  % Adjust index for the second set
-    ang2 = angls_deg(row2 - 16);  % Adjust index for the second set
+    ang1 = angls_deg(row3 - 16);  % Adjust index for the second set
+    ang2 = angls_deg(row4 - 16);  % Adjust index for the second set
 
     % Plot the first 3 columns for both rows
     hold on
-    plot_data_pair(row1, row2, ang1, ang2, [-65 -40]);
+    plot_data_pair(row3, 0.8, 0.8, 0.8);
+    plot_data_pair(row4, 1, 0.8, 0.8);
 
     % Plot the mean (4th column) for both rows
-    plot(data{row1, 4}, 'k', 'LineWidth', 1.5); % Plot first row (black)
-    plot(data{row2, 4}, 'r', 'LineWidth', 1.5); % Plot second row (red)
+    plot(data{row3, 4}, 'k', 'LineWidth', 1.5); % Plot first row (black)
+    plot(data{row4, 4}, 'r', 'LineWidth', 1.5); % Plot second row (red)
+
+    % Plot the median voltage for the recording:
+    plot([0 numel(data{row3, 4})], [median_voltage, median_voltage], 'k')
 
     % Title and formatting
-    title(sprintf('Dir %.1f (k) & %.1f (r)', ang1, ang2));
     ylim([-65 -40]);
+    xticks([0 5000 10000])
+    xticklabels({'0', '0.5', '1'})
+    if i == 1
+        ylabel('Voltage (mV)')
+        xlabel('Time (s)')
+    end 
     hold off;
 end
 
@@ -158,3 +116,115 @@ box off
 axis off
 
 %%
+
+data2 = cell(size(data));
+
+for j = 1:height(data)
+    for k = 1:4
+        % Subtract the first element of each array in the cell array
+        data2{j, k} = data{j, k} - data{j, k}(1);
+    end
+end
+
+    
+%% For initial value subtracted data:
+
+figure;
+numSubplots = 8; % Number of subplots (8 rows)
+rowsPerPlot = 2; % Each subplot contains 2 rows of data
+
+plot_data_pair = @(row1, col1, col2, col3) ...
+    arrayfun(@(ii) plot(data2{row1, ii}, 'Color', [col1, col2, col3]), 1:3, 'UniformOutput', false);
+
+% Combined loop for both sets of subplots
+for i = 1:numSubplots
+    subplot(2, numSubplots, i); % Create subplot for the first 8 subplots
+
+    % Calculate row indices for the first set (rows 1 to 16)
+    row1 = (i-1) * rowsPerPlot + 1; % First row in the pair (1-16)
+    row2 = row1 + 1; % Second row in the pair (1-16)
+
+    ang1 = angls_deg(row1);
+    ang2 = angls_deg(row2);
+
+    % Plot the first 3 columns for both rows
+    hold on
+    plot_data_pair(row1, 0.8, 0.8, 0.8);
+    plot_data_pair(row2, 1, 0.8, 0.8);
+
+    % Plot the mean (4th column) for both rows
+    plot(data2{row1, 4}, 'k', 'LineWidth', 1.5); % Plot first row (black)
+    plot(data2{row2, 4}, 'r', 'LineWidth', 1.5); % Plot second row (red)
+
+    % Plot initial voltage
+    plot([0 numel(data2{row1, 4})], [0, 0], 'k')
+
+    % Title and formatting
+    title(sprintf('Dir %.1f (k) & %.1f (r)', ang1, ang2));
+    if i == 1
+        ylabel('Voltage (mV)')
+        xlabel('Time (s)')
+    end 
+    xticks([0 10000 20000])
+    xticklabels({'0', '1', '2'})
+    ylim([-5 35]);
+    hold off;
+    
+    % Create subplot for the second set (rows 17 to 32)
+    subplot(2, numSubplots, i + numSubplots); % Create subplot for second set
+
+    % Calculate row indices for the second set (rows 17-32)
+    row3 = (i-1) * rowsPerPlot + 17; % First row in the pair (17-32)
+    row4 = row3 + 1; % Second row in the pair (17-32)
+
+    ang1 = angls_deg(row3 - 16);  % Adjust index for the second set
+    ang2 = angls_deg(row4 - 16);  % Adjust index for the second set
+
+    % Plot the first 3 columns for both rows
+    hold on
+    plot_data_pair(row3, 0.8, 0.8, 0.8);
+    plot_data_pair(row4, 1, 0.8, 0.8);
+
+    % Plot the mean (4th column) for both rows
+    plot(data2{row3, 4}, 'k', 'LineWidth', 1.5); % Plot first row (black)
+    plot(data2{row4, 4}, 'r', 'LineWidth', 1.5); % Plot second row (red)
+
+    % Plot initial voltage
+    plot([0 numel(data2{row3, 4})], [0, 0], 'k')
+
+    % Title and formatting
+    ylim([-5 25]);
+    xticks([0 5000 10000])
+    xticklabels({'0', '0.5', '1'})
+    if i == 1
+        ylabel('Voltage (mV)')
+        xlabel('Time (s)')
+    end 
+    hold off;
+end
+
+% Set figure size
+f = gcf;
+f.Position = [2 621 1799 350];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
