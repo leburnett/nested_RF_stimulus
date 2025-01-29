@@ -1,14 +1,14 @@
-
-% Analysing responses to bar stimuli - Jin Yong ephys data from T4T5 cells
+%% Analysing responses to bar stimuli - Jin Yong ephys data from T4T5 cells
 % Dec 2024. 
+% This processes the responses to the bar stimuli and plots a polar plot
+% with the timeseries around the polar plot for the 2 speeds. 
 
-close all
-% clear
-% clear
+%% Load the relevant files
 
-strain = metadata.comments;
-strain = strrep(strain, ' ', '-');
-% strain = '';
+% Should open 'metadata' from protocol 1 beforehand to get the fly strain.
+% strain = metadata.comments;
+% strain = strrep(strain, ' ', '-');
+strain = '';
 
 % Input experiment folder with data from protocol 2:
 date_folder = cd;
@@ -21,9 +21,11 @@ log_file = dir('G4_TDMS*');
 load(log_file.name, 'Log');
 
 f_data = Log.ADC.Volts(1, :);
-v_data = Log.ADC.Volts(2, :);
+v_data = Log.ADC.Volts(2, :)*10;
 
-% Check data quality: 
+%% % % % % % %  % % % %  % % CHECK DATA:
+% Plot the frame position data and the raw voltage trace. 
+
 % figure; subplot(3, 1, 1); plot(f_data);
 % subplot(3,1,2:3); plot(v_data)
 % f2 = gcf;
@@ -34,247 +36,251 @@ v_data = Log.ADC.Volts(2, :);
 % 12/12/24 or before = 3 speeds and 45 pixel square area. 
 disp(date_str)
 
+% 1 - find the difference between frame positions:
 diff_f_data = diff(f_data);
 idx = find(diff_f_data == min(diff_f_data));
 
-% Find the duration of each single bar movement in : 
+%% % % % % % %  % % % %  % % CHECK DATA:
+% Plot the difference in frame data with the position of each time 
+% the difference is the minimum (-392).
 
-% 12_12 or before: 
-% dur_t = ((6.02+3.02+1.5)*2*10000)*16;
-% After 12_12
-dur_t = (2.273+1.155)*10000*16;
+% figure; 
+% subplot(2,1,1);
+% plot(f_data); hold on
+% for ii = 1:numel(idx)
+%     plot([idx(ii), idx(ii)], [0 400], 'r')
+% end 
+% subplot(2,1,2);
+% plot(diff_f_data); hold on
+% for ii = 1:numel(idx)
+%     plot([idx(ii), idx(ii)], [-400 400], 'r')
+% end 
 
+%% Find the duration of each single bar movement in : 
+
+% After 12_12_24
+dur_t = (2.273+1.155)*10000*16; % (dur_bar_slow + dur_bar_fast) * acq_speed * n_directions. 
+
+% Find the timings of when the bar stimuli start and end: 
+% 1120 is added because idx(2) etc is the end of the last flash and then we
+% add 1120 because that is the gap between the last flash and the beginning
+% of the bar stimuli. 
 rep1_rng = [idx(2)+1120, idx(2)+dur_t];
 rep2_rng = [idx(4)+1120, idx(4)+dur_t];
-rep3_rng = [idx(6)+1120, numel(f_data)]; % til the end.  
+rep3_rng = [idx(6)+1120, numel(f_data)]; % til the end of the recording. 
 
+% For experiments pre 12_12_24
 % rep1_rng = [1474710, 2022040];
 % rep2_rng = [3496300, 4043600];
 % rep3_rng = [5517920, 6065030];
 
-% % % TEST: Check the range values:
+%% % % % % % %  % % % %  % % CHECK DATA:
+% Plot vertical lines at the beginning and end of the bar stimuli. 
+% Check that the frame position data matches. 
+
 % figure; plot(f_data);
 % hold on;
-% plot([rep1_rng(1), rep1_rng(1)], [-400 400], 'm');
-% plot([rep1_rng(2), rep1_rng(2)], [-400 400], 'm');
-% plot([rep2_rng(1), rep2_rng(1)], [-400 400], 'm');
-% plot([rep2_rng(2), rep2_rng(2)], [-400 400], 'm');
-% plot([rep3_rng(1), rep3_rng(1)], [-400 400], 'm');
-% plot([rep3_rng(2), rep3_rng(2)], [-400 400], 'm');
+% plot([rep1_rng(1), rep1_rng(1)], [0 400], 'm');
+% plot([rep1_rng(2), rep1_rng(2)], [0 400], 'm');
+% plot([rep2_rng(1), rep2_rng(1)], [0 400], 'm');
+% plot([rep2_rng(2), rep2_rng(2)], [0 400], 'm');
+% plot([rep3_rng(1), rep3_rng(1)], [0 400], 'm');
+% plot([rep3_rng(2), rep3_rng(2)], [0 400], 'm');
 
-%% 
-median_voltage = median(v_data)*10;
+%% Find the median voltage across the entire recording:
+median_voltage = median(v_data);
 
-%% Rep 1 
+%% Combine the voltage timeseries data from the three repetitions into 
+% one data structure. 
 
-st_val = rep1_rng(1);
-end_val = rep1_rng(2);
+rep_ranges = {rep1_rng, rep2_rng, rep3_rng};
+idxs_all = cell(1, 3); 
 
-frames_rep1 = f_data(st_val:end_val);
+for i = 1:3
+    st_val = rep_ranges{i}(1);
+    end_val = rep_ranges{i}(2);
+    
+    frames_rep = f_data(st_val:end_val);
+    
+    r_min = islocalmin(frames_rep);
+    r_min_vals = find(r_min);
+    r_st = [st_val, r_min_vals + st_val, end_val];
 
-r1_min = islocalmin(frames_rep1);
-r1_min_vals = find(r1_min==1);
-r1_st = [st_val, r1_min_vals+st_val, end_val];
+    r_max = islocalmax(frames_rep);
+    r_max_vals = find(r_max);
+    r_nd = r_max_vals + st_val;
+    
+    all_idxs = [r_st, r_nd];
+    idxs_all{i} = sort(all_idxs); % Store sorted indices
+end
 
-r1_max = islocalmax(frames_rep1);
-r1_max_vals = find(r1_max==1);
-r1_nd = r1_max_vals+st_val;
+% Extract data segments using the computed indices
+num_segments = numel(idxs_all{1}) - 1; % Assuming all idxs_all{i} have the same size
+data = cell(num_segments, 3); % Preallocate data cell array
 
-all_idxs = [r1_st, r1_nd];
-idxs = sort(all_idxs);
+for i = 1:num_segments
+    for j = 1:3
+        data{i, j} = v_data(idxs_all{j}(i):idxs_all{j}(i+1)-1);
+    end
+end
 
-%% Rep 2
-st_val = rep2_rng(1);
-end_val = rep2_rng(2);
+%% % % % % % %  % % % %  % % CHECK DATA:
+% Test the chopping up of the bar stimuli:
 
-frames_rep1 = f_data(st_val:end_val);
-
-r1_min = islocalmin(frames_rep1);
-r1_min_vals = find(r1_min==1);
-r1_st = [st_val, r1_min_vals+st_val, end_val];
-
-r1_max = islocalmax(frames_rep1);
-r1_max_vals = find(r1_max==1);
-r1_nd = r1_max_vals+st_val;
-
-all_idxs = [r1_st, r1_nd];
-idxs2 = sort(all_idxs);
-
-%% Rep 3
-st_val = rep3_rng(1);
-end_val = rep3_rng(2);
-
-frames_rep1 = f_data(st_val:end_val);
-
-r1_min = islocalmin(frames_rep1);
-r1_min_vals = find(r1_min==1);
-r1_st = [st_val, r1_min_vals+st_val, end_val];
-
-r1_max = islocalmax(frames_rep1);
-r1_max_vals = find(r1_max==1);
-r1_nd = r1_max_vals+st_val;
-
-all_idxs = [r1_st, r1_nd];
-idxs3 = sort(all_idxs);
-
-%% 
-
-% TEST - chopping of stimuli:
-% figure; plot(f_data)
+% figure; 
+% plot(f_data, 'k') % Plot the data in black for better visibility
 % hold on
-% for i = 1:numel(idxs)
-% plot([idxs(i), idxs(i)], [0 100], 'r')
-% end 
 % 
-% for i = 1:numel(idxs2)
-% plot([idxs2(i), idxs2(i)], [0 100], 'r')
-% end 
+% % Define colors for different repetitions (optional)
+% colors = {'r', 'g', 'b'}; % Red, Green, Blue for each repetition
 % 
-% for i = 1:numel(idxs3)
-% plot([idxs3(i), idxs3(i)], [0 100], 'r')
-% end 
+% % Loop through repetitions
+% for rep = 1:3
+%     idxs = idxs_all{rep}; % Get indices for current repetition
+% 
+%     % Plot vertical lines for segmentation
+%     for i = 1:numel(idxs)
+%         plot([idxs(i), idxs(i)], [min(f_data), max(f_data)], colors{rep}, 'LineWidth', 1.5)
+%     end
+% end
+% 
+% hold off
+% xlabel('Frame Number')
+% ylabel('Signal')
+% title('Segment Boundaries for Different Repetitions')
+% legend('f\_data', 'Rep 1 Boundaries', 'Rep 2 Boundaries', 'Rep 3 Boundaries')
 
-
-%% Combine the data into one data structure. 
-
-% Different reps
-for i = 1:numel(idxs)-1
-    data{i, 1} = v_data(idxs(i):idxs(i+1)-1);
-    data{i, 2} = v_data(idxs2(i):idxs2(i+1)-1);
-    data{i, 3} = v_data(idxs3(i):idxs3(i+1)-1);
-end 
-
-% Add 4th column for mean.
+%% Add the mean of the three repetitions as the 4th column:
 
 for j = 1:height(data)
+    % Extract data for all repetitions and ensure column vectors
+    d = cellfun(@(x) x(:), data(j, 1:3), 'UniformOutput', false); 
+    n_per_col = cellfun(@numel, d); % Get the number of elements in each repetition
 
-    d1 = data{j, 1};
-    n_per_col(1) = numel(d1);
-    d2 = data{j, 2};
-    n_per_col(2) = numel(d2);
-    d3 = data{j, 3};
-    n_per_col(3) = numel(d3);
-
+    % Find minimum length and trim all series to match
     min_val = min(n_per_col);
+    d_trimmed = cellfun(@(x) x(1:min_val), d, 'UniformOutput', false);
 
-    d = vertcat(d1(1:min_val), d2(1:min_val), d3(1:min_val));
-    mean_resp = nanmean(d);
+    % Convert to matrix and compute mean across rows (time series)
+    d_matrix = horzcat(d_trimmed{:}); % Convert cell array to matrix (columns = repetitions)
+    mean_resp = nanmean(d_matrix, 2); % Compute mean across repetitions (columns)
 
-    data{j, 4} = mean_resp;
-end 
+    % Store mean time series in the 4th column
+    data{j, 4} = mean_resp';
+end
 
-%% PLOT
+%% GENERATE PLOT 
+% Central polar plot with timeseries around in location 
+% representative of bar direction. Responses to fast bars are in light 
+% blue and responses to slow bars in dark blue. 
 
 % Number of subplots
 numPlots = 16;
 theta = linspace(0, 2*pi, numPlots+1); % Angles (add 2*pi to complete the circle)
-theta = theta(1:end-1); % Remove the last point since it overlaps with the first
+theta = theta(1:end-1); % Remove redundant last point
 
 % Center and radius of the circle
-centerX = 0.5; % Normalized X-center of the circle
-centerY = 0.5; % Normalized Y-center of the circle
-radius = 0.35; % Normalized radius of the circle
+centerX = 0.5;
+centerY = 0.5;
+radius = 0.35;
 
-% For a central polar plot:
-centralWidth = (2 * radius)*0.65; % Diameter of the circle
-centralHeight = (2 * radius)*0.65; % Diameter of the circle
-centralPosition = [centerX - centralWidth/2, centerY - centralHeight/2, centralWidth, centralHeight];
+% Define central polar plot position
+centralSize = (2 * radius) * 0.65; 
+centralPosition = [centerX - centralSize/2, centerY - centralSize/2, centralSize, centralSize];
 
-plot_order= [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
-angls = linspace(0, 2*pi, 17); % 17 points include both 0 and 2*pi
+% Order of plotting
+plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+angls = linspace(0, 2*pi, 17); % 17 points to include 0 and 2π
 
-%% Create the figure
-
+% Preallocate max/min voltage arrays
 max_v = zeros(numPlots, 2);
 min_v = zeros(numPlots, 2);
 
-figure
-for sp = 1:2
+% Define colors for the two conditions
+colors = {[0.2 0.4 0.7], [0.4 0.8 1]};  % Dark blue (28 dps) and Light blue (56 dps)
 
-    if sp == 1
-        col = [0.2 0.4 0.7];  % 28 dps = dark blue
-    elseif sp == 2
-        col = [0.4 0.8 1]; % 56 dps = light blue.
-    end 
+%% Create the figure
+figure
+
+for sp = 1:2
+    col = colors{sp}; % Get color for current condition
 
     % Loop to create subplots
     for i = 1:numPlots
-
-        % Compute subplot center position in normalized units
-        x = centerX + radius * cos(theta(i)); % X-coordinate
-        y = centerY + radius * sin(theta(i)); % Y-coordinate
-        
-        % Define the size of each subplot
-        subplotWidth = 0.15; % Normalized width
-        subplotHeight = 0.15; % Normalized height
-        
-        % Define position of subplot [x, y, width, height]
+        % Compute subplot position
+        x = centerX + radius * cos(theta(i)); 
+        y = centerY + radius * sin(theta(i));
+        subplotWidth = 0.15; 
+        subplotHeight = 0.15;
         subplotPosition = [x - subplotWidth/2, y - subplotHeight/2, subplotWidth, subplotHeight];
-        
-        % Create the axes at the specified position
+
+        % Create subplot axes
         ax = axes('Position', subplotPosition);
-    
-        % plot data for each rep
+        hold on
+
+        % Get the data index
         d_idx = plot_order(i) + 16*(sp-1);
-    
+
+        % Plot data for each repetition
         for r = 1:4
-            d2plot = data{d_idx, r}*10;
+            d2plot = data{d_idx, r};
             x_vals = 1:numel(d2plot);
-    
-            if r ==1 
-                % Plot median voltage acrss entire recording in background. 
-                plot(ax, [1 x_vals(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1) 
-                hold on
+
+            if r == 1 
+                % Plot median voltage background
+                plot([1 x_vals(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1);  
             end 
-    
-            if r<4
-                plot(ax, x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
+
+            % Plot repetitions in gray, last rep in condition color
+            if r < 4
+                plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
             else 
-                plot(ax, x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
+                plot(x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
             end
-    
         end 
-    
+
+        % Set consistent Y-limits
         ylim([-80 -10])
 
-        d = data{d_idx, 4}*10; % mean timeseries across repetitions
+        % Store max/min values from last column of data = mean over the 3
+        % repetitions:
+        d = data{d_idx, 4}; 
         n_vals_d = numel(d);
+        max_v(i, sp) = max(d(floor(n_vals_d/8):end)); % ignore the first 8th of the condition
+        min_v(i, sp) = min(d(floor(n_vals_d/2):end)); % find the min during the 2nd half of the condition.
 
-        max_rep_voltage = max(d(n_vals_d/8:end));
-        max_v(i, sp) = max_rep_voltage;
-
-        min_rep_voltage = min(d(n_vals_d/2:end));
-        min_v(i, sp) = min_rep_voltage;
-
-        % Add a text annotation in the bottom-left corner
-        % text(ax, x_vals(end)*0.75, median_voltage*1.2, sprintf('%.2f', max_rep_voltage), 'FontSize', 8, 'Color', 'k');
-        
-        % Turn off the axes for better visualization
+        % Turn off axes for better visualization
         axis(ax, 'off');
     end
+end
 
-    if sp ==2 
-        % Add polar plot in the middle:
-        axCentral = axes('Position', centralPosition);
-        max_v_polar = vertcat(max_v(:, sp-1), max_v(1, sp-1));
-        max_v_polar2 = vertcat(max_v(:, sp), max_v(1, sp));
-        set(axCentral);
-        polarplot(angls, max_v_polar-median_voltage, 'Color', [0.2 0.4 0.7], 'LineWidth', 2);
-        hold on
-        polarplot(angls, max_v_polar2-median_voltage, 'Color', [0.4 0.8 1], 'LineWidth', 2);
-    end 
+% Add polar plot in the center
+axCentral = polaraxes('Position', centralPosition);
+hold on
 
-    sgtitle(strcat("28 / 56 dps - 4 pixel bar stimuli - 30 pix square -",  strrep(date_str, '_', '-'), '-', strrep(time_str, '_', '-'), '-', strain))
-    
-    f = gcf;
-    f.Position = [303 78 961 969];
+% Convert max values for both conditions into polar format
+max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1));
+max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2));
 
-end 
+% Plot the polar data
+polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 2);
+polarplot(angls, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 2);
+
+% Add title
+sgtitle(sprintf("28 / 56 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s", ...
+                strrep(date_str, '_', '-'), strrep(time_str, '_', '-'), strain));
+
+% Set figure size
+set(gcf, 'Position', [303 78 961 969]);
+
 
 
 %% Plot heat map of the max voltage reached during each rep. 
 
-figure; imagesc(max_v); hcb = colorbar;
+figure; 
+imagesc(max_v); 
+
+hcb = colorbar;
 cm_inferno=inferno(1000);
 colormap(cm_inferno)
 ax_c= gca;
@@ -301,21 +307,5 @@ f2.Position = [620   386   190   581];
 %% SAVE THE DATA
 
 results_save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results';
-% max_v_polar = 
 save(fullfile(results_save_folder, strcat('peak_vals_', date_str, '_', time_str, '.mat')), 'angls', 'max_v_polar', 'min_v', 'max_v', 'median_voltage', 'data');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
