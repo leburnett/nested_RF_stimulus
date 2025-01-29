@@ -1,8 +1,8 @@
-
+function [optEx, R_squared, optInh, R_squaredi] = gaussian_RF_estimate(response, min_data)
 %% Plot gaussian fit of excitatory and inhibitory lobes. 
 
 % Response data:
-response = data_comb2;
+% response = data_comb;
 
 % Define the x and y coordinate grid
 [xGrid, yGrid] = meshgrid(1:size(response,2), 1:size(response,1));
@@ -28,10 +28,10 @@ lb = [0, min(xData), min(yData), 0, 0, min(zData)]; % Lower bounds
 ub = [Inf, max(xData), max(yData), Inf, Inf, max(zData)]; % Upper bounds
 
 % Optimize using least squares
-optParams = lsqcurvefit(gauss2D, initParams, [xData, yData], zData, lb, ub);
+optEx = lsqcurvefit(gauss2D, initParams, [xData, yData], zData, lb, ub);
 
 % Compute fitted values
-zFit = gauss2D(optParams, [xData, yData]);
+zFit = gauss2D(optEx, [xData, yData]);
 
 % Compute R-squared
 SS_res = sum((zData - zFit).^2);
@@ -39,8 +39,8 @@ SS_tot = sum((zData - mean(zData)).^2);
 R_squared = 1 - (SS_res / SS_tot);
 
 % Display results
-fprintf('Optimized Parameters: A = %.2f, x0 = %.2f, y0 = %.2f, sigma_x = %.2f, sigma_y = %.2f, B = %.2f\n', optParams);
-fprintf('R-squared: %.4f\n', R_squared);
+% fprintf('Optimized Parameters: A = %.2f, x0 = %.2f, y0 = %.2f, sigma_x = %.2f, sigma_y = %.2f, B = %.2f\n', optParams);
+% fprintf('R-squared: %.4f\n', R_squared);
 
 % Reshape fitted values into grid form
 zFitGrid = reshape(zFit, size(response));
@@ -65,16 +65,20 @@ axis image; colorbar; colormap redblue;
 [xGrid, yGrid] = meshgrid(1:size(response,2), 1:size(response,1));
 xData = xGrid(:);
 yData = yGrid(:);
-zData = response(:); % Flatten response matrix into a vector
-
-% Define a threshold to separate excitatory and inhibitory responses
-threshold = 2 ; %median(zData);  
-excIdx = zData > threshold; % Excitatory indices
-inhIdx = zData <= threshold; % Inhibitory indices
+zData = response(:); %a(:); %response(:); % Flatten response matrix into a vector
+zData2 = min_data(:)*-1; %b(:)*-1; %min_data(:)*-1; 
 
 % Fit separate Gaussians to excitatory and inhibitory regions
-optExc = fitGaussian(xData, yData, zData, excIdx);
-optInh = fitGaussian(xData, yData, zData, inhIdx);
+optExc = fitGaussian(xData, yData, zData, 1:numel(xData));
+optInh = fitGaussian(xData, yData, zData2, 1:numel(xData));
+
+% Compute fitted values for inhibition
+zFiti = gauss2D(optInh, [xData, yData]);
+
+% Compute R-squared
+SS_resi = sum((zData2 - zFiti).^2);
+SS_toti = sum((zData2 - mean(zData2)).^2);
+R_squaredi = 1 - (SS_resi / SS_toti);
 
 % Define the 2D Gaussian function
 gauss2D = @(params, xy) params(1) * exp(-((xy(:,1) - params(2)).^2 / (2*params(4)^2) + ...
@@ -91,37 +95,31 @@ inhFitGrid = reshape(inhFitValues, size(response));
 
 % Compute 2-sigma contours
 theta = linspace(0, 2*pi, 100); % Circle for contour
-exc_x2sig = optExc(2) + 2*optExc(4) * cos(theta);
-exc_y2sig = optExc(3) + 2*optExc(5) * sin(theta);
-inh_x2sig = optInh(2) + 2*optInh(4) * cos(theta);
-inh_y2sig = optInh(3) + 2*optInh(5) * sin(theta);
+exc_x2sig = optExc(2) + 1.5*optExc(4) * cos(theta);
+exc_y2sig = optExc(3) + 1.5*optExc(5) * sin(theta);
+inh_x2sig = optInh(2) + 1.5*optInh(4) * cos(theta);
+inh_y2sig = optInh(3) + 1.5*optInh(5) * sin(theta);
 
 % Plot results
 figure;
 imagesc(response); hold on;
 colormap redblue; colorbar;
-title('Receptive Field with 2σ Contours');
+title('Receptive Field with 1.5σ Contours');
 
 % Plot excitatory contour
 plot(exc_x2sig, exc_y2sig, 'r', 'LineWidth', 2);
 
 % Plot inhibitory contour
 plot(inh_x2sig, inh_y2sig, 'k', 'LineWidth', 2);
+axis square
 
+% Display the results from both the excitatory and inhibitory lobes:
+disp('Excitatory lobe:')
+fprintf('Optimized Parameters: A = %.2f, x0 = %.2f, y0 = %.2f, sigma_x = %.2f, sigma_y = %.2f, B = %.2f\n', optEx);
+fprintf('R-squared: %.4f\n', R_squared);
 
-%% 
-figure; 
-subplot(2,1,1)
-imagesc(max_data); colorbar; title('max - 98th prctile')
-subplot(2,1,2)
-histogram(max_data)
-f=gcf;
-f.Position = [620   501   275   466];
+disp('Inhibitory lobe:')
+fprintf('Optimized Parameters: A = %.2f, x0 = %.2f, y0 = %.2f, sigma_x = %.2f, sigma_y = %.2f, B = %.2f\n', optInh);
+fprintf('R-squared: %.4f\n', R_squaredi);
 
-figure; 
-subplot(2,1,1)
-imagesc(min_data); colorbar; title('min - 98th prctile')
-subplot(2,1,2)
-histogram(min_data)
-f=gcf;
-f.Position = [620   501   275   466];
+end 
