@@ -8,6 +8,10 @@ clear
 
 % Input experiment folder with data from protocol 2:
 date_folder = cd;
+strrs = split(date_folder, '/');
+date_str = strrs{end};
+type_str = strrs{end-1};
+strain_str = strrs{end-2};
 
 % Find the 'G4_TDMS_Log..mat' file and load it:
 log_folder = fullfile(date_folder, "Log Files"); cd(log_folder);
@@ -107,7 +111,7 @@ min_data = zeros(14,14);
 % Run through the responses to each flash.
 for i = 1:196
 
-    % Array to collect the data for each flash ovver the three repetitions.
+    % Array to collect the data for each flash over the three repetitions.
     data_flash = ones(3, slow_flashes_dur); 
 
     for r = 1:3
@@ -144,7 +148,8 @@ for i = 1:196
 
     % Max and min of the mean flash response:
     max_val_flash = prctile(mean_data_flash(500:end), 98); % Max 
-    min_val_flash = prctile(mean_data_flash(1250:end), 2); % Min in the second half - ignore if min is early. 
+    % min_val_flash = prctile(mean_data_flash(1250:end), 2); % Min in the second half - ignore if min is early. 
+    min_val_flash = prctile(mean_data_flash(2500:end), 2); % Min in the second half - ignore if min is early. 
 
     diff_resp = max_val_flash - min_val_flash; 
 
@@ -188,6 +193,9 @@ for i = 1:196
 end 
 
 %% Generate a plot with some 'quality' check plots:
+
+qual_fig_folder= '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/quality';
+
 % With median value across all flashes in title.
 figure; 
 subplot(2,3,1) % 1 - variance across reps - consistency
@@ -216,7 +224,28 @@ histogram(diff_mean);
 
 f = gcf;
 f.Position = [1   684   827   363];
+savefig(gcf, fullfile(qual_fig_folder, strcat('Var_', date_str, '_', strain_str, '_', type_str)))
 
+figure; 
+subplot(2,1,1)
+imagesc(max_data); colorbar; title('max - 98th prctile')
+subplot(2,1,2)
+histogram(max_data)
+f=gcf;
+f.Position = [620   501   275   466];
+savefig(gcf, fullfile(qual_fig_folder, strcat('Max_', date_str, '_', strain_str, '_', type_str)))
+
+figure; 
+subplot(2,1,1)
+imagesc(min_data*-1); colorbar; title('min - 98th prctile')
+subplot(2,1,2)
+histogram(min_data)
+f=gcf;
+f.Position = [620   501   275   466];
+savefig(gcf, fullfile(qual_fig_folder, strcat('Min_', date_str, '_', strain_str, '_', type_str)))
+
+
+%% Plot the RF and the timeseries. 
 
 data_comb2 = rescale(data_comb, 0, 1);
 % figure; imagesc(data_comb); title('mean')
@@ -294,6 +323,9 @@ sgtitle('160ms flashes - 340ms interval')
 f = gcf;
 f.Position = [77  173  1057  874]; %[77  76   1379   971];
 
+fig_save_folder1 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/timeseries';
+savefig(gcf, fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str)))
+
 
 %% Heatmap without traces: 
 
@@ -301,9 +333,34 @@ figure; imagesc(data_comb2)
 cmap = redblue();
 colormap(cmap)
 
-med_val = median(reshape(data_comb2, [1,196]));
+med_val = median(data_comb2(:));
 clim([med_val-0.5 med_val+0.5])
 colorbar
+axis square
+
+fig_save_folder2 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/heatmap';
+savefig(gcf, fullfile(fig_save_folder2, strcat(date_str, '_', strain_str, '_', type_str)))
+
+%% Gaussian fits:
+[optEx, R_squared, optInh, R_squaredi] = gaussian_RF_estimate(data_comb, min_data);
+
+save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/RF_estimate';
+
+save(fullfile(save_folder, strcat('RF_est_', date_str,'_', strain_str, '_', type_str, '.mat')), "data_comb"...
+    , "cmap_id"...
+    , "var_within_reps"...
+    , "var_across_reps"...
+    , "min_data"...
+    , "max_data"...
+    , "diff_mean"...
+    , "R_squaredi"...
+    , "optInh"...
+    , "R_squared"...
+    , "optEx"...
+    )
+
+fig_save_folder3 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
+savefig(gcf, fullfile(fig_save_folder3, strcat(date_str, '_', strain_str, '_', type_str)))
 
 
 % % % % % Test
@@ -314,8 +371,6 @@ colorbar
 % plot([idx(3)-dur_ms, idx(3)-dur_ms], [0 400], 'm')
 % plot([idx(5)-dur_ms, idx(5)-dur_ms], [0 400], 'm')
 % 
-
-
 
 
 %% FAST FLASHES
@@ -566,10 +621,6 @@ colorbar
 %     plot(mean_data_flash)
 % 
 % end 
-
-
-
-
 
 
 
