@@ -24,8 +24,10 @@ sampling_rate = 10000;
 f_data = Log.ADC.Volts(1, :);
 
 diff_f_data = diff(f_data);
+% Find where the flash stimuli end. 
 idx = find(diff_f_data == min(diff_f_data));
 
+%% % % % % % % % % % % % % % % % % Check data:
 % figure; plot(f_data);
 % hold on;
 % plot([idx(1), idx(1)], [0 200], 'm');
@@ -33,10 +35,10 @@ idx = find(diff_f_data == min(diff_f_data));
 % plot([idx(3), idx(3)], [0 200], 'm');
 % plot([idx(1), idx(1)], [0 200], 'm');
 
-% % % %  Load the voltage data:
-v_data = Log.ADC.Volts(2, :)*10;
-median_v = median(v_data);
-v2_data = v_data - median_v; 
+%% % % %  Load the voltage data:
+v_data = Log.ADC.Volts(2, :)*10;  % transform the data in mV
+median_v = median(v_data); % Find the median voltage across the entire recording.
+v2_data = v_data - median_v; % Get the median-subtracted voltage.
 
 % Find the standard deviation and the upper / lower bounds for finding
 % response groups later on. 
@@ -44,6 +46,7 @@ std_v = std(v2_data);
 upper_bound_med = std_v;
 lower_bound_med = -std_v/2;
 
+%% % % % % % % % % % % % % % % Check data:
 % TEST - plot with median and upper/lower bounds plotted for understanding
 % how groups are found. 
 
@@ -56,7 +59,7 @@ lower_bound_med = -std_v/2;
 % plot([1, numel(v_data)],[median_v+upper_bound_med, median_v+upper_bound_med], 'm');
 % plot([1, numel(v_data)],[median_v+lower_bound_med, median_v+lower_bound_med], 'm');
 
-% Function slow 
+%% Function for slow flashes 
 func_folder = fullfile(date_folder, "Functions");
 cd(func_folder)
 func_file = dir("0001*");
@@ -66,13 +69,15 @@ dur_slowflashes = pfnparam2.dur; % seconds.
 % dur_ms = dur_slowflashes*sampling_rate; % 
 dur_ms = 976700;
 
+%% % % % % % % % % % % % % % % Check data:
 % TEST - check timing
 % figure; plot(f_data);
 % hold on;
 % plot([dur_ms , dur_ms], [0 400], 'r', 'LineWidth', 1.2)
-% plot([dur_ms_fast , dur_ms_fast], [0 400], 'm', 'LineWidth', 1.2)
+% % plot([dur_ms_fast , dur_ms_fast], [0 400], 'm', 'LineWidth', 1.2)
 % 
 
+%%
 % 'fc' is the function - each number corresponds to the frame that is being
 % presented. There is one data point every 2ms. 
 
@@ -116,19 +121,19 @@ for i = 1:196
 
     for r = 1:3
 
-        if r == 1
+        if r == 1 % rep 1
             end_t = idx(1); %3865; 
             edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
-        elseif r == 2
+        elseif r == 2 % rep 2 
             end_t = idx(3);%start_t = 2025440; %2025520;
             edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
-        elseif r == 3
+        elseif r == 3 % rep3 
             end_t = idx(5); %start_t = 4047040; %4047120;
             edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
         end 
 
         if i < 196
-            d = f_data(edge_vals(i):edge_vals(i+1)-1); % frame data
+            d = f_data(edge_vals(i):edge_vals(i+1)-1); % frame data during flash. 
             v = v2_data(edge_vals(i):edge_vals(i+1)-1); % median-subtracted voltage data
         elseif i == 196
             d = f_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
@@ -172,16 +177,16 @@ for i = 1:196
     end 
 
     flash_frame_num = max(d)-1;
-    fnum(i) = flash_frame_num;
+    % fnum(i) = flash_frame_num;
     % disp(flash_frame_num)
 
     if on_off == "on" % from 196
-        rows = 14 - floor((flash_frame_num - 196) / 14);
-        cols = mod((flash_frame_num - 196), 14) + 1;
+        rows = 14 - mod((flash_frame_num - 196), 14);   % Rows decrease from 14 to 1
+        cols = floor((flash_frame_num - 196) / 14) + 1; % Columns increase normally
     elseif on_off == "off" % 1- 196
-        rows = 14 - floor(flash_frame_num/14);
-        cols = mod(flash_frame_num, 14) + 1;
-    end 
+        rows = 14 - mod(flash_frame_num, 14);   % Rows decrease from 14 to 1
+        cols = floor(flash_frame_num / 14) + 1; % Columns increase normally
+    end
 
     data_comb(rows, cols) = val;
     cmap_id(rows, cols) = cm;
