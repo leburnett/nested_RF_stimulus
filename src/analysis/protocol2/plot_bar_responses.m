@@ -1,19 +1,29 @@
 %% Analysing responses to bar stimuli - Jin Yong ephys data from T4T5 cells
 % Dec 2024. 
+
 % This processes the responses to the bar stimuli and plots a polar plot
 % with the timeseries around the polar plot for the 2 speeds. 
+% It saves this figure and saves the data in a results folder. 
 
-%% Load the relevant files
+close all
+clear
 
-% Should open 'metadata' from protocol 1 beforehand to get the fly strain.
-% strain = metadata.comments;
-% strain = strrep(strain, ' ', '-');
-strain = '';
-
-% Input experiment folder with data from protocol 2:
 date_folder = cd;
 date_str = date_folder(end-15:end-6);
 time_str = date_folder(end-4:end);
+
+strrs = split(date_folder, '/');
+cell_type = strrs{end-1};
+if strrs{end-2}=="control"
+    strain = "CTL";
+else
+    strain = "TTL";
+end 
+
+fig_save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/bar_polar';
+results_save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results';
+
+%% Go to experiment folder with data from protocol 2:
 
 % Find the 'G4_TDMS_Log..mat' file and load it:
 log_folder = fullfile(date_folder, "Log Files"); cd(log_folder);
@@ -281,13 +291,17 @@ polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth',
 polarplot(angls, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 2);
 
 % Add title
-sgtitle(sprintf("28 / 56 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s", ...
-                strrep(date_str, '_', '-'), strrep(time_str, '_', '-'), strain));
+sgtitle(sprintf("28 / 56 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s", ...
+                strrep(date_str, '_', '-'), strrep(time_str, '_', '-'), strain, cell_type));
 
 % Set figure size
 set(gcf, 'Position', [303 78 961 969]);
 
-
+fig_folder = fullfile(fig_save_folder, cell_type);
+if ~isfolder(fig_folder)
+    mkdir(fig_folder)
+end 
+savefig(gcf, fullfile(fig_folder, strcat(strain, '_', cell_type, '_', date_str, '_', time_str,'_bar_polar')))
 
 %% Plot heat map of the max voltage reached during each rep. 
 
@@ -317,9 +331,40 @@ set(colorTitleHandle ,'String','Max voltage (mV)');
 f2 = gcf;
 f2.Position = [620   386   190   581];
 
+%% Align the data
+data_ordered = align_data_by_seq_angles(data);
+
+%% Find PR and the order to re-order the data to align PD to pi/2.
+% max_v_polar = mean([max_v_polar1, max_v_polar2], 2);
+[d, ord] = find_PD_and_order_idx(max_v_polar1, median_voltage); % use the max v polar for the slower bars.
+
+data_aligned = cell(size(data_ordered));
+for kk = 1:32 
+    if kk<17
+        ord_id = ord(kk);
+    else 
+        ord_id = ord(kk-16)+16;
+    end 
+
+    data_aligned(ord_id, :) = data_ordered(kk, :); % Combine the mean timeseries only.
+end 
 
 %% SAVE THE DATA
 
-results_save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results';
-save(fullfile(results_save_folder, strcat('peak_vals_', date_str, '_', time_str, '.mat')), 'angls', 'max_v_polar', 'min_v', 'max_v', 'median_voltage', 'data');
+res_folder = strcat(results_save_folder, '/', cell_type);
 
+if ~isfolder(res_folder)
+    mkdir(res_folder)
+end 
+
+save(fullfile(res_folder, strcat('peak_vals_', strain, '_', cell_type, '_', date_str, '_', time_str, '.mat'))...
+    , 'max_v_polar1' ...
+    , 'max_v_polar2' ...
+    , 'min_v' ...
+    , 'max_v' ...
+    , 'median_voltage' ...
+    , 'data' ...
+    , 'data_ordered'...
+    , 'data_aligned'...
+    , 'ord'...
+    );
