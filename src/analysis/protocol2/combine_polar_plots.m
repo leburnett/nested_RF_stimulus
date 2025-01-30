@@ -112,17 +112,3 @@ end
 
 polarplot(ang, mag, 'Color', col, 'LineWidth', 2);
 title(strcat(strain, '-', cell_type))
-
-
-% %% Median voltage per recording
-% 
-% median_vs = zeros(1, n_exp);
-% 
-% for i = 1:n_exp
-% 
-%     % Load the data from one cell:
-%     load(file_list(i).name);
-%     median_vs(i) = median_voltage;
-% end 
-
-
