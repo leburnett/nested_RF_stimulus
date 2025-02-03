@@ -1,4 +1,4 @@
-function [optEx, R_squared, optInh, R_squaredi] = gaussian_RF_estimate(response, min_data)
+function [optEx, R_squared, optInh, R_squaredi, f1, f2] = gaussian_RF_estimate(response, min_data)
 %% Plot gaussian fit of excitatory and inhibitory lobes. 
 
 % Response data:
@@ -9,6 +9,7 @@ function [optEx, R_squared, optInh, R_squaredi] = gaussian_RF_estimate(response,
 xData = xGrid(:);
 yData = yGrid(:);
 zData = response(:); % Flatten response matrix into a vector
+zData = sign(zData) .* log(1 + abs(zData));
 
 % Define the 2D Gaussian function
 gauss2D = @(params, xy) params(1) * exp(-((xy(:,1) - params(2)).^2 / (2*params(4)^2) + ...
@@ -19,7 +20,7 @@ A_init = max(zData) - min(zData);
 x0_init = mean(xData);
 y0_init = mean(yData);
 sigma_x_init = std(xData);
-sigma_y_init = std(yData);
+sigma_y_init =  std(yData);
 B_init = min(zData);
 initParams = [A_init, x0_init, y0_init, sigma_x_init, sigma_y_init, B_init];
 
@@ -47,16 +48,13 @@ zFitGrid = reshape(zFit, size(response));
 
 % Plot original and fitted response
 figure;
-subplot(1,2,1);
+subplot(1,3,1);
 imagesc(response);
+med_val = median(response(:));
+max_val = prctile(response(:), 98);
+clim([med_val-max_val med_val+max_val])
 title('Original Response Data');
 axis image; colorbar; colormap redblue;
-
-subplot(1,2,2);
-imagesc(zFitGrid);
-title('Fitted 2D Gaussian');
-axis image; colorbar; colormap redblue;
-
 
 
 %% Gaussian fit - plot 2SD contour around data. 
@@ -66,7 +64,7 @@ axis image; colorbar; colormap redblue;
 xData = xGrid(:);
 yData = yGrid(:);
 zData = response(:); %a(:); %response(:); % Flatten response matrix into a vector
-zData2 = min_data(:)*-1; %b(:)*-1; %min_data(:)*-1; 
+zData2 = (min_data(:))*-1; %b(:)*-1; %min_data(:)*-1; 
 
 % Fit separate Gaussians to excitatory and inhibitory regions
 optExc = fitGaussian(xData, yData, zData, 1:numel(xData));
@@ -89,9 +87,26 @@ gauss2D = @(params, xy) params(1) * exp(-((xy(:,1) - params(2)).^2 / (2*params(4
 excFitValues = gauss2D(optExc, [Xq(:), Yq(:)]);
 inhFitValues = gauss2D(optInh, [Xq(:), Yq(:)]);
 
-% Reshape into grid form
+% % Reshape into grid form
 excFitGrid = reshape(excFitValues, size(response));
 inhFitGrid = reshape(inhFitValues, size(response));
+
+subplot(1,3,2);
+imagesc(excFitGrid);
+title('Fitted 2D Gaussian');
+axis image; colorbar; colormap redblue;
+med_val = median(excFitGrid(:));
+max_val = prctile(excFitGrid(:), 98);
+clim([med_val-max_val med_val+max_val])
+
+subplot(1,3,3);
+imagesc(inhFitGrid*-1);
+title('Fitted 2D Gaussian');
+axis image; colorbar; colormap redblue;
+med_val = median(inhFitGrid(:));
+max_val = prctile(inhFitGrid(:), 98);
+clim([med_val-max_val med_val+max_val])
+f1 = gcf; f1.Position = [58   795   646   203];
 
 % Compute 2-sigma contours
 theta = linspace(0, 2*pi, 100); % Circle for contour
@@ -106,12 +121,19 @@ imagesc(response); hold on;
 colormap redblue; colorbar;
 title('Receptive Field with 1.5σ Contours');
 
+med_val = median(response(:));
+max_val = prctile(response(:), 98);
+clim([med_val-max_val med_val+max_val])
+
 % Plot excitatory contour
 plot(exc_x2sig, exc_y2sig, 'r', 'LineWidth', 2);
 
 % Plot inhibitory contour
 plot(inh_x2sig, inh_y2sig, 'k', 'LineWidth', 2);
 axis square
+
+f2 = gcf;
+f2.Position =[712   576   560   420];
 
 % Display the results from both the excitatory and inhibitory lobes:
 disp('Excitatory lobe:')

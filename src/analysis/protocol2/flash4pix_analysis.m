@@ -38,6 +38,40 @@ idx = find(diff_f_data == min(diff_f_data));
 %% % % %  Load the voltage data:
 v_data = Log.ADC.Volts(2, :)*10;  % transform the data in mV
 median_v = median(v_data); % Find the median voltage across the entire recording.
+
+%% % % % % % % % % % % % % % % % % Check data:
+qual_fig_folder= '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/quality';
+% 
+% figure; 
+% subplot(5,1,1)
+% plot(f_data)
+% ax = gca;
+% ax.XAxis.Visible = 'off';
+% title('f-data')
+% xlim([0 numel(f_data)])
+% subplot(5,1,2:3)
+% plot(v_data)
+% xlim([0 numel(v_data)])
+% ylabel('v-data')
+% ax = gca;
+% ax.XAxis.Visible = 'off';
+% title(strcat("var - v-data = ", string(var(v_data))))
+% subplot(5,1,4:5)
+% plot(movmean(v_data, 20000))
+% xlim([0 numel(v_data)])
+% ylabel('movmean(v-data, 20000)')
+% hold on 
+% % plot(movmean(v_data, 40000))
+% % plot(movmean(v_data, 60000))
+% plot(movmean(v_data, 100000))
+% title(strcat("var - movmean - 100000 = ", string(var(movmean(v_data, 100000)))))
+% f = gcf;
+% f.Position = [25 629 1121 392];
+% 
+% savefig(gcf, fullfile(qual_fig_folder, strcat('Full_rec_', date_str, '_', strain_str, '_', type_str)))
+
+
+%%
 v2_data = v_data - median_v; % Get the median-subtracted voltage.
 
 % Find the standard deviation and the upper / lower bounds for finding
@@ -112,6 +146,7 @@ var_within_reps = zeros(14,14);
 diff_mean = zeros(14,14);
 max_data = zeros(14,14);
 min_data = zeros(14,14);
+i_num = zeros(14,14);
 
 % Run through the responses to each flash.
 for i = 1:196
@@ -157,17 +192,24 @@ for i = 1:196
     min_val_flash = prctile(mean_data_flash(2500:end), 2); % Min in the second half - ignore if min is early. 
 
     diff_resp = max_val_flash - min_val_flash; 
+    diff_med = median_v - min_val_flash;
 
     if abs(max_val_flash)>=abs(min_val_flash) % larger excitatory peak
+        
         if diff_resp>3
-            val = max_val_flash;
-            cm = 1;
+            if min_val_flash< -1.5
+                val = min_val_flash;
+                cm = 2;
+            else
+                val = max_val_flash;
+                cm = 1;
+            end 
         else 
             val = mean(mean_data_flash);
             cm = 3;
         end 
     elseif abs(max_val_flash)<abs(min_val_flash) % larger inhibitory peak 
-        if diff_resp>3
+        if diff_resp>3.1
             val = min_val_flash;
             cm = 2;
         else 
@@ -195,11 +237,10 @@ for i = 1:196
     diff_mean(rows, cols) = diff_resp;
     max_data(rows, cols) = max_val_flash;
     min_data(rows, cols) = min_val_flash;
+    i_num(rows, cols) = i;
 end 
 
 %% Generate a plot with some 'quality' check plots:
-
-qual_fig_folder= '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/quality';
 
 % With median value across all flashes in title.
 figure; 
@@ -289,12 +330,12 @@ for i = 1:196
     flash_frame_num = max(d)-1;
 
     if on_off == "on" % from 196
-        rows = 14 - floor((flash_frame_num - 196) / 14);
-        cols = mod((flash_frame_num - 196), 14) + 1;
+        rows = 14 - mod((flash_frame_num - 196), 14);   % Rows decrease from 14 to 1
+        cols = floor((flash_frame_num - 196) / 14) + 1; % Columns increase normally
     elseif on_off == "off" % 1- 196
-        rows = 14 - floor(flash_frame_num/14);
-        cols = mod(flash_frame_num, 14) + 1;
-    end 
+        rows = 14 - mod(flash_frame_num, 14);   % Rows decrease from 14 to 1
+        cols = floor(flash_frame_num / 14) + 1; % Columns increase normally
+    end
 
     val  = data_comb2(rows, cols);
     cm = cmap_id(rows, cols);
@@ -347,10 +388,21 @@ fig_save_folder2 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protoc
 savefig(gcf, fullfile(fig_save_folder2, strcat(date_str, '_', strain_str, '_', type_str)))
 
 %% Gaussian fits:
-[optEx, R_squared, optInh, R_squaredi] = gaussian_RF_estimate(data_comb, min_data);
+exc_data = data_comb;
 
+inh_data = data_comb;
+inh_data(cmap_id~=2)=0;
+% inh_data = sign(inh_data) .* log(1 + abs(inh_data)); 
+[optEx, R_squared, optInh, R_squaredi, f1, f2] = gaussian_RF_estimate(exc_data, inh_data);
+
+% Save the figures:
+fig_save_folder3 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfit_subplots';
+savefig(f1, fullfile(fig_save_folder3, strcat(date_str, '_', strain_str, '_', type_str)))
+fig_save_folder4 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
+savefig(f2, fullfile(fig_save_folder4, strcat(date_str, '_', strain_str, '_', type_str)))
+
+% Save data:
 save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/RF_estimate';
-
 save(fullfile(save_folder, strcat('RF_est_', date_str,'_', strain_str, '_', type_str, '.mat')), "data_comb"...
     , "cmap_id"...
     , "var_within_reps"...
@@ -363,10 +415,6 @@ save(fullfile(save_folder, strcat('RF_est_', date_str,'_', strain_str, '_', type
     , "R_squared"...
     , "optEx"...
     )
-
-fig_save_folder3 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
-savefig(gcf, fullfile(fig_save_folder3, strcat(date_str, '_', strain_str, '_', type_str)))
-
 
 % % % % % Test
 % figure; plot(f_data)

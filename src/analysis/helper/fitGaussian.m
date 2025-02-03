@@ -1,12 +1,15 @@
 % Function to fit Gaussian to given indices
 function optParams = fitGaussian(xData, yData, zData, idx)
+
+    zData = sign(zData) .* log(1 + abs(zData)); % Log-transform responses
+
     % Initial parameter guess
     A_init = max(zData(idx)) - min(zData(idx));
     x0_init = mean(xData(idx));
     y0_init = mean(yData(idx));
     sigma_x_init = std(xData(idx));
     sigma_y_init = std(yData(idx));
-    B_init = min(zData(idx));
+    B_init = min(zData(idx)); % mean(zData(idx)); 
     initParams = [A_init, x0_init, y0_init, sigma_x_init, sigma_y_init, B_init];
 
     % Bounds (optional)
