@@ -67,7 +67,7 @@ for i = 1:height(files)
 end 
 
 
-data_type = 'baseline_v';
+data_type = 'peak_v';
 
 %% Unbalanced n-way ANOVA:
 

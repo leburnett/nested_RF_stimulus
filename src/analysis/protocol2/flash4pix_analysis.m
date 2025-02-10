@@ -153,6 +153,7 @@ for i = 1:196
 
     % Array to collect the data for each flash over the three repetitions.
     data_flash = ones(3, slow_flashes_dur); 
+    data_flash_raw = ones(3, slow_flashes_dur); 
 
     for r = 1:3
 
@@ -170,21 +171,30 @@ for i = 1:196
         if i < 196
             d = f_data(edge_vals(i):edge_vals(i+1)-1); % frame data during flash. 
             v = v2_data(edge_vals(i):edge_vals(i+1)-1); % median-subtracted voltage data
+            v_raw = v_data(edge_vals(i):edge_vals(i+1)-1);
         elseif i == 196
             d = f_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
             v = v2_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
+            v_raw = v_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
         end 
 
         data_flash(r, :) = v;
+        data_flash_raw(r, :) = v_raw;
     end 
     
     % Check for the variance across reps:
-    var_X_rep = var(var(data_flash));
+    % var_X_rep = var(var(data_flash));
+
     % Mean variance within each rep:
     var_W_reps = mean([var(data_flash(1, :)), var(data_flash(2, :)), var(data_flash(3, :))]);
 
     % Mean response to flash across the 3 reps:
     mean_data_flash = mean(data_flash);
+    n_vals = numel(mean_data_flash);
+
+    std_data_flash = std(data_flash_raw, 0, 1);
+    cv_data_flash = abs(std_data_flash ./ mean(data_flash_raw));
+    var_X_rep = prctile(cv_data_flash, 98);
 
     % Max and min of the mean flash response:
     max_val_flash = prctile(mean_data_flash(500:end), 98); % Max 
@@ -205,7 +215,7 @@ for i = 1:196
                 cm = 1;
             end 
         else 
-            val = mean(mean_data_flash);
+            val = mean(mean_data_flash(n_vals*0.75:end));
             cm = 3;
         end 
     elseif abs(max_val_flash)<abs(min_val_flash) % larger inhibitory peak 
@@ -213,7 +223,7 @@ for i = 1:196
             val = min_val_flash;
             cm = 2;
         else 
-            val = mean(mean_data_flash);
+            val = mean(mean_data_flash(n_vals*0.75:end));
             cm = 3;
         end 
     end 
@@ -247,26 +257,29 @@ figure;
 subplot(2,3,1) % 1 - variance across reps - consistency
 imagesc(var_across_reps); colorbar
 med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
-title(strcat('var across reps - ', string(med_var_X_reps)))
+title(strcat("CoV across reps - ", string(med_var_X_reps)))
 
 subplot(2,3,4)
 histogram(var_across_reps);
+xlabel('Coeff. of var. across reps - 98% val')
 
 subplot(2,3,2) % 2 - variance within reps - strength of response
 imagesc(var_within_reps); colorbar
 med_var_W_reps = median(reshape(var_within_reps, [1, 196]));
-title(strcat('var within reps - ', string(med_var_W_reps)))
+title(strcat("var within reps - ", string(med_var_W_reps)))
 
 subplot(2,3,5)
 histogram(var_within_reps);
+xlabel('Var. within reps - mean')
 
 subplot(2,3,3) % 3 - difference between max and min per flash for mean.
 imagesc(diff_mean); colorbar
 med_diff_mean = median(reshape(diff_mean, [1, 196]));
-title(strcat('diff mean - ', string(med_diff_mean)))
+title(strcat("diff mean - ", string(med_diff_mean)))
 
 subplot(2,3,6)
 histogram(diff_mean);
+xlabel('Diff between max and min of mean')
 
 f = gcf;
 f.Position = [1   684   827   363];
@@ -291,83 +304,11 @@ f.Position = [620   501   275   466];
 savefig(gcf, fullfile(qual_fig_folder, strcat('Min_', date_str, '_', strain_str, '_', type_str)))
 
 
-%% Plot the RF and the timeseries. 
+%% Plot the timeseries responses to the flashes at each location. 
 
 data_comb2 = rescale(data_comb, 0, 1);
-% figure; imagesc(data_comb); title('mean')
-% caxis([-68 -51])
 
-figure
-for i = 1:196
-
-    data_flash = ones(3, slow_flashes_dur); 
-
-    for r = 1:3 
-
-        if r == 1
-            end_t = idx(1); %3865; 
-        elseif r == 2
-            end_t = idx(3);%start_t = 2025440; %2025520;
-        elseif r == 3
-            end_t = idx(5); %start_t = 4047040; %4047120;
-        end 
-
-        edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
-
-        if i < 196
-            d = f_data(edge_vals(i):edge_vals(i+1)-1);
-            v = v2_data(edge_vals(i):edge_vals(i+1)-1);
-        elseif i == 196
-            d = f_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
-            v = v2_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
-        end 
-
-        data_flash(r, :) = v;
-    end 
-
-    mean_data_flash = mean(data_flash);
-
-    flash_frame_num = max(d)-1;
-
-    if on_off == "on" % from 196
-        rows = 14 - mod((flash_frame_num - 196), 14);   % Rows decrease from 14 to 1
-        cols = floor((flash_frame_num - 196) / 14) + 1; % Columns increase normally
-    elseif on_off == "off" % 1- 196
-        rows = 14 - mod(flash_frame_num, 14);   % Rows decrease from 14 to 1
-        cols = floor(flash_frame_num / 14) + 1; % Columns increase normally
-    end
-
-    val  = data_comb2(rows, cols);
-    cm = cmap_id(rows, cols);
-
-    X = (rows - 1) * 14 + cols;
-    subplot(14, 14, X)
-
-    if cm == 1 % RED 
-        c = [1, val, val];
-    elseif cm == 2 % blue
-        c = [0, 0, 1-val];
-    elseif cm == 3 % grey 
-        c = [1-val, 1-val, 1-val];
-    end 
-
-    rectangle('Position', [0 -25 5000, 50], "FaceColor", c, "EdgeColor", 'none', "FaceAlpha", 0.5);
-    hold on
-    plot(mean_data_flash, 'Color', 'k', 'LineWidth', 2)
-    hold on 
-    xmax = numel(v);
-    plot([1 xmax], [0, 0], 'Color', [0.7 0.7 0.7])
-    ylim([-10 25])
-    axis off
-    box off
-    axis square
-    % title(string(i))
-
-end 
-
-sgtitle('160ms flashes - 340ms interval')
-f = gcf;
-f.Position = [77  173  1057  874]; %[77  76   1379   971];
+f = plot_rf_estimate_timeseries(data_comb2, cmap_id, slow_flashes_dur, idx, dur_ms);
 
 fig_save_folder1 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/timeseries';
 savefig(gcf, fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str)))
@@ -388,7 +329,7 @@ fig_save_folder2 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protoc
 savefig(gcf, fullfile(fig_save_folder2, strcat(date_str, '_', strain_str, '_', type_str)))
 
 %% Gaussian fits:
-exc_data = data_comb;
+exc_data = data_comb2;
 
 inh_data = data_comb;
 inh_data(cmap_id~=2)=0;
@@ -401,20 +342,45 @@ savefig(f1, fullfile(fig_save_folder3, strcat(date_str, '_', strain_str, '_', ty
 fig_save_folder4 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
 savefig(f2, fullfile(fig_save_folder4, strcat(date_str, '_', strain_str, '_', type_str)))
 
+
+%% Combine results into a table. 
+rf_results = table();
+rf_results.Date = date_str;
+rf_results.Strain = strain_str;
+rf_results.Type = type_str;
+rf_results.data_comb = {data_comb};
+rf_results.max_data = {max_data};
+rf_results.min_data = {min_data};
+rf_results.diff_mean = {diff_mean};
+rf_results.cmap_id = {cmap_id};
+rf_results.max_val = prctile(reshape(max_data, [1, 196]), 98);
+rf_results.min_val = prctile(reshape(min_data, [1, 196]), 2);
+rf_results.var_within_reps = {var_within_reps};
+rf_results.var_across_reps = {var_across_reps};
+rf_results.med_var_X_reps = med_var_X_reps;
+rf_results.med_var_W_reps = med_var_W_reps;
+rf_results.med_diff_mean = med_diff_mean;
+rf_results.R_squared = R_squared;
+rf_results.optExc = {optEx};
+rf_results.R_squaredi = R_squaredi;
+rf_results.optInh = {optInh};
+
 % Save data:
-save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/RF_estimate';
-save(fullfile(save_folder, strcat('RF_est_', date_str,'_', strain_str, '_', type_str, '.mat')), "data_comb"...
-    , "cmap_id"...
-    , "var_within_reps"...
-    , "var_across_reps"...
-    , "min_data"...
-    , "max_data"...
-    , "diff_mean"...
-    , "R_squaredi"...
-    , "optInh"...
-    , "R_squared"...
-    , "optEx"...
-    )
+save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/rf_results';
+save(fullfile(save_folder, strcat('rf_results_', date_str,'_', strain_str, '_', type_str, '.mat')), 'rf_results');
+
+% , "data_comb"...
+    % , "cmap_id"...
+    % , "var_within_reps"...
+    % , "var_across_reps"...
+    % , "min_data"...
+    % , "max_data"...
+    % , "diff_mean"...
+    % , "R_squaredi"...
+    % , "optInh"...
+    % , "R_squared"...
+    % , "optEx"...
+    % )
 
 % % % % % Test
 % figure; plot(f_data)
