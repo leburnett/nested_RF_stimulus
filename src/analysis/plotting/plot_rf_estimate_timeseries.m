@@ -1,4 +1,6 @@
-function f = plot_rf_estimate_timeseries(data_comb2, cmap_id, slow_flashes_dur, idx, dur_ms)
+function f = plot_rf_estimate_timeseries(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, dur_ms, on_off)
+% Spatial plot of the timeseries responses to the flashes in each position.
+% Colour coded background. 
 
 f = figure;
 for i = 1:196
