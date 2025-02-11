@@ -41,14 +41,14 @@ R_squared = 1 - (SS_res / SS_tot);
 % zFitGrid = reshape(zFit, size(response));
 
 % Plot original and fitted response
-% figure;
-% subplot(1,3,1);
-% imagesc(response);
-% med_val = median(response(:));
-% max_val = prctile(response(:), 98);
-% clim([med_val-max_val med_val+max_val])
-% title('Original Response Data');
-% axis image; colorbar; colormap redblue;
+figure;
+subplot(1,3,1);
+imagesc(response);
+med_val = median(response(:));
+max_val = prctile(response(:), 98);
+clim([med_val-max_val med_val+max_val])
+title('Original Response Data');
+axis image; colorbar; colormap redblue;
 
 %% Fit inhibitory region
 
