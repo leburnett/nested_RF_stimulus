@@ -1,4 +1,4 @@
-function [d, ord] = find_PD_and_order_idx(max_v_polar, median_voltage)
+function [d, ord, magnitude, angle_rad] = find_PD_and_order_idx(max_v_polar, median_voltage)
     % Using the 'peak' responses in each direction - find the preferred
     % direction (PD) for each cell. Use this value to then re-organise the
     % peak data so that the peak responses is always aligned to pi/2 (up).
@@ -21,7 +21,7 @@ function [d, ord] = find_PD_and_order_idx(max_v_polar, median_voltage)
     vector_sum_y = sum(y_component)';
 
     % Compute magnitude and direction
-    % magnitude = sqrt(vector_sum_x.^2 + vector_sum_y.^2);
+    magnitude = sqrt(vector_sum_x.^2 + vector_sum_y.^2);
 
     % This is the angle in which the vector sum points.
     angle_rad = atan2(vector_sum_y, vector_sum_x);
