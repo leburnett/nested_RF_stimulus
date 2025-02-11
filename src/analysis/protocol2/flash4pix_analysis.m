@@ -42,33 +42,33 @@ median_v = median(v_data); % Find the median voltage across the entire recording
 %% % % % % % % % % % % % % % % % % Check data:
 qual_fig_folder= '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/quality';
 % 
-% figure; 
-% subplot(5,1,1)
-% plot(f_data)
-% ax = gca;
-% ax.XAxis.Visible = 'off';
-% title('f-data')
-% xlim([0 numel(f_data)])
-% subplot(5,1,2:3)
-% plot(v_data)
-% xlim([0 numel(v_data)])
-% ylabel('v-data')
-% ax = gca;
-% ax.XAxis.Visible = 'off';
-% title(strcat("var - v-data = ", string(var(v_data))))
-% subplot(5,1,4:5)
-% plot(movmean(v_data, 20000))
-% xlim([0 numel(v_data)])
-% ylabel('movmean(v-data, 20000)')
-% hold on 
-% % plot(movmean(v_data, 40000))
-% % plot(movmean(v_data, 60000))
-% plot(movmean(v_data, 100000))
-% title(strcat("var - movmean - 100000 = ", string(var(movmean(v_data, 100000)))))
-% f = gcf;
-% f.Position = [25 629 1121 392];
-% 
-% savefig(gcf, fullfile(qual_fig_folder, strcat('Full_rec_', date_str, '_', strain_str, '_', type_str)))
+figure; 
+subplot(5,1,1)
+plot(f_data)
+ax = gca;
+ax.XAxis.Visible = 'off';
+title('f-data')
+xlim([0 numel(f_data)])
+subplot(5,1,2:3)
+plot(v_data)
+xlim([0 numel(v_data)])
+ylabel('v-data')
+ax = gca;
+ax.XAxis.Visible = 'off';
+title(strcat("var - v-data = ", string(var(v_data))))
+subplot(5,1,4:5)
+plot(movmean(v_data, 20000))
+xlim([0 numel(v_data)])
+ylabel('movmean(v-data, 20000)')
+hold on 
+% plot(movmean(v_data, 40000))
+% plot(movmean(v_data, 60000))
+plot(movmean(v_data, 100000))
+title(strcat("var - movmean - 100000 = ", string(var(movmean(v_data, 100000)))))
+f = gcf;
+f.Position = [25 629 1121 392];
+
+savefig(gcf, fullfile(qual_fig_folder, strcat('Full_rec_', date_str, '_', strain_str, '_', type_str)))
 
 
 %%
@@ -207,19 +207,14 @@ for i = 1:196
     if abs(max_val_flash)>=abs(min_val_flash) % larger excitatory peak
         
         if diff_resp>3
-            if min_val_flash< -1.5
-                val = min_val_flash;
-                cm = 2;
-            else
                 val = max_val_flash;
                 cm = 1;
-            end 
         else 
             val = mean(mean_data_flash(n_vals*0.75:end));
             cm = 3;
         end 
     elseif abs(max_val_flash)<abs(min_val_flash) % larger inhibitory peak 
-        if diff_resp>3.1
+        if diff_resp>2.8
             val = min_val_flash;
             cm = 2;
         else 
@@ -308,11 +303,17 @@ savefig(gcf, fullfile(qual_fig_folder, strcat('Min_', date_str, '_', strain_str,
 
 data_comb2 = rescale(data_comb, 0, 1);
 
-f = plot_rf_estimate_timeseries(data_comb2, cmap_id, slow_flashes_dur, idx, dur_ms);
+% f = plot_rf_estimate_timeseries(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, dur_ms, on_off);
+f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, dur_ms, on_off);
 
-fig_save_folder1 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/timeseries';
-savefig(gcf, fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str)))
-
+fig_save_folder1 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/timeseries_line';
+% savefig(gcf, fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str)))
+fname = fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str,  ".pdf"));
+exportgraphics(f ...
+        , fname ...
+        , 'ContentType', 'vector' ...
+        , 'BackgroundColor', 'none' ...
+        ); 
 
 %% Heatmap without traces: 
 
@@ -325,8 +326,8 @@ clim([med_val-0.5 med_val+0.5])
 colorbar
 axis square
 
-fig_save_folder2 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/heatmap';
-savefig(gcf, fullfile(fig_save_folder2, strcat(date_str, '_', strain_str, '_', type_str)))
+% fig_save_folder2 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/heatmap';
+% savefig(gcf, fullfile(fig_save_folder2, strcat(date_str, '_', strain_str, '_', type_str)))
 
 %% Gaussian fits:
 exc_data = data_comb2;
@@ -337,11 +338,16 @@ inh_data(cmap_id~=2)=0;
 [optEx, R_squared, optInh, R_squaredi, f1, f2] = gaussian_RF_estimate(exc_data, inh_data);
 
 % Save the figures:
-fig_save_folder3 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfit_subplots';
-savefig(f1, fullfile(fig_save_folder3, strcat(date_str, '_', strain_str, '_', type_str)))
-fig_save_folder4 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
-savefig(f2, fullfile(fig_save_folder4, strcat(date_str, '_', strain_str, '_', type_str)))
+% fig_save_folder3 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfit_subplots';
+% savefig(f1, fullfile(fig_save_folder3, strcat(date_str, '_', strain_str, '_', type_str)))
 
+fig_save_folder4 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
+fname2 = fullfile(fig_save_folder4, strcat(date_str, '_', strain_str, '_', type_str, ".pdf"));
+exportgraphics(f2 ...
+        , fname2 ...
+        , 'ContentType', 'vector' ...
+        , 'BackgroundColor', 'none' ...
+        ); 
 
 %% Combine results into a table. 
 rf_results = table();
