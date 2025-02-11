@@ -13,6 +13,10 @@ date_str = date_folder(end-15:end-6);
 time_str = date_folder(end-4:end);
 
 strrs = split(date_folder, '/');
+type_str = strrs{end-1};
+strain_str = strrs{end-2};
+
+strrs = split(date_folder, '/');
 cell_type = strrs{end-1};
 if strrs{end-2}=="control"
     strain = "CTL";
@@ -283,8 +287,8 @@ axCentral = polaraxes('Position', centralPosition);
 hold on
 
 % Convert max values for both conditions into polar format
-max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1));
-max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2));
+max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
+max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
 
 % Plot the polar data
 polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 2);
@@ -336,7 +340,7 @@ data_ordered = align_data_by_seq_angles(data);
 
 %% Find PR and the order to re-order the data to align PD to pi/2.
 % max_v_polar = mean([max_v_polar1, max_v_polar2], 2);
-[d, ord] = find_PD_and_order_idx(max_v_polar1, median_voltage); % use the max v polar for the slower bars.
+[d, ord, magnitude_slow, angle_rad_slow] = find_PD_and_order_idx(max_v_polar1, median_voltage); % use the max v polar for the slower bars.
 
 data_aligned = cell(size(data_ordered));
 for kk = 1:32 
@@ -349,7 +353,66 @@ for kk = 1:32
     data_aligned(ord_id, :) = data_ordered(kk, :); % Combine the mean timeseries only.
 end 
 
+[xxx, yyy, magnitude_fast, angle_rad_fast] = find_PD_and_order_idx(max_v_polar2, median_voltage);
+
+%% Symmetry index:
+% 'd' - column 1 = angle in radians.
+% column 2 = max_v for that angle. Adjusted so that the peak is 90 deg.
+% (1.5708 rad). 
+% Row 5 = the row corresponding to 90 deg. 
+% 4-6
+% 3-7
+% 2-8
+% 1-9
+% 16-10
+% 15-11
+% 14-12
+
+vals1 = d([4,3,2,1,16,15,14], 2);
+vals2 = d([6,7,8,9,10,11,12], 2);
+diff_vals = abs(vals1-vals2);
+sym_val = sum(diff_vals);
+
+d_norm = d(:, 2)/max(d(:, 2)); 
+vals1_norm = d_norm([4,3,2,1,16,15,14]);
+vals2_norm = d_norm([6,7,8,9,10,11,12]);
+diff_norm = abs(vals1_norm-vals2_norm);
+sym_val_norm = sum(diff_norm);
+
+%% DSI - vector sum method
+
+% Compute the vector sum
+vector_sum = sum(d(:,2) .* exp(1i * d(:,1)));
+
+% Compute the DSI
+DSI = abs(vector_sum) / sum(d(:, 1));
+
 %% SAVE THE DATA
+
+bar_results = table();
+bar_results.Date = date_str;
+bar_results.Time = time_str;
+bar_results.Strain = strain_str;
+bar_results.Type = type_str;
+bar_results.max_v_polar1 = {max_v_polar1};
+bar_results.max_v_polar2 = {max_v_polar2};
+bar_results.min_v = {min_v};
+bar_results.max_v = {max_v};
+bar_results.median_voltage = median_voltage;
+
+% output of vector sum:
+bar_results.magnitude_slow = magnitude_slow;
+bar_results.angle_rad_slow = angle_rad_slow;
+bar_results.magnitude_fast = magnitude_fast;
+bar_results.angle_rad_fast = angle_rad_fast;
+
+% symmetry index
+bar_results.sym_val = sym_val;
+bar_results.sym_val_norm = sym_val_norm;
+
+% DSI - vector sum 
+bar_results.vector_sum = vector_sum;
+bar_results.DSI = DSI;
 
 res_folder = strcat(results_save_folder, '/', cell_type);
 
@@ -358,13 +421,10 @@ if ~isfolder(res_folder)
 end 
 
 save(fullfile(res_folder, strcat('peak_vals_', strain, '_', cell_type, '_', date_str, '_', time_str, '.mat'))...
-    , 'max_v_polar1' ...
-    , 'max_v_polar2' ...
-    , 'min_v' ...
-    , 'max_v' ...
-    , 'median_voltage' ...
+    , "bar_results"...
     , 'data' ...
     , 'data_ordered'...
     , 'data_aligned'...
     , 'ord'...
+    , 'd'
     );
