@@ -33,4 +33,4 @@ qual_table.max_v = prctile(v_data, 98);
 qual_table.min_v = prctile(v_data, 2);
 
 qual_save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/qual_results';
-save(fullfile(qual_save_folder, strcat('qual_res_', date_str, '_', strain_str, '_', type_str, '.mat')), 'qual_table');
+save(fullfile(qual_save_folder, strcat('qual_res_', date_str, '_', time_str, '_', strain_str, '_', type_str, '.mat')), 'qual_table');
