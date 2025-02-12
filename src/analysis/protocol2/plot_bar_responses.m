@@ -13,8 +13,8 @@ date_str = date_folder(end-15:end-6);
 time_str = date_folder(end-4:end);
 
 strrs = split(date_folder, '/');
-type_str = strrs{end-1};
-strain_str = strrs{end-2};
+type_str = string(strrs(end-1));
+strain_str = string(strrs{end-2});
 
 strrs = split(date_folder, '/');
 cell_type = strrs{end-1};

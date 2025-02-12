@@ -10,8 +10,12 @@ clear
 date_folder = cd;
 strrs = split(date_folder, '/');
 date_str = strrs{end};
-type_str = strrs{end-1};
-strain_str = strrs{end-2};
+
+date_str2 = date_folder(end-15:end-6);
+time_str2 = date_folder(end-4:end);
+
+type_str = string(strrs{end-1});
+strain_str = string(strrs{end-2});
 
 % Find the 'G4_TDMS_Log..mat' file and load it:
 log_folder = fullfile(date_folder, "Log Files"); cd(log_folder);
@@ -298,7 +302,6 @@ f=gcf;
 f.Position = [620   501   275   466];
 savefig(gcf, fullfile(qual_fig_folder, strcat('Min_', date_str, '_', strain_str, '_', type_str)))
 
-
 %% Plot the timeseries responses to the flashes at each location. 
 
 data_comb2 = rescale(data_comb, 0, 1);
@@ -351,7 +354,8 @@ exportgraphics(f2 ...
 
 %% Combine results into a table. 
 rf_results = table();
-rf_results.Date = date_str;
+rf_results.Date = date_str2;
+rf_results.Time = time_str2;
 rf_results.Strain = strain_str;
 rf_results.Type = type_str;
 rf_results.data_comb = {data_comb};
