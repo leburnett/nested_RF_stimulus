@@ -10,12 +10,12 @@ data_tbl = bar_res_table;
 % Rename the column variables
 data_tbl = renamevars(data_tbl,["Date","Time","Strain","Type"],["date","time","strain","type"]);
 
-G = groupsummary(data_tbl,["strain", "type"],"mean", ["magnitude_slow","magnitude_fast","sym_val_slow","sym_val_norm_slow","sym_val_fast","sym_val_norm_fast","DSI_vector_slow", "DSI_vector_fast", "DSI_pdnd_slow", "DSI_pdnd_fast"]);
+G = groupsummary(data_tbl,["strain", "type"],"mean", ["magnitude_slow","magnitude_fast","sym_ratio_slow", "sym_ratio_fast", "DSI_vector_slow", "DSI_vector_fast", "DSI_pdnd_slow", "DSI_pdnd_fast"]);
 
 
 %% 1 - Is there a difference in DSI between cells from different types / strains? 
 
-data_type = 'magnitude_fast';
+data_type = 'sigma_y_exc';
 
 %% Unbalanced n-way ANOVA:
 

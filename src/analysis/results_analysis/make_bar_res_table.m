@@ -17,6 +17,6 @@ function make_bar_res_table(results_folder, results_save_folder)
     end
     
     % results_save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results';
-    save(fullfile(results_save_folder, 'bar_res_table_250212.mat'), 'bar_res_table');
+    save(fullfile(results_save_folder, 'bar_res_table_250213.mat'), 'bar_res_table');
 
 end 

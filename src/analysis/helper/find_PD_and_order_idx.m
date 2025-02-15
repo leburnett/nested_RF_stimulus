@@ -1,4 +1,4 @@
-function [d, ord, magnitude, angle_rad] = find_PD_and_order_idx(max_v_polar, median_voltage)
+function [d, ord, magnitude, angle_rad, fwhm, cv, thetahat, kappa] = find_PD_and_order_idx(max_v_polar, median_voltage)
     % Using the 'peak' responses in each direction - find the preferred
     % direction (PD) for each cell. Use this value to then re-organise the
     % peak data so that the peak responses is always aligned to pi/2 (up).
@@ -21,10 +21,15 @@ function [d, ord, magnitude, angle_rad] = find_PD_and_order_idx(max_v_polar, med
     vector_sum_y = sum(y_component)';
 
     % Compute magnitude and direction
-    magnitude = sqrt(vector_sum_x.^2 + vector_sum_y.^2);
+    magnitude = sqrt(vector_sum_x.^2 + vector_sum_y.^2)/sum(responses); % Normalise between 0 and 1. 
 
     % This is the angle in which the vector sum points.
     angle_rad = atan2(vector_sum_y, vector_sum_x);
+
+    % Different methods of finding out how wide the response is:
+    fwhm = compute_FWHM(angls, responses);
+    cv = compute_circular_var(angls, responses);
+    [thetahat, kappa] = circ_vmpar(angls, responses);
 
     % Find the closest direction in 'directions' to the vector sum angle. 
     if angle_rad < 0 

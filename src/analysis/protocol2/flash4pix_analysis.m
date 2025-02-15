@@ -71,9 +71,11 @@ plot(movmean(v_data, 100000))
 title(strcat("var - movmean - 100000 = ", string(var(movmean(v_data, 100000)))))
 f = gcf;
 f.Position = [25 629 1121 392];
-
-savefig(gcf, fullfile(qual_fig_folder, strcat('Full_rec_', date_str, '_', strain_str, '_', type_str)))
-
+% 
+% savefig(gcf, fullfile(qual_fig_folder, strcat('Full_rec_', date_str, '_', strain_str, '_', type_str)))
+% 
+filtered_voltage_data = movmean(v_data, 20000);
+var_filtered_v = var(filtered_voltage_data);
 
 %%
 v2_data = v_data - median_v; % Get the median-subtracted voltage.
@@ -189,16 +191,32 @@ for i = 1:196
     % Check for the variance across reps:
     % var_X_rep = var(var(data_flash));
 
-    % Mean variance within each rep:
-    var_W_reps = mean([var(data_flash(1, :)), var(data_flash(2, :)), var(data_flash(3, :))]);
+    % Standard deviation within each repetition (across time points)
+    std_within_trial = std(data_flash_raw, 0, 2);  % std along rows (across time points)
+    
+    % Mean within each repetition (across time points)
+    mean_within_trial = mean(data_flash_raw, 2);  % mean along rows (across time points)
+    
+    % Coefficient of Variation (CV) within each repetition
+    cv_within_trial = std_within_trial ./ mean_within_trial;
+    
+    % Mean CV across all repetitions (mean within trial CV)
+    mean_cv_within_trial = abs(mean(cv_within_trial));
 
-    % Mean response to flash across the 3 reps:
+    % Standard deviation across time points (across trials)
+    std_across_trials = std(data_flash_raw, 0, 1);  % std along columns (across trials)
+    
+    % Mean across time points (across trials)
+    mean_across_trials = mean(data_flash_raw, 1);  % mean along columns (across trials)
+    
+    % Coefficient of Variation (CV) across repetitions (across trials)
+    cv_across_trials = std_across_trials ./ mean_across_trials;
+
+    % max_cv_across_trials = prctile(cv_across_trials, 98);
+    mean_cv_across_trials = abs(mean(cv_across_trials));
+
     mean_data_flash = mean(data_flash);
-    n_vals = numel(mean_data_flash);
-
-    std_data_flash = std(data_flash_raw, 0, 1);
-    cv_data_flash = abs(std_data_flash ./ mean(data_flash_raw));
-    var_X_rep = prctile(cv_data_flash, 98);
+    n_vals = size(mean_data_flash, 2);
 
     % Max and min of the mean flash response:
     max_val_flash = prctile(mean_data_flash(500:end), 98); % Max 
@@ -241,8 +259,8 @@ for i = 1:196
 
     data_comb(rows, cols) = val;
     cmap_id(rows, cols) = cm;
-    var_across_reps(rows, cols) = var_X_rep;
-    var_within_reps(rows, cols) = var_W_reps;
+    var_across_reps(rows, cols) = mean_cv_across_trials;
+    var_within_reps(rows, cols) = mean_cv_within_trial;
     diff_mean(rows, cols) = diff_resp;
     max_data(rows, cols) = max_val_flash;
     min_data(rows, cols) = min_val_flash;
@@ -264,7 +282,7 @@ xlabel('Coeff. of var. across reps - 98% val')
 
 subplot(2,3,2) % 2 - variance within reps - strength of response
 imagesc(var_within_reps); colorbar
-med_var_W_reps = median(reshape(var_within_reps, [1, 196]));
+med_var_W_reps = var(reshape(var_within_reps, [1, 196]));
 title(strcat("var within reps - ", string(med_var_W_reps)))
 
 subplot(2,3,5)
@@ -310,13 +328,12 @@ data_comb2 = rescale(data_comb, 0, 1);
 f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, dur_ms, on_off);
 
 fig_save_folder1 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/timeseries_line';
-% savefig(gcf, fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str)))
-fname = fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str,  ".pdf"));
-exportgraphics(f ...
-        , fname ...
-        , 'ContentType', 'vector' ...
-        , 'BackgroundColor', 'none' ...
-        ); 
+% fname = fullfile(fig_save_folder1, strcat(date_str, '_', strain_str, '_', type_str,  ".pdf"));
+% exportgraphics(f ...
+%         , fname ...
+%         , 'ContentType', 'vector' ...
+%         , 'BackgroundColor', 'none' ...
+%         ); 
 
 %% Heatmap without traces: 
 
@@ -341,16 +358,14 @@ inh_data(cmap_id~=2)=0;
 [optEx, R_squared, optInh, R_squaredi, f1, f2] = gaussian_RF_estimate(exc_data, inh_data);
 
 % Save the figures:
-% fig_save_folder3 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfit_subplots';
-% savefig(f1, fullfile(fig_save_folder3, strcat(date_str, '_', strain_str, '_', type_str)))
 
-fig_save_folder4 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
-fname2 = fullfile(fig_save_folder4, strcat(date_str, '_', strain_str, '_', type_str, ".pdf"));
-exportgraphics(f2 ...
-        , fname2 ...
-        , 'ContentType', 'vector' ...
-        , 'BackgroundColor', 'none' ...
-        ); 
+% fig_save_folder4 = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/figures/RF_estimate/gaussfits';
+% fname2 = fullfile(fig_save_folder4, strcat(date_str, '_', strain_str, '_', type_str, ".pdf"));
+% exportgraphics(f2 ...
+%         , fname2 ...
+%         , 'ContentType', 'vector' ...
+%         , 'BackgroundColor', 'none' ...
+%         ); 
 
 %% Combine results into a table. 
 rf_results = table();
@@ -367,13 +382,18 @@ rf_results.max_val = prctile(reshape(max_data, [1, 196]), 98);
 rf_results.min_val = prctile(reshape(min_data, [1, 196]), 2);
 rf_results.var_within_reps = {var_within_reps};
 rf_results.var_across_reps = {var_across_reps};
+rf_results.var_filtered_v = var_filtered_v;
 rf_results.med_var_X_reps = med_var_X_reps;
 rf_results.med_var_W_reps = med_var_W_reps;
 rf_results.med_diff_mean = med_diff_mean;
 rf_results.R_squared = R_squared;
+rf_results.sigma_x_exc = optEx(4);
+rf_results.sigma_y_exc = optEx(5);
 rf_results.optExc = {optEx};
 rf_results.R_squaredi = R_squaredi;
 rf_results.optInh = {optInh};
+rf_results.sigma_x_inh = optInh(4);
+rf_results.sigma_y_inh = optInh(5);
 
 % Save data:
 save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/rf_results';
