@@ -274,8 +274,8 @@ for sp = 1:2
         % repetitions:
         d = data{d_idx, 4}; 
         n_vals_d = numel(d);
-        max_v(i, sp) = max(d(floor(n_vals_d/8):end)); % ignore the first 8th of the condition
-        min_v(i, sp) = min(d(floor(n_vals_d/2):end)); % find the min during the 2nd half of the condition.
+        max_v(i, sp) = prctile(d(floor(n_vals_d/8):end), 98); % ignore the first 8th of the condition
+        min_v(i, sp) = prctile(d(floor(n_vals_d/2):end), 2); % find the min during the 2nd half of the condition.
 
         % Turn off axes for better visualization
         axis(ax, 'off');
@@ -305,14 +305,13 @@ fig_folder = fullfile(fig_save_folder, cell_type);
 if ~isfolder(fig_folder)
     mkdir(fig_folder)
 end 
-f = gcf; 
-% savefig(gcf, fullfile(fig_folder, strcat(strain, '_', cell_type, '_', date_str, '_', time_str,'_bar_polar')))
-fname = fullfile(fig_folder, strcat(strain, '_', cell_type, '_', date_str, '_', time_str,'_bar_polar.pdf'));
-exportgraphics(f ...
-        , fname ...
-        , 'ContentType', 'vector' ...
-        , 'BackgroundColor', 'none' ...
-        ); 
+% f = gcf; 
+% fname = fullfile(fig_folder, strcat(strain, '_', cell_type, '_', date_str, '_', time_str,'_bar_polar.pdf'));
+% exportgraphics(f ...
+%         , fname ...
+%         , 'ContentType', 'vector' ...
+%         , 'BackgroundColor', 'none' ...
+%         ); 
 
 %% Plot heat map of the max voltage reached during each rep. 
 
@@ -347,7 +346,8 @@ data_ordered = align_data_by_seq_angles(data);
 
 %% Find PR and the order to re-order the data to align PD to pi/2.
 % max_v_polar = mean([max_v_polar1, max_v_polar2], 2);
-[d, ord, magnitude_slow, angle_rad_slow] = find_PD_and_order_idx(max_v_polar1, median_voltage); % use the max v polar for the slower bars.
+% max_v_polar1_norm = max_v_polar1/max(max_v_polar1);
+[d, ord, magnitude_slow, angle_rad_slow, fwhm_slow, cv_slow, thetahat_slow, kappa_slow] = find_PD_and_order_idx(max_v_polar1, median_voltage); % use the max v polar for the slower bars.
 
 data_aligned = cell(size(data_ordered));
 for kk = 1:32 
@@ -360,7 +360,7 @@ for kk = 1:32
     data_aligned(ord_id, :) = data_ordered(kk, :); % Combine the mean timeseries only.
 end 
 
-[xxx, yyy, magnitude_fast, angle_rad_fast] = find_PD_and_order_idx(max_v_polar2, median_voltage);
+[d_fast, ord_fast, magnitude_fast, angle_rad_fast, fwhm_fast, cv_fast, thetahat_fast, kappa_fast] = find_PD_and_order_idx(max_v_polar2, median_voltage);
 
 %% Symmetry index:
 % 'd' - column 1 = angle in radians.
@@ -375,24 +375,38 @@ end
 % 15-11
 % 14-12
 
-vals1 = d([4,3,2,1,16,15,14], 2);
+vals1 = d([4,3,2,1,16,15,14], 2); % Increases in voltage from median per angle. 
 vals2 = d([6,7,8,9,10,11,12], 2);
-diff_vals = abs(vals1-vals2);
-sym_val = sum(diff_vals);
+diff_vals = abs(vals1-vals2); % Find the diff voltage between the peak responses from the 2 halves.
+sym_val_slow = sum(diff_vals)/sum(d(:, 2)); % Sum these differences and normalise by the sum of all of the responses.
+sym_ratio_slow = 1 - sym_val_slow; % Closer to 1 = more symmetric.
 
-d_norm = d(:, 2)/max(d(:, 2)); 
-vals1_norm = d_norm([4,3,2,1,16,15,14]);
-vals2_norm = d_norm([6,7,8,9,10,11,12]);
-diff_norm = abs(vals1_norm-vals2_norm);
-sym_val_norm = sum(diff_norm);
+% FAST - 56 dps
+vals1 = d_fast([4,3,2,1,16,15,14], 2);
+vals2 = d_fast([6,7,8,9,10,11,12], 2);
+diff_vals = abs(vals1-vals2); 
+sym_val_fast = sum(diff_vals)/sum(d_fast(:, 2));
+sym_ratio_fast = 1 - sym_val_fast;
 
 %% DSI - vector sum method
 
-% Compute the vector sum
-vector_sum = sum(d(:,2) .* exp(1i * d(:,1)));
+% SLOW 
 
+% Compute the vector sum
+vector_sum_slow = sum(d(:,2) .* exp(1i * d(:,1)));
 % Compute the DSI
-DSI = abs(vector_sum) / sum(d(:, 1));
+DSI_slow = abs(vector_sum_slow) / sum(d(:, 2));
+% DSI: - PD - ND
+DSI_pdnd_slow = (d(5,2)-d(13,2))/(d(5,2)+d(13,2));
+
+% FAST 
+
+% Compute the vector sum
+vector_sum_fast = sum(d_fast(:,2) .* exp(1i * d_fast(:,1)));
+% Compute the DSI
+DSI_fast = abs(vector_sum_fast) / sum(d_fast(:, 2));
+% DSI: - PD - ND
+DSI_pdnd_fast = (d_fast(5,2)-d_fast(13,2))/(d_fast(5,2)+d_fast(13,2));
 
 %% SAVE THE DATA
 
@@ -410,18 +424,32 @@ bar_results.median_voltage = median_voltage;
 % output of vector sum:
 bar_results.magnitude_slow = magnitude_slow;
 bar_results.angle_rad_slow = angle_rad_slow;
+bar_results.fwhm_slow = fwhm_slow;
+bar_results.cv_slow = cv_slow;
+bar_results.thetahat_slow = thetahat_slow;
+bar_results.kappa_slow = kappa_slow;
+
 bar_results.magnitude_fast = magnitude_fast;
 bar_results.angle_rad_fast = angle_rad_fast;
+bar_results.fwhm_fast = fwhm_fast;
+bar_results.cv_fast = cv_fast;
+bar_results.thetahat_fast = thetahat_fast;
+bar_results.kappa_fast = kappa_fast;
 
 % symmetry index
-bar_results.sym_val = sym_val;
-bar_results.sym_val_norm = sym_val_norm;
+bar_results.sym_ratio_slow = sym_ratio_slow;
+bar_results.sym_ratio_fast = sym_ratio_fast;
 
 % DSI - vector sum 
-bar_results.vector_sum = vector_sum;
-bar_results.DSI = DSI;
+bar_results.vector_sum_slow = vector_sum_slow;
+bar_results.DSI_vector_slow = DSI_slow;
+bar_results.DSI_pdnd_slow = DSI_pdnd_slow;
+bar_results.vector_sum_fast = vector_sum_fast;
+bar_results.DSI_vector_fast = DSI_fast;
+bar_results.DSI_pdnd_fast = DSI_pdnd_fast;
 
-res_folder = strcat(results_save_folder, '/', cell_type);
+% res_folder = strcat(results_save_folder, '/', cell_type);
+res_folder = strcat(results_save_folder, '/bar_results');
 
 if ~isfolder(res_folder)
     mkdir(res_folder)
