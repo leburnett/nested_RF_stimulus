@@ -3,6 +3,22 @@ function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_da
 % Colour coded lines. Red above baseline, blue below. 
 
 f = figure;
+
+% Define subplot grid dimensions
+nRows = 14;
+nCols = 14;
+
+% Define spacing reduction factor
+spacingFactor = 0.1; % Reducing spacing by 75%
+
+% Compute original subplot size
+origWidth = 1 / nCols;
+origHeight = 1 / nRows;
+
+% Compute new subplot size with reduced spacing
+newWidth = origWidth * (1 - spacingFactor);
+newHeight = origHeight * (1 - spacingFactor);
+
 for i = 1:196
 
     data_flash = ones(3, slow_flashes_dur); 
@@ -46,9 +62,12 @@ for i = 1:196
     val  = data_comb2(rows, cols);
     cm = cmap_id(rows, cols);
 
-    X = (rows - 1) * 14 + cols;
+    % Compute subplot position
+    left = (cols - 1) * origWidth + (origWidth - newWidth) / 2;
+    bottom = (nRows - rows) * origHeight + (origHeight - newHeight) / 2;
 
-    subplot(14, 14, X)
+    % Create axes with reduced spacing
+    ax = axes('Position', [left, bottom, newWidth, newHeight]);
 
     xmax = numel(mean_data_flash);
     x = 1:xmax;
@@ -57,7 +76,7 @@ for i = 1:196
     hold on
 
     if cm ~= 3
-        plot(x,y,'Color', [0.3, 0.3, 0.8], 'LineWidth', 3);
+        plot(ax, x,y,'Color', [0.3, 0.3, 0.8], 'LineWidth', 3);
 
         % if cm == 1
             col_r = [1, (1-val), (1-val)];
@@ -71,24 +90,28 @@ for i = 1:196
             end_idx = [valsPos(transitions), valsPos(end)];
     
             for kk = 1:numel(st_idx)
-                plot(x(st_idx(kk):end_idx(kk)), y(st_idx(kk):end_idx(kk)), 'Color', col_r, 'LineWidth', 3);
+                plot(ax, x(st_idx(kk):end_idx(kk)), y(st_idx(kk):end_idx(kk)), 'Color', col_r, 'LineWidth', 3);
             end 
         end 
 
     elseif cm == 3 % grey 
         col = [0.8 0.8 0.8];
-        plot(y, 'Color', col, 'LineWidth', 2)
+        plot(ax, y, 'Color', col, 'LineWidth', 2)
     end 
 
     plot([1 xmax], [0, 0], 'Color', [0.7 0.7 0.7]) % Plot '0' = median. 
     ylim([-10 25])
-    axis off
+
+    if i ~= 1
+        axis off % keep axes for the first subplot.
+    end 
+
     box off
     axis square
 
 end 
 
-sgtitle('160ms flashes - 340ms interval')
-f.Position = [77  173  1057  874]; %[77  76   1379   971];
+% sgtitle('160ms flashes - 340ms interval')
+f.Position = [77   265   862   782]; %[77  76   1379   971];
 
 end
