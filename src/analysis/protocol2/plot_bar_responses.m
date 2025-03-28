@@ -305,6 +305,7 @@ fig_folder = fullfile(fig_save_folder, cell_type);
 if ~isfolder(fig_folder)
     mkdir(fig_folder)
 end 
+
 % f = gcf; 
 % fname = fullfile(fig_folder, strcat(strain, '_', cell_type, '_', date_str, '_', time_str,'_bar_polar.pdf'));
 % exportgraphics(f ...
@@ -312,6 +313,39 @@ end
 %         , 'ContentType', 'vector' ...
 %         , 'BackgroundColor', 'none' ...
 %         ); 
+
+
+% Add an arrow on top in the direction of the vector sum
+
+theta = angls;
+rho = [max_v_polar1 - median_voltage]';
+
+[aaa, resultant_angle] = vector_sum_polar(rho, theta);
+
+resultant_magnitude = 30; 
+col = [0.3 0.3 0.3];
+
+figure;
+polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 3);
+ax = gca;
+ax.LineWidth = 1.2;
+ax.FontSize = 15;
+ax.ThetaTickLabel = {};
+hold on
+add_arrow_to_polarplot(resultant_magnitude, resultant_angle, col)
+
+
+% Save as PNG
+exportgraphics(gca ...
+        , "2024_12_18_15_07_polarplot_20dps_bar_DS_wArrow.png" ...
+        );
+
+exportgraphics(gca ...
+        , "2024_12_18_15_07_polarplot_20dps_bar_DS_wArrow.pdf" ...
+        , 'ContentType', 'vector' ...
+        , 'BackgroundColor', 'none' ...
+        ); 
+
 
 %% Plot heat map of the max voltage reached during each rep. 
 

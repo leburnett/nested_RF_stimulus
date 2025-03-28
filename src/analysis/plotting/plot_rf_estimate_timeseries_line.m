@@ -76,7 +76,8 @@ for i = 1:196
     hold on
 
     if cm ~= 3
-        plot(ax, x,y,'Color', [0.3, 0.3, 0.8], 'LineWidth', 3);
+        plot(ax, x(1:150), y(1:150),'Color', [0.8, 0.8, 0.8], 'LineWidth', 3); hold on
+        plot(ax, x(151:end), y(151:end),'Color', [0.3, 0.3, 0.8], 'LineWidth', 3);
 
         % if cm == 1
             col_r = [1, (1-val), (1-val)];
@@ -99,19 +100,55 @@ for i = 1:196
         plot(ax, y, 'Color', col, 'LineWidth', 2)
     end 
 
-    plot([1 xmax], [0, 0], 'Color', [0.7 0.7 0.7]) % Plot '0' = median. 
+    plot([1 xmax], [0, 0], 'Color', [0.2 0.2 0.2]) % Plot '0' = median. 
     ylim([-10 25])
 
-    if i ~= 1
-        axis off % keep axes for the first subplot.
+    if i == 171 
+        xticks([0, 160, 500])
+        yticks([-10, 0, 25])
+        ax = gca;
+        ax.TickDir = 'out';
+        ax.TickLength = [0.05 0.05];
+        ax.LineWidth = 1.5;
+        xticklabels('')
+        yticklabels('')
+    else 
+        axis off
     end 
+    % if i ~= 171
+    % axis off % keep axes for the first subplot.
+    % end 
 
     box off
     axis square
 
 end 
 
+% Add an arrow on top representing the vector sum of responses to bar
+% stimuli. 
+magnitude_arrow = 0.85;
+angl = -1.8146;
+%  'angl' = direction of vector sum of bar responses in radians.
+center_x = 0.5;
+center_y = 0.5;
+arrow_x = magnitude_arrow * cos(angl);
+arrow_y = magnitude_arrow * sin(angl);
+annotation('arrow', [center_x - arrow_x/2, center_x + arrow_x/2], ...
+                    [center_y - arrow_y/2, center_y + arrow_y/2], ...
+           'LineWidth', 6, 'Color', [0.2 0.2 0.2], "HeadLength", 40, "HeadWidth", 40);
+
+
 % sgtitle('160ms flashes - 340ms interval')
 f.Position = [77   265   862   782]; %[77  76   1379   971];
+
+exportgraphics(f ...
+        , "2024_12_18_15_07_spatialRF_timeseries_160msflashes_wArrow.pdf" ...
+        , 'ContentType', 'vector' ...
+        , 'BackgroundColor', 'none' ...
+        ); 
+
+exportgraphics(f ...
+        , "2024_12_18_15_07_spatialRF_timeseries_160msflashes_wArrow.png" ...
+        ); 
 
 end
