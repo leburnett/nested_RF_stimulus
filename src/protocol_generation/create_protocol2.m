@@ -1,4 +1,4 @@
-function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder)
+function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder, metadata)
 
 %% check for correct folders
 pattern_folder = fullfile(exp_folder, 'Patterns');
@@ -63,6 +63,6 @@ currentExp.totalDuration = total_dur;
 currentExp.function.numFunc = num_files;
 
 %% save currentExp structure
-save(fullfile(exp_folder, 'currentExp.mat'),'currentExp', 'pattern_order', 'func_order', 'trial_dur');
+save(fullfile(exp_folder, 'currentExp.mat'),'currentExp', 'pattern_order', 'func_order', 'trial_dur', 'metadata');
 
 end
