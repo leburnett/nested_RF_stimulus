@@ -6,7 +6,7 @@ strain_str = "TmY3"; % eventually will get this from metadata.
 [date_str, time_str, Log, params, pfnparam] = load_protocol2_data(exp_folder);
 on_off = params.on_off;
 
-sampling_rate = 10000;
+% sampling_rate = 10000;
 
 f_data = Log.ADC.Volts(1, :); % frame data
 diff_f_data = diff(f_data);
@@ -16,16 +16,8 @@ v_data = Log.ADC.Volts(2, :)*10; % voltage data
 median_v = median(v_data);
 v2_data = v_data - median_v; % Get the median-subtracted voltage.
 
-% STD and the upper/lower bounds for finding response groups later on. 
-std_v = std(v2_data);
-upper_bound_med = std_v;
-lower_bound_med = -std_v/2;
-
 % % - - Figure - check quality of the recording:
 % plot_quality_check_data_full_rec(f_data, v_data)
-
-% % - - Figure - check bound positions
-% plot_quality_check_data_bounds(v_data, median_v, upper_bound_med, lower_bound_med)
 
 % Voltage variance - store in metadata 
 filtered_voltage_data = movmean(v_data, 20000);
@@ -38,18 +30,6 @@ slow_flashes_dur = 5000; % 340ms + 160ms bkg.
 
 % % - - Figure - check flash timing
 % plot_quality_check_flash_timing(f_data, flash_dur_ms)
-
-% 'fc' is the function - each number corresponds to the frame that is being
-% presented. There is one data point every 2ms. 
-fc = pfnparam2.func; 
-
-% Determine if the flashes presented were ON (bright) or OFF (dark)
-max_frame = max(fc);
-if max_frame < 198
-    on_off = "off";
-else 
-    on_off = "on";
-end 
 
 [data_comb,...
     cmap_id,...
