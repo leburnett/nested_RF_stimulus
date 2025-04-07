@@ -1,4 +1,4 @@
-function generate_protocol2(peak_frame)
+function generate_protocol2(peak_frame, screen_hemi)
 % Takes an array containing the frames of the patterns displayed in
 % protocol 1 to which the cell had the strongest voltage response. It then
 % uses these frames to determine the pixel on the screen on which to centre
@@ -12,21 +12,25 @@ function generate_protocol2(peak_frame)
 
 % Inputs:
 % ______
-% 'peak_frames' - [n_condition, n_rep, [peak_frame, peak_voltage]]
+% 'peak_frame' - The frame of the pattern from protocol 1 that elicited the
+% strongest response to flash stimuli. 
+
+% 'screen_hemi' - The side of the screen that the stimuli are presented on.
+% 
 
 % _________________________________________________________________________
     px_intensity = [6, 0, 15];
     px_crop_flash = 30;
     px_crop_bar = 30;
-    int_dur = 0.25;
+    % int_dur = 0.25;
 
-    % Pixel limits of the screen:
+    % Pixel limits of the entire screen - this will not change for screen_hemi:
     screen_width_start = 17;
     screen_width_end = 192;
     screen_height_start = 1;
     screen_height_end = 48;
 
-    [x, y, on_off] = patt_frame_to_coord(peak_frame, px_intensity(1));
+    [x, y, on_off] = patt_frame_to_coord(peak_frame, px_intensity(1), screen_hemi);
 
     % Warning message if [x,y] is close to the edge of the screen.
     if x < screen_width_start+(px_crop_flash/2) || x > screen_width_end-(px_crop_flash/2)
