@@ -1,4 +1,4 @@
-function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color)
+function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color, screen_hemi)
 % Find the [x,y] coordinate of the screen from the identifying which frames 
 % of protocol 1 the cell responded to best.
 
@@ -7,24 +7,28 @@ function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color)
 % patterns. 
 %_______________________________________________________________________
 
-%% Load the patterns used: 
+%% Load the patterns used depending on which arena half the pattern was presented on: 
+assert(ismember(screen_hemi, {'L', 'R'}), 'screen_hemi must be either "L" or "R"')
 
-% Assuming using left at the moment:
-pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40\Patterns';
+if screen_hemi == "L"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40\Patterns';
+elseif screen_hemi == "R"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\RHS\protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-03-24_15-11-40\Patterns';
+end 
+
 cd(pattern_path)
-
+% Load the pattern with the smaller 6px square flashes:
 pat2 = dir('0002_*');
 pattern2 = load(pat2.name, 'pattern');
 allf2 = pattern2.pattern.Pats;
 
 %% Find the centre coordinate of the flash that was presented during the peak frame.
-peakf = peak_frame;
 
 % If the peak frame found is not NaN.
-if ~isnan(peakf)
+if ~isnan(peak_frame)
 
     % Use the pattern for condition 2 with the smaller flashes. 
-    f = allf2(:, :, peakf);
+    f = allf2(:, :, peak_frame);
 
     [a, b] = find(f~=bkg_color); 
     max_col = max(f);
