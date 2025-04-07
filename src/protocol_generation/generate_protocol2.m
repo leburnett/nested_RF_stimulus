@@ -19,7 +19,6 @@ function generate_protocol2()
     px_intensity = [6, 0, 15];
     px_crop_flash = 30;
     px_crop_bar = 30;
-    % int_dur = 0.25;
 
     % Pixel limits of the entire screen - this will not change for screen_hemi:
     screen_width_start = 17;
