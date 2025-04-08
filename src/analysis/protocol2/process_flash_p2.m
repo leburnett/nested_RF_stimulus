@@ -43,6 +43,11 @@ var_filtered_v = var(filtered_voltage_data);
 
 % % - - Figure - check flash timing
 % plot_quality_check_flash_timing(f_data, flash_dur_ms, save_fig, PROJECT_ROOT)
+rf_results = struct();
+rf_results.Date = date_str;
+rf_results.Time = time_str;
+rf_results.Strain = strain_str;
+rf_results.Type = on_off;
 
 for slow_fast = ["slow", "fast"]
 
@@ -92,11 +97,6 @@ for slow_fast = ["slow", "fast"]
     [optEx, R_squared, optInh, R_squaredi, ~, ~] = gaussian_RF_estimate(exc_data, inh_data);
     
     % Combine all of the results into a table:
-    rf_results = table();
-    rf_results.Date = date_str;
-    rf_results.Time = time_str;
-    rf_results.Strain = strain_str;
-    rf_results.Type = on_off;
     rf_results.(slow_fast).data_comb = {data_comb};
     rf_results.(slow_fast).max_data = {max_data};
     rf_results.(slow_fast).min_data = {min_data};
