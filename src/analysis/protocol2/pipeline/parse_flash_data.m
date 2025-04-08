@@ -1,6 +1,8 @@
-function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, flash_dur_ms, PROJECT_ROOT)
+function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, v_data, flash_dur_ms, on_off, PROJECT_ROOT)
 
     diff_f_data = diff(f_data);
+    median_v = median(v_data);
+    v2_data = v_data - median_v;
 
     % Find where the flash stimuli end. 
     idx = find(diff_f_data == min(diff_f_data));

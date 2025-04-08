@@ -1,4 +1,4 @@
-function max_v = plot_timeseries_polar_bars(data, median_voltage, save_fig)
+function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, params, save_fig)
 
     % Central polar plot with timeseries around in location 
     % representative of bar direction. Responses to fast bars are in light 
@@ -112,26 +112,23 @@ function max_v = plot_timeseries_polar_bars(data, median_voltage, save_fig)
     
     % Add title
     sgtitle(sprintf("28 / 56 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s", ...
-                    strrep(date_str, '_', '-'), strrep(time_str, '_', '-'), strain, cell_type));
+                    strrep(params.date, '_', '-'), strrep(params.time, '_', '-'), params.strain, params.on_off));
     
     % Set figure size
     set(gcf, 'Position', [303 78 961 969]);
 
     if save_fig
-
-        fig_folder = fullfile(fig_save_folder, cell_type);
+        fig_folder = fullfile(fig_save_folder, params.on_off);
         if ~isfolder(fig_folder)
             mkdir(fig_folder)
         end 
-
         f = gcf; 
-        fname = fullfile(fig_folder, strcat(strain, '_', cell_type, '_', date_str, '_', time_str,'_bar_polar.pdf'));
+        fname = fullfile(fig_folder, strcat(params.strain, '_', params.on_off, '_', params.date, '_', params.time,'_bar_polar.pdf'));
         exportgraphics(f ...
                 , fname ...
                 , 'ContentType', 'vector' ...
                 , 'BackgroundColor', 'none' ...
                 ); 
-
     end 
 
 end 

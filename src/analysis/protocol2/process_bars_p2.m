@@ -1,7 +1,5 @@
-function process_bars_p2(exp_folder)
+function process_bars_p2(exp_folder, PROJECT_ROOT)
 
-    PROJECT_ROOT = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2";
-    
     results_folder = fullfile(PROJECT_ROOT, "results", "bar_results");
     if ~isfolder(results_folder)
         mkdir(results_folder);
@@ -12,26 +10,32 @@ function process_bars_p2(exp_folder)
         mkdir(figures_folder);
     end
     
-    strain_str = "TmY3"; % eventually will get this from metadata. 
+    strain_str = "T4T5"; % eventually will get this from metadata. 
     
     [date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
     on_off = params.on_off;
+    params.date = date_str;
+    params.time = time_str;
+    params.strain = strain_str;
     
     f_data = Log.ADC.Volts(1, :); % frame data
     
     v_data = Log.ADC.Volts(2, :)*10; % voltage data
-    % median_v = median(v_data);
+    median_v = median(v_data);
     % v2_data = v_data - median_v; % Get the median-subtracted voltage.
     
     % Parse the raw voltage data for the different bar stimuli
     data = parse_bar_data(f_data, v_data); % Update this to work for both slow and fast bars
-     
-    save_fig = 0;
-    % Plot the timeseries responses with a polar plot in the middle.
-    [max_v] = plot_timeseries_polar_bars(data, median_voltage, save_fig);
     
+    % Plot the timeseries responses with a polar plot in the middle.
+    save_fig = 0;
+    [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig);
+    % Convert max values for both conditions into polar format
+    max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
+    max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
+
     % Plot only the polar plot with an arrow overlaid.
-    plot_polar_with_arrow(max_v, median_voltage, save_fig)
+    plot_polar_with_arrow(max_v, median_v, params, save_fig)
     
     % Plot a heat map of the maximum responses to the bars moving in the 16
     % directions at 2 different speeds.
@@ -42,7 +46,7 @@ function process_bars_p2(exp_folder)
     
     % Find PR and the order to re-order the data to align PD to pi/2.
     % 1 - slower bar stimuli
-    [d_slow, ord, magnitude_slow, angle_rad_slow, fwhm_slow, cv_slow, thetahat_slow, kappa_slow] = find_PD_and_order_idx(max_v_polar1, median_voltage); % use the max v polar for the slower bars.
+    [d_slow, ord, magnitude_slow, angle_rad_slow, fwhm_slow, cv_slow, thetahat_slow, kappa_slow] = find_PD_and_order_idx(max_v_polar1, median_v); % use the max v polar for the slower bars.
     
     [sym_ratio_slow, DSI_slow, DSI_pdnd_slow, vector_sum_slow] = compute_bar_response_metrics(d_slow);
     
@@ -58,7 +62,7 @@ function process_bars_p2(exp_folder)
     end 
     
     % 2 - faster bar stimuli
-    [d_fast, ord_fast, magnitude_fast, angle_rad_fast, fwhm_fast, cv_fast, thetahat_fast, kappa_fast] = find_PD_and_order_idx(max_v_polar2, median_voltage);
+    [d_fast, ord_fast, magnitude_fast, angle_rad_fast, fwhm_fast, cv_fast, thetahat_fast, kappa_fast] = find_PD_and_order_idx(max_v_polar2, median_v);
     
     [sym_ratio_fast, DSI_fast, DSI_pdnd_fast, vector_sum_fast] = compute_bar_response_metrics(d_fast);
     
@@ -73,7 +77,7 @@ function process_bars_p2(exp_folder)
     bar_results.max_v_polar2 = {max_v_polar2};
     bar_results.min_v = {min_v};
     bar_results.max_v = {max_v};
-    bar_results.median_voltage = median_voltage;
+    bar_results.median_voltage = median_v;
     
     % output of vector sum:
     bar_results.magnitude_slow = magnitude_slow;
@@ -102,14 +106,7 @@ function process_bars_p2(exp_folder)
     bar_results.DSI_vector_fast = DSI_fast;
     bar_results.DSI_pdnd_fast = DSI_pdnd_fast;
     
-    % res_folder = strcat(results_save_folder, '/', cell_type);
-    res_folder = strcat(results_save_folder, '/bar_results');
-    
-    if ~isfolder(res_folder)
-        mkdir(res_folder)
-    end 
-    
-    save(fullfile(res_folder, strcat('peak_vals_', strain, '_', cell_type, '_', date_str, '_', time_str, '.mat'))...
+    save(fullfile(results_folder, strcat('peak_vals_', strain_str, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
         , "bar_results"...
         , 'data' ...
         , 'data_ordered'...

@@ -1,6 +1,4 @@
-function process_flash_p2(exp_folder)
-
-PROJECT_ROOT = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2";
+function process_flash_p2(exp_folder, PROJECT_ROOT)
 
 results_folder = fullfile(PROJECT_ROOT, "results", "flash_results");
 if ~isfolder(results_folder)
@@ -48,14 +46,18 @@ slow_flashes_dur = 5000; % 340ms + 160ms bkg.
     var_within_reps,...
     diff_mean,...
     max_data,...
-    min_data] = parse_flash_data(f_data, flash_dur_ms, PROJECT_ROOT);
+    min_data] = parse_flash_data(f_data, v_data, flash_dur_ms, on_off, PROJECT_ROOT);
+
+med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
+med_var_W_reps = var(reshape(var_within_reps, [1, 196]));
+med_diff_mean = median(reshape(diff_mean, [1, 196]));
 
 % Rescale the combined data to be between 0 and 1.
 data_comb2 = rescale(data_comb, 0, 1);
 
 % Timeseries plot:
 f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, flash_dur_ms, on_off);
-fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', type_str,  ".pdf"));
+fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', on_off,  ".pdf"));
 exportgraphics(f_timeseries ...
         , fname ...
         , 'ContentType', 'vector' ...
@@ -64,7 +66,7 @@ exportgraphics(f_timeseries ...
 
 % Simple heat map plot:
 f_heatmap = plot_heatmap_flash_responses(data_comb2);
-fname = fullfile(figures_folder, strcat('Heatmap_', date_str, '_', time_str, '_', strain_str, '_', type_str,  ".pdf"));
+fname = fullfile(figures_folder, strcat('Heatmap_', date_str, '_', time_str, '_', strain_str, '_', on_off,  ".pdf"));
 exportgraphics(f_heatmap ...
         , fname ...
         , 'ContentType', 'vector' ...
@@ -106,7 +108,7 @@ rf_results.sigma_x_inh = optInh(4);
 rf_results.sigma_y_inh = optInh(5);
 
 
-save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', strain_str, '_', type_str, '.mat')), 'rf_results');
+save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', strain_str, '_', on_off, '.mat')), 'rf_results');
 
 end 
 

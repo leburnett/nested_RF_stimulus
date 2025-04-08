@@ -1,4 +1,4 @@
-function plot_polar_with_arrow(max_v, median_voltage, save_fig)
+function plot_polar_with_arrow(max_v, median_voltage, params, save_fig)
 
     % Convert max values for both conditions into polar format
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
@@ -26,18 +26,18 @@ function plot_polar_with_arrow(max_v, median_voltage, save_fig)
 
     if save_fig
 
-        fig_folder = fullfile(fig_save_folder, cell_type);
+        fig_folder = fullfile(fig_save_folder, params.on_off);
         if ~isfolder(fig_folder)
             mkdir(fig_folder)
         end 
 
         % Save as PNG
         exportgraphics(gca ...
-                , "2024_12_18_15_07_polarplot_20dps_bar_DS_wArrow.png" ...
+                , strcat(params.date, "_", params.time, "_", params.strain, "_polarplot_20dps_bar_DS_wArrow.png") ...
                 );
         % Save as PDF
         exportgraphics(gca ...
-                , "2024_12_18_15_07_polarplot_20dps_bar_DS_wArrow.pdf" ...
+                , strcat(params.date, "_", params.time, "_", params.strain, "_polarplot_20dps_bar_DS_wArrow.pdf") ...
                 , 'ContentType', 'vector' ...
                 , 'BackgroundColor', 'none' ...
                 ); 
