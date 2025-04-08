@@ -1,4 +1,4 @@
-function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, flash_dur_ms)
+function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, flash_dur_ms, PROJECT_ROOT)
 
     diff_f_data = diff(f_data);
 
@@ -132,6 +132,7 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
     end 
 
     % Quality check figures:
-    % plot_quality_check_var_reps_prctile(var_across_reps, var_within_reps, diff_mean, max_data, min_data)
+    save_fig = 0;
+    plot_quality_check_var_reps_prctile(var_across_reps, var_within_reps, diff_mean, max_data, min_data, save_fig, PROJECT_ROOT)
     
 end 
