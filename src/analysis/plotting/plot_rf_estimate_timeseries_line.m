@@ -1,4 +1,4 @@
-function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, dur_ms, on_off)
+function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, idx, on_off, params)
 % Spatial plot of the timeseries responses to the flashes in each position.
 % Colour coded lines. Red above baseline, blue below. 
 
@@ -19,28 +19,48 @@ origHeight = 1 / nRows;
 newWidth = origWidth * (1 - spacingFactor);
 newHeight = origHeight * (1 - spacingFactor);
 
+if slow_fast == "slow"
+    flashes_dur = 5000; % 0.5s * sampling rate.
+    dur_ms = 976700;
+    speed_str = "160ms_flash";
+elseif slow_fast == "fast"
+    flashes_dur = 2500;
+    dur_ms = 976700/2;
+    speed_str = "80ms_flash";
+end
+
 for i = 1:196
 
-    data_flash = ones(3, slow_flashes_dur); 
+    data_flash = ones(3, flashes_dur); 
 
     for r = 1:3 
 
-        if r == 1
-            end_t = idx(1); %3865; 
-        elseif r == 2
-            end_t = idx(3);%start_t = 2025440; %2025520;
-        elseif r == 3
-            end_t = idx(5); %start_t = 4047040; %4047120;
+        if slow_fast == "slow"
+            if r == 1
+                end_t = idx(1); 
+            elseif r == 2
+                end_t = idx(3);
+            elseif r == 3
+                end_t = idx(5); 
+            end 
+        elseif slow_fast == "fast"
+            if r == 1
+                end_t = idx(2); 
+            elseif r == 2
+                end_t = idx(4);
+            elseif r == 3
+                end_t = idx(6); 
+            end 
         end 
 
-        edge_vals = end_t-dur_ms:slow_flashes_dur:end_t;
+        edge_vals = end_t-dur_ms:flashes_dur:end_t;
 
         if i < 196
             d = f_data(edge_vals(i):edge_vals(i+1)-1);
             v = v2_data(edge_vals(i):edge_vals(i+1)-1);
         elseif i == 196
-            d = f_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
-            v = v2_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
+            d = f_data(edge_vals(196):edge_vals(196)+flashes_dur-1);
+            v = v2_data(edge_vals(196):edge_vals(196)+flashes_dur-1);
         end 
 
         data_flash(r, :) = v;
@@ -142,13 +162,13 @@ annotation('arrow', [center_x - arrow_x/2, center_x + arrow_x/2], ...
 f.Position = [77   265   862   782]; %[77  76   1379   971];
 
 exportgraphics(f ...
-        , "2024_12_18_15_07_spatialRF_timeseries_160msflashes_wArrow.pdf" ...
+        , strcat(params.date, "_", params.time, "_", params.strain, "_spatialRF_timeseries_", speed_str, "_wArrow.pdf") ...
         , 'ContentType', 'vector' ...
         , 'BackgroundColor', 'none' ...
         ); 
 
 exportgraphics(f ...
-        , "2024_12_18_15_07_spatialRF_timeseries_160msflashes_wArrow.png" ...
+        , strcat(params.date, "_", params.time, "_", params.strain, "_spatialRF_timeseries_", speed_str, "_wArrow.png") ...
         ); 
 
 end

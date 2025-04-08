@@ -1,4 +1,4 @@
-function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, v_data, flash_dur_ms, on_off, PROJECT_ROOT)
+function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, PROJECT_ROOT)
 
     diff_f_data = diff(f_data);
     median_v = median(v_data);
@@ -6,9 +6,24 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
 
     % Find where the flash stimuli end. 
     idx = find(diff_f_data == min(diff_f_data));
+
+    % TEST - 'idx' values = end of the different groups of full flash stimuli. 
+    % figure; 
+    % plot(f_data);
+    % hold on;
+    % for iii = 1:numel(idx)
+    %     plot([idx(iii), idx(iii)], [0 400], 'm');
+    % end 
     
     % % 340 ms OFF - bkg - 160 ms FLASH. 500 ms = 0.5s. 
-    slow_flashes_dur = 5000; % 0.5s * sampling rate. 
+    % % 170 ms OFF - bkg - 80 ms FLASH - 0.25s
+    if slow_fast == "slow"
+        slow_flashes_dur = 5000; % 0.5s * sampling rate.
+        flash_dur_ms_slow = 976700;
+    elseif slow_fast == "fast"
+        fast_flashes_dur = 2500;
+        flash_dur_ms_fast = 976700/2;
+    end 
     
     % Empty arrays to fill - 196 flashes/values. 
     data_comb = zeros(14, 14);
@@ -22,36 +37,73 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
     
     % Run through the responses to each flash.
     for i = 1:196
-    
-        % Array to collect the data for each flash over the three repetitions.
-        data_flash = ones(3, slow_flashes_dur); 
-        data_flash_raw = ones(3, slow_flashes_dur); 
-    
-        for r = 1:3
-    
-            if r == 1 % rep 1
-                end_t = idx(1); %3865; 
-                edge_vals = end_t-flash_dur_ms:slow_flashes_dur:end_t;
-            elseif r == 2 % rep 2 
-                end_t = idx(3);%start_t = 2025440; %2025520;
-                edge_vals = end_t-flash_dur_ms:slow_flashes_dur:end_t;
-            elseif r == 3 % rep3 
-                end_t = idx(5); %start_t = 4047040; %4047120;
-                edge_vals = end_t-flash_dur_ms:slow_flashes_dur:end_t;
-            end 
-    
-            if i < 196
-                d = f_data(edge_vals(i):edge_vals(i+1)-1); % frame data during flash. 
-                v = v2_data(edge_vals(i):edge_vals(i+1)-1); % median-subtracted voltage data
-                v_raw = v_data(edge_vals(i):edge_vals(i+1)-1);
-            elseif i == 196
-                d = f_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
-                v = v2_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
-                v_raw = v_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
-            end 
-    
-            data_flash(r, :) = v;
-            data_flash_raw(r, :) = v_raw;
+
+        if slow_fast == "slow"
+
+            % Array to collect the data for each flash over the three repetitions.
+            data_flash = ones(3, slow_flashes_dur); 
+            data_flash_raw = ones(3, slow_flashes_dur); 
+        
+            for r = 1:3
+        
+                if r == 1 % rep 1
+                    end_t = idx(1); 
+                    edge_vals = end_t-flash_dur_ms_slow:slow_flashes_dur:end_t;
+                elseif r == 2 % rep 2 
+                    end_t = idx(3);
+                    edge_vals = end_t-flash_dur_ms_slow:slow_flashes_dur:end_t;
+                elseif r == 3 % rep3 
+                    end_t = idx(5); 
+                    edge_vals = end_t-flash_dur_ms_slow:slow_flashes_dur:end_t;
+                end 
+        
+                if i < 196
+                    d = f_data(edge_vals(i):edge_vals(i+1)-1); % frame data during flash. 
+                    v = v2_data(edge_vals(i):edge_vals(i+1)-1); % median-subtracted voltage data
+                    v_raw = v_data(edge_vals(i):edge_vals(i+1)-1);
+                elseif i == 196
+                    d = f_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
+                    v = v2_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
+                    v_raw = v_data(edge_vals(196):edge_vals(196)+slow_flashes_dur-1);
+                end 
+        
+                data_flash(r, :) = v;
+                data_flash_raw(r, :) = v_raw;
+            end
+
+        elseif slow_fast == "fast"
+
+            % Array to collect the data for each flash over the three repetitions.
+            data_flash = ones(3, fast_flashes_dur); 
+            data_flash_raw = ones(3, fast_flashes_dur); 
+        
+            for r = 1:3
+        
+                if r == 1 % rep 1
+                    end_t = idx(2); 
+                    edge_vals = end_t-flash_dur_ms_fast:fast_flashes_dur:end_t;
+                elseif r == 2 % rep 2 
+                    end_t = idx(4);
+                    edge_vals = end_t-flash_dur_ms_fast:fast_flashes_dur:end_t;
+                elseif r == 3 % rep3 
+                    end_t = idx(6); 
+                    edge_vals = end_t-flash_dur_ms_fast:fast_flashes_dur:end_t;
+                end 
+        
+                if i < 196
+                    d = f_data(edge_vals(i):edge_vals(i+1)-1); % frame data during flash. 
+                    v = v2_data(edge_vals(i):edge_vals(i+1)-1); % median-subtracted voltage data
+                    v_raw = v_data(edge_vals(i):edge_vals(i+1)-1);
+                elseif i == 196
+                    d = f_data(edge_vals(196):edge_vals(196)+fast_flashes_dur-1);
+                    v = v2_data(edge_vals(196):edge_vals(196)+fast_flashes_dur-1);
+                    v_raw = v_data(edge_vals(196):edge_vals(196)+fast_flashes_dur-1);
+                end 
+        
+                data_flash(r, :) = v;
+                data_flash_raw(r, :) = v_raw;
+            end
+
         end 
         
         % Check for the variance across reps:
@@ -85,9 +137,15 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
         n_vals = size(mean_data_flash, 2);
     
         % Max and min of the mean flash response:
-        max_val_flash = prctile(mean_data_flash(500:end), 98); % Max 
-        % min_val_flash = prctile(mean_data_flash(1250:end), 2); % Min in the second half - ignore if min is early. 
-        min_val_flash = prctile(mean_data_flash(2500:end), 2); % Min in the second half - ignore if min is early. 
+        if slow_fast == "slow"
+            max_val_flash = prctile(mean_data_flash(500:end), 98); % Max 
+            % min_val_flash = prctile(mean_data_flash(1250:end), 2); % Min in the second half - ignore if min is early. 
+            min_val_flash = prctile(mean_data_flash(2500:end), 2); % Min in the second half - ignore if min is early. 
+        elseif slow_fast == "fast"
+            max_val_flash = prctile(mean_data_flash(200:end), 98); % Max 
+            % min_val_flash = prctile(mean_data_flash(1250:end), 2); % Min in the second half - ignore if min is early. 
+            min_val_flash = prctile(mean_data_flash(1250:end), 2); % Min in the second half - ignore if min is early. 
+        end 
     
         diff_resp = max_val_flash - min_val_flash; 
         diff_med = median_v - min_val_flash;

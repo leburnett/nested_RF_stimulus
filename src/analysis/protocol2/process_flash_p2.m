@@ -10,10 +10,13 @@ if ~isfolder(figures_folder)
     mkdir(figures_folder);
 end
 
-strain_str = "TmY3"; % eventually will get this from metadata. 
+strain_str = "T4T5"; % eventually will get this from metadata. 
 
 [date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
 on_off = params.on_off;
+params.date = date_str;
+params.time = time_str;
+params.strain = strain_str;
 
 % sampling_rate = 10000;
 
@@ -35,10 +38,13 @@ var_filtered_v = var(filtered_voltage_data);
 % Flash duration(s)
 % flash_dur_s = pfnparam.dur;
 flash_dur_ms = 976700; % flash_dur_s*sampling_rate
-slow_flashes_dur = 5000; % 340ms + 160ms bkg.
+slow_flashes_dur = 5000; % 340ms + 160ms FLASH.
+fast_flashes_dur = 2500; % 170ms + 80ms FLASH.
 
 % % - - Figure - check flash timing
-% plot_quality_check_flash_timing(f_data, flash_dur_ms, save_fig, PROJECT_ROOT)
+plot_quality_check_flash_timing(f_data, flash_dur_ms, save_fig, PROJECT_ROOT)
+
+slow_fast = "slow";
 
 [data_comb,...
     cmap_id,...
@@ -46,7 +52,7 @@ slow_flashes_dur = 5000; % 340ms + 160ms bkg.
     var_within_reps,...
     diff_mean,...
     max_data,...
-    min_data] = parse_flash_data(f_data, v_data, flash_dur_ms, on_off, PROJECT_ROOT);
+    min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, PROJECT_ROOT);
 
 med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
 med_var_W_reps = var(reshape(var_within_reps, [1, 196]));
@@ -56,7 +62,7 @@ med_diff_mean = median(reshape(diff_mean, [1, 196]));
 data_comb2 = rescale(data_comb, 0, 1);
 
 % Timeseries plot:
-f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, flash_dur_ms, on_off);
+f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, idx, on_off, params);
 fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', on_off,  ".pdf"));
 exportgraphics(f_timeseries ...
         , fname ...

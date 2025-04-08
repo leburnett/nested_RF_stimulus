@@ -32,12 +32,12 @@ diff_f_data = diff(f_data);
 idx = find(diff_f_data == min(diff_f_data));
 
 %% % % % % % % % % % % % % % % % % Check data:
-% figure; plot(f_data);
-% hold on;
-% plot([idx(1), idx(1)], [0 200], 'm');
-% plot([idx(2), idx(2)], [0 200], 'm');
-% plot([idx(3), idx(3)], [0 200], 'm');
-% plot([idx(1), idx(1)], [0 200], 'm');
+figure; plot(f_data);
+hold on;
+plot([idx(1), idx(1)], [0 200], 'm');
+plot([idx(2), idx(2)], [0 200], 'm');
+plot([idx(3), idx(3)], [0 200], 'm');
+plot([idx(1), idx(1)], [0 200], 'm');
 
 %% % % %  Load the voltage data:
 v_data = Log.ADC.Volts(2, :)*10;  % transform the data in mV
