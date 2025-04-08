@@ -67,44 +67,44 @@ function process_bars_p2(exp_folder, PROJECT_ROOT)
     [sym_ratio_fast, DSI_fast, DSI_pdnd_fast, vector_sum_fast] = compute_bar_response_metrics(d_fast);
     
     % % % % % Save the data:
-    bar_results = table();
+    bar_results = struct();
     
     bar_results.Date = date_str;
     bar_results.Time = time_str;
     bar_results.Strain = strain_str;
     bar_results.Type = on_off;
-    bar_results.max_v_polar1 = {max_v_polar1};
-    bar_results.max_v_polar2 = {max_v_polar2};
+    bar_results.slow.max_v_polar = {max_v_polar1};
+    bar_results.fast.max_v_polar = {max_v_polar2};
     bar_results.min_v = {min_v};
     bar_results.max_v = {max_v};
     bar_results.median_voltage = median_v;
     
     % output of vector sum:
-    bar_results.magnitude_slow = magnitude_slow;
-    bar_results.angle_rad_slow = angle_rad_slow;
-    bar_results.fwhm_slow = fwhm_slow;
-    bar_results.cv_slow = cv_slow;
-    bar_results.thetahat_slow = thetahat_slow;
-    bar_results.kappa_slow = kappa_slow;
+    bar_results.slow.magnitude = magnitude_slow;
+    bar_results.slow.angle_rad = angle_rad_slow;
+    bar_results.slow.fwhm = fwhm_slow;
+    bar_results.slow.cv = cv_slow;
+    bar_results.slow.thetahat = thetahat_slow;
+    bar_results.slow.kappa = kappa_slow;
     
-    bar_results.magnitude_fast = magnitude_fast;
-    bar_results.angle_rad_fast = angle_rad_fast;
-    bar_results.fwhm_fast = fwhm_fast;
-    bar_results.cv_fast = cv_fast;
-    bar_results.thetahat_fast = thetahat_fast;
-    bar_results.kappa_fast = kappa_fast;
+    bar_results.fast.magnitude = magnitude_fast;
+    bar_results.fast.angle_rad = angle_rad_fast;
+    bar_results.fast.fwhm = fwhm_fast;
+    bar_results.fast.cv = cv_fast;
+    bar_results.fast.thetahat = thetahat_fast;
+    bar_results.fast.kappa = kappa_fast;
     
     % symmetry index
-    bar_results.sym_ratio_slow = sym_ratio_slow;
-    bar_results.sym_ratio_fast = sym_ratio_fast;
+    bar_results.slow.sym_ratio = sym_ratio_slow;
+    bar_results.fast.sym_ratio = sym_ratio_fast;
     
     % DSI - vector sum 
-    bar_results.vector_sum_slow = vector_sum_slow;
-    bar_results.DSI_vector_slow = DSI_slow;
-    bar_results.DSI_pdnd_slow = DSI_pdnd_slow;
-    bar_results.vector_sum_fast = vector_sum_fast;
-    bar_results.DSI_vector_fast = DSI_fast;
-    bar_results.DSI_pdnd_fast = DSI_pdnd_fast;
+    bar_results.slow.vector_sum = vector_sum_slow;
+    bar_results.slow.DSI_vector = DSI_slow;
+    bar_results.slow.DSI_pdnd = DSI_pdnd_slow;
+    bar_results.fast.vector_sum = vector_sum_fast;
+    bar_results.fast.DSI_vector = DSI_fast;
+    bar_results.fast.DSI_pdnd = DSI_pdnd_fast;
     
     save(fullfile(results_folder, strcat('peak_vals_', strain_str, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
         , "bar_results"...
