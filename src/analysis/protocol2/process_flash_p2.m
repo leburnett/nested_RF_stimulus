@@ -37,82 +37,89 @@ var_filtered_v = var(filtered_voltage_data);
 
 % Flash duration(s)
 % flash_dur_s = pfnparam.dur;
-flash_dur_ms = 976700; % flash_dur_s*sampling_rate
-slow_flashes_dur = 5000; % 340ms + 160ms FLASH.
-fast_flashes_dur = 2500; % 170ms + 80ms FLASH.
+% flash_dur_ms = 976700; % flash_dur_s*sampling_rate
+% slow_flashes_dur = 5000; % 340ms + 160ms FLASH.
+% fast_flashes_dur = 2500; % 170ms + 80ms FLASH.
 
 % % - - Figure - check flash timing
-plot_quality_check_flash_timing(f_data, flash_dur_ms, save_fig, PROJECT_ROOT)
+% plot_quality_check_flash_timing(f_data, flash_dur_ms, save_fig, PROJECT_ROOT)
 
-slow_fast = "slow";
+for slow_fast = ["slow", "fast"]
 
-[data_comb,...
-    cmap_id,...
-    var_across_reps,...
-    var_within_reps,...
-    diff_mean,...
-    max_data,...
-    min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, PROJECT_ROOT);
+    if slow_fast == "slow"
+        speed_str = "160ms";
+    elseif slow_fast == "fast"
+        speed_str = "80ms";
+    end 
+    
+    [data_comb,...
+        cmap_id,...
+        var_across_reps,...
+        var_within_reps,...
+        diff_mean,...
+        max_data,...
+        min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, PROJECT_ROOT);
+    
+    med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
+    med_var_W_reps = var(reshape(var_within_reps, [1, 196]));
+    med_diff_mean = median(reshape(diff_mean, [1, 196]));
+    
+    % Rescale the combined data to be between 0 and 1.
+    data_comb2 = rescale(data_comb, 0, 1);
+    
+    % Timeseries plot:
+    f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, idx, on_off, params);
+    fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', on_off, "_", speed_str, ".pdf"));
+    exportgraphics(f_timeseries ...
+            , fname ...
+            , 'ContentType', 'vector' ...
+            , 'BackgroundColor', 'none' ...
+            ); 
+    
+    % Simple heat map plot:
+    f_heatmap = plot_heatmap_flash_responses(data_comb2);
+    fname = fullfile(figures_folder, strcat('Heatmap_', date_str, '_', time_str, '_', strain_str, '_', on_off, "_", speed_str, ".pdf"));
+    exportgraphics(f_heatmap ...
+            , fname ...
+            , 'ContentType', 'vector' ...
+            , 'BackgroundColor', 'none' ...
+            ); 
+    
+    % Generate plot with Gausssian RF estimates:
+    exc_data = data_comb2;
+    inh_data = data_comb;
+    inh_data(cmap_id~=2)=0;
+    [optEx, R_squared, optInh, R_squaredi, ~, ~] = gaussian_RF_estimate(exc_data, inh_data);
+    
+    % Combine all of the results into a table:
+    rf_results = table();
+    rf_results.Date = date_str;
+    rf_results.Time = time_str;
+    rf_results.Strain = strain_str;
+    rf_results.Type = on_off;
+    rf_results.(slow_fast).data_comb = {data_comb};
+    rf_results.(slow_fast).max_data = {max_data};
+    rf_results.(slow_fast).min_data = {min_data};
+    rf_results.(slow_fast).diff_mean = {diff_mean};
+    rf_results.(slow_fast).cmap_id = {cmap_id};
+    rf_results.(slow_fast).max_val = prctile(reshape(max_data, [1, 196]), 98);
+    rf_results.(slow_fast).min_val = prctile(reshape(min_data, [1, 196]), 2);
+    rf_results.(slow_fast).var_within_reps = {var_within_reps};
+    rf_results.(slow_fast).var_across_reps = {var_across_reps};
+    rf_results.(slow_fast).var_filtered_v = var_filtered_v;
+    rf_results.(slow_fast).med_var_X_reps = med_var_X_reps;
+    rf_results.(slow_fast).med_var_W_reps = med_var_W_reps;
+    rf_results.(slow_fast).med_diff_mean = med_diff_mean;
+    rf_results.(slow_fast).R_squared = R_squared;
+    rf_results.(slow_fast).sigma_x_exc = optEx(4);
+    rf_results.(slow_fast).sigma_y_exc = optEx(5);
+    rf_results.(slow_fast).optExc = {optEx};
+    rf_results.(slow_fast).R_squaredi = R_squaredi;
+    rf_results.(slow_fast).optInh = {optInh};
+    rf_results.(slow_fast).sigma_x_inh = optInh(4);
+    rf_results.(slow_fast).sigma_y_inh = optInh(5);
 
-med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
-med_var_W_reps = var(reshape(var_within_reps, [1, 196]));
-med_diff_mean = median(reshape(diff_mean, [1, 196]));
-
-% Rescale the combined data to be between 0 and 1.
-data_comb2 = rescale(data_comb, 0, 1);
-
-% Timeseries plot:
-f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, idx, on_off, params);
-fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', on_off,  ".pdf"));
-exportgraphics(f_timeseries ...
-        , fname ...
-        , 'ContentType', 'vector' ...
-        , 'BackgroundColor', 'none' ...
-        ); 
-
-% Simple heat map plot:
-f_heatmap = plot_heatmap_flash_responses(data_comb2);
-fname = fullfile(figures_folder, strcat('Heatmap_', date_str, '_', time_str, '_', strain_str, '_', on_off,  ".pdf"));
-exportgraphics(f_heatmap ...
-        , fname ...
-        , 'ContentType', 'vector' ...
-        , 'BackgroundColor', 'none' ...
-        ); 
-
-% Generate plot with Gausssian RF estimates:
-exc_data = data_comb2;
-inh_data = data_comb;
-inh_data(cmap_id~=2)=0;
-[optEx, R_squared, optInh, R_squaredi, ~, ~] = gaussian_RF_estimate(exc_data, inh_data);
-
-% Combine all of the results into a table:
-rf_results = table();
-rf_results.Date = date_str;
-rf_results.Time = time_str;
-rf_results.Strain = strain_str;
-rf_results.Type = on_off;
-rf_results.data_comb = {data_comb};
-rf_results.max_data = {max_data};
-rf_results.min_data = {min_data};
-rf_results.diff_mean = {diff_mean};
-rf_results.cmap_id = {cmap_id};
-rf_results.max_val = prctile(reshape(max_data, [1, 196]), 98);
-rf_results.min_val = prctile(reshape(min_data, [1, 196]), 2);
-rf_results.var_within_reps = {var_within_reps};
-rf_results.var_across_reps = {var_across_reps};
-rf_results.var_filtered_v = var_filtered_v;
-rf_results.med_var_X_reps = med_var_X_reps;
-rf_results.med_var_W_reps = med_var_W_reps;
-rf_results.med_diff_mean = med_diff_mean;
-rf_results.R_squared = R_squared;
-rf_results.sigma_x_exc = optEx(4);
-rf_results.sigma_y_exc = optEx(5);
-rf_results.optExc = {optEx};
-rf_results.R_squaredi = R_squaredi;
-rf_results.optInh = {optInh};
-rf_results.sigma_x_inh = optInh(4);
-rf_results.sigma_y_inh = optInh(5);
-
+end 
 
 save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', strain_str, '_', on_off, '.mat')), 'rf_results');
 
