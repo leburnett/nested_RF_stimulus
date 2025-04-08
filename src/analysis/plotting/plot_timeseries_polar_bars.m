@@ -1,0 +1,137 @@
+function max_v = plot_timeseries_polar_bars(data, median_voltage, save_fig)
+
+    % Central polar plot with timeseries around in location 
+    % representative of bar direction. Responses to fast bars are in light 
+    % blue and responses to slow bars in dark blue. 
+    
+    % Number of subplots
+    numPlots = 16;
+    theta = linspace(0, 2*pi, numPlots+1); % Angles (add 2*pi to complete the circle)
+    theta = theta(1:end-1); % Remove redundant last point
+    
+    % Center and radius of the circle
+    centerX = 0.5;
+    centerY = 0.5;
+    radius = 0.35;
+    
+    % Define central polar plot position
+    centralSize = (2 * radius) * 0.65; 
+    centralPosition = [centerX - centralSize/2, centerY - centralSize/2, centralSize, centralSize];
+    
+    %% The order in which the data for the different directions are stored:
+    
+    % This is from looking at the movement of the bar stimuli in real life. 
+    % The order should always be the same, this should not change. 
+    % Bars move left to right, then right to left, then in a counter clockwise
+    % fashion. Always moving in one direction then the opposite.
+    
+    % For plotting - in MATLAB, the first plot is positioned in the 'E'
+    % position of a compass and moves counter clockwise.
+    
+    % PD and ND pairs are ordered sequentially in 'data'. e.g. data{1, 4} is
+    % left to right and data{2, 4} is right to left.
+    
+    plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+    
+    angls = linspace(0, 2*pi, 17); % 17 points to include 0 and 2π
+    
+    % Preallocate max/min voltage arrays
+    max_v = zeros(numPlots, 2);
+    min_v = zeros(numPlots, 2);
+    
+    % Define colors for the two conditions
+    colors = {[0.2 0.4 0.7], [0.4 0.8 1]};  % Dark blue (28 dps) and Light blue (56 dps)
+    
+    %% Create the figure
+    figure
+    
+    for sp = 1:2
+        col = colors{sp}; % Get color for current condition
+    
+        % Loop to create subplots
+        for i = 1:numPlots
+            % Compute subplot position
+            x = centerX + radius * cos(theta(i)); 
+            y = centerY + radius * sin(theta(i));
+            subplotWidth = 0.15; 
+            subplotHeight = 0.15;
+            subplotPosition = [x - subplotWidth/2, y - subplotHeight/2, subplotWidth, subplotHeight];
+    
+            % Create subplot axes
+            ax = axes('Position', subplotPosition);
+            hold on
+    
+            % Get the data index - which row in 'data' contains the data for
+            % the desired direction.
+            d_idx = plot_order(i) + 16*(sp-1);
+    
+            % Plot data for each repetition
+            for r = 1:4
+                d2plot = data{d_idx, r};
+                x_vals = 1:numel(d2plot);
+    
+                if r == 1 
+                    % Plot median voltage background
+                    plot([1 x_vals(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1);  
+                end 
+    
+                % Plot repetitions in gray, last rep in condition color
+                if r < 4
+                    plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
+                else 
+                    plot(x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
+                end
+            end 
+    
+            % Set consistent Y-limits
+            ylim([-80 -10])
+    
+            % Store max/min values from last column of data = mean over the 3
+            % repetitions:
+            d = data{d_idx, 4}; 
+            n_vals_d = numel(d);
+            max_v(i, sp) = prctile(d(floor(n_vals_d/8):end), 98); % ignore the first 8th of the condition
+            min_v(i, sp) = prctile(d(floor(n_vals_d/2):end), 2); % find the min during the 2nd half of the condition.
+    
+            % Turn off axes for better visualization
+            axis(ax, 'off');
+        end
+    end
+    
+    % Add polar plot in the center
+    axCentral = polaraxes('Position', centralPosition);
+    hold on
+    
+    % Convert max values for both conditions into polar format
+    max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
+    max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
+    
+    % Plot the polar data
+    polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 2);
+    polarplot(angls, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 2);
+    
+    % Add title
+    sgtitle(sprintf("28 / 56 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s", ...
+                    strrep(date_str, '_', '-'), strrep(time_str, '_', '-'), strain, cell_type));
+    
+    % Set figure size
+    set(gcf, 'Position', [303 78 961 969]);
+
+    if save_fig
+
+        fig_folder = fullfile(fig_save_folder, cell_type);
+        if ~isfolder(fig_folder)
+            mkdir(fig_folder)
+        end 
+
+        f = gcf; 
+        fname = fullfile(fig_folder, strcat(strain, '_', cell_type, '_', date_str, '_', time_str,'_bar_polar.pdf'));
+        exportgraphics(f ...
+                , fname ...
+                , 'ContentType', 'vector' ...
+                , 'BackgroundColor', 'none' ...
+                ); 
+
+    end 
+
+end 

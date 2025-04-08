@@ -1,0 +1,121 @@
+function process_bars_p2(exp_folder)
+
+    PROJECT_ROOT = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2";
+    
+    results_folder = fullfile(PROJECT_ROOT, "results", "bar_results");
+    if ~isfolder(results_folder)
+        mkdir(results_folder);
+    end
+    
+    figures_folder = fullfile(PROJECT_ROOT, "figures", "bar_stimuli");
+    if ~isfolder(figures_folder)
+        mkdir(figures_folder);
+    end
+    
+    strain_str = "TmY3"; % eventually will get this from metadata. 
+    
+    [date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
+    on_off = params.on_off;
+    
+    f_data = Log.ADC.Volts(1, :); % frame data
+    
+    v_data = Log.ADC.Volts(2, :)*10; % voltage data
+    % median_v = median(v_data);
+    % v2_data = v_data - median_v; % Get the median-subtracted voltage.
+    
+    % Parse the raw voltage data for the different bar stimuli
+    data = parse_bar_data(f_data, v_data); % Update this to work for both slow and fast bars
+     
+    save_fig = 0;
+    % Plot the timeseries responses with a polar plot in the middle.
+    [max_v] = plot_timeseries_polar_bars(data, median_voltage, save_fig);
+    
+    % Plot only the polar plot with an arrow overlaid.
+    plot_polar_with_arrow(max_v, median_voltage, save_fig)
+    
+    % Plot a heat map of the maximum responses to the bars moving in the 16
+    % directions at 2 different speeds.
+    plot_heatmap_bars(max_v)
+    
+    % Align the data angles to plot a linear timeseries plot:
+    data_ordered = align_data_by_seq_angles(data);
+    
+    % Find PR and the order to re-order the data to align PD to pi/2.
+    % 1 - slower bar stimuli
+    [d_slow, ord, magnitude_slow, angle_rad_slow, fwhm_slow, cv_slow, thetahat_slow, kappa_slow] = find_PD_and_order_idx(max_v_polar1, median_voltage); % use the max v polar for the slower bars.
+    
+    [sym_ratio_slow, DSI_slow, DSI_pdnd_slow, vector_sum_slow] = compute_bar_response_metrics(d_slow);
+    
+    data_aligned = cell(size(data_ordered));
+    for kk = 1:32 
+        if kk<17
+            ord_id = ord(kk);
+        else 
+            ord_id = ord(kk-16)+16;
+        end 
+    
+        data_aligned(ord_id, :) = data_ordered(kk, :); % Combine the mean timeseries only.
+    end 
+    
+    % 2 - faster bar stimuli
+    [d_fast, ord_fast, magnitude_fast, angle_rad_fast, fwhm_fast, cv_fast, thetahat_fast, kappa_fast] = find_PD_and_order_idx(max_v_polar2, median_voltage);
+    
+    [sym_ratio_fast, DSI_fast, DSI_pdnd_fast, vector_sum_fast] = compute_bar_response_metrics(d_fast);
+    
+    % % % % % Save the data:
+    bar_results = table();
+    
+    bar_results.Date = date_str;
+    bar_results.Time = time_str;
+    bar_results.Strain = strain_str;
+    bar_results.Type = on_off;
+    bar_results.max_v_polar1 = {max_v_polar1};
+    bar_results.max_v_polar2 = {max_v_polar2};
+    bar_results.min_v = {min_v};
+    bar_results.max_v = {max_v};
+    bar_results.median_voltage = median_voltage;
+    
+    % output of vector sum:
+    bar_results.magnitude_slow = magnitude_slow;
+    bar_results.angle_rad_slow = angle_rad_slow;
+    bar_results.fwhm_slow = fwhm_slow;
+    bar_results.cv_slow = cv_slow;
+    bar_results.thetahat_slow = thetahat_slow;
+    bar_results.kappa_slow = kappa_slow;
+    
+    bar_results.magnitude_fast = magnitude_fast;
+    bar_results.angle_rad_fast = angle_rad_fast;
+    bar_results.fwhm_fast = fwhm_fast;
+    bar_results.cv_fast = cv_fast;
+    bar_results.thetahat_fast = thetahat_fast;
+    bar_results.kappa_fast = kappa_fast;
+    
+    % symmetry index
+    bar_results.sym_ratio_slow = sym_ratio_slow;
+    bar_results.sym_ratio_fast = sym_ratio_fast;
+    
+    % DSI - vector sum 
+    bar_results.vector_sum_slow = vector_sum_slow;
+    bar_results.DSI_vector_slow = DSI_slow;
+    bar_results.DSI_pdnd_slow = DSI_pdnd_slow;
+    bar_results.vector_sum_fast = vector_sum_fast;
+    bar_results.DSI_vector_fast = DSI_fast;
+    bar_results.DSI_pdnd_fast = DSI_pdnd_fast;
+    
+    % res_folder = strcat(results_save_folder, '/', cell_type);
+    res_folder = strcat(results_save_folder, '/bar_results');
+    
+    if ~isfolder(res_folder)
+        mkdir(res_folder)
+    end 
+    
+    save(fullfile(res_folder, strcat('peak_vals_', strain, '_', cell_type, '_', date_str, '_', time_str, '.mat'))...
+        , "bar_results"...
+        , 'data' ...
+        , 'data_ordered'...
+        , 'data_aligned'...
+        , 'ord'...
+        , 'd_slow'...
+        );
+
+end
