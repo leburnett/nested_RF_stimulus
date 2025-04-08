@@ -1,9 +1,20 @@
 function process_flash_p2(exp_folder)
 
-% exp_folder = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/data/control/ON/2024_12_18_15_07";
+PROJECT_ROOT = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2";
+
+results_folder = fullfile(PROJECT_ROOT, "results", "flash_results");
+if ~isfolder(results_folder)
+    mkdir(results_folder);
+end
+
+figures_folder = fullfile(PROJECT_ROOT, "figures", "flash_stimuli");
+if ~isfolder(figures_folder)
+    mkdir(figures_folder);
+end
+
 strain_str = "TmY3"; % eventually will get this from metadata. 
 
-[date_str, time_str, Log, params, pfnparam] = load_protocol2_data(exp_folder);
+[date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
 on_off = params.on_off;
 
 % sampling_rate = 10000;
@@ -17,19 +28,19 @@ median_v = median(v_data);
 v2_data = v_data - median_v; % Get the median-subtracted voltage.
 
 % % - - Figure - check quality of the recording:
-% plot_quality_check_data_full_rec(f_data, v_data)
+% plot_quality_check_data_full_rec(f_data, v_data, save_fig, PROJECT_ROOT)
 
 % Voltage variance - store in metadata 
 filtered_voltage_data = movmean(v_data, 20000);
 var_filtered_v = var(filtered_voltage_data);
 
 % Flash duration(s)
-flash_dur_s = pfnparam.dur;
+% flash_dur_s = pfnparam.dur;
 flash_dur_ms = 976700; % flash_dur_s*sampling_rate
 slow_flashes_dur = 5000; % 340ms + 160ms bkg.
 
 % % - - Figure - check flash timing
-% plot_quality_check_flash_timing(f_data, flash_dur_ms)
+% plot_quality_check_flash_timing(f_data, flash_dur_ms, save_fig, PROJECT_ROOT)
 
 [data_comb,...
     cmap_id,...
@@ -37,13 +48,28 @@ slow_flashes_dur = 5000; % 340ms + 160ms bkg.
     var_within_reps,...
     diff_mean,...
     max_data,...
-    min_data] = parse_flash_data(f_data, flash_dur_ms);
+    min_data] = parse_flash_data(f_data, flash_dur_ms, PROJECT_ROOT);
 
 % Rescale the combined data to be between 0 and 1.
 data_comb2 = rescale(data_comb, 0, 1);
 
+% Timeseries plot:
 f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_flashes_dur, idx, flash_dur_ms, on_off);
+fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', type_str,  ".pdf"));
+exportgraphics(f_timeseries ...
+        , fname ...
+        , 'ContentType', 'vector' ...
+        , 'BackgroundColor', 'none' ...
+        ); 
+
+% Simple heat map plot:
 f_heatmap = plot_heatmap_flash_responses(data_comb2);
+fname = fullfile(figures_folder, strcat('Heatmap_', date_str, '_', time_str, '_', strain_str, '_', type_str,  ".pdf"));
+exportgraphics(f_heatmap ...
+        , fname ...
+        , 'ContentType', 'vector' ...
+        , 'BackgroundColor', 'none' ...
+        ); 
 
 % Generate plot with Gausssian RF estimates:
 exc_data = data_comb2;
@@ -79,8 +105,8 @@ rf_results.optInh = {optInh};
 rf_results.sigma_x_inh = optInh(4);
 rf_results.sigma_y_inh = optInh(5);
 
-% save_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/rf_results';
-% save(fullfile(save_folder, strcat('rf_results_', date_str,'_', strain_str, '_', type_str, '.mat')), 'rf_results');
+
+save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', strain_str, '_', type_str, '.mat')), 'rf_results');
 
 end 
 
