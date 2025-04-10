@@ -1,52 +1,64 @@
 function selections = get_input_parameters()
+% Input the parameters for the generation of protocol 2:
+    
     % Create a figure window for the input dialog
-    fig = uifigure('Name', 'Fly Experiment Setup', 'Position', [500 500 300 300]);  % Increased height
-    % Dropdown for Strain
-    uilabel(fig, 'Position', [20 240 80 22], 'Text', 'Fly Strain:');
-    strainDropdown = uidropdown(fig, ...
-        'Position', [120 240 150 22], ...
-        'Items', {'csw1118', 'test'}, ...
-        'Value', 'csw1118');
+    fig = uifigure('Name', 'Protocol 2 meta data', 'Position', [500 500 300 300]);
+
+    % Dropdown for Frame number to centre p2 on:
+    uilabel(fig, 'Position', [20 250 80 22], 'Text', 'Frame #:');
+    frameEditField = uieditfield(fig, 'numeric', ...
+    'Position', [120 250 150 22], ...
+    'Value', 1);
+
+    % Dropdown for Arena side
+    uilabel(fig, 'Position', [20 200 80 22], 'Text', 'Arena side:');
+    arenaDropdown = uidropdown(fig, ...
+        'Position', [120 200 150 22], ...
+        'Items', {'L', 'R'}, ...
+        'Value', 'L');
+
     % Dropdown for Age
-    uilabel(fig, 'Position', [20 190 80 22], 'Text', 'Age of Fly:');
+    uilabel(fig, 'Position', [20 150 80 22], 'Text', 'Age of Fly:');
     ageDropdown = uidropdown(fig, ...
-        'Position', [120 190 150 22], ...
+        'Position', [120 150 150 22], ...
         'Items', {'1', '2', '3', '4', '5', '6', '7', '8', 'NaN'}, ...
-        'Value', '1');
-    % Dropdown for Sex
-    uilabel(fig, 'Position', [20 140 80 22], 'Text', 'Sex of Fly:');
-    sexDropdown = uidropdown(fig, ...
-        'Position', [120 140 150 22], ...
-        'Items', {'Male', 'Female', 'NaN'}, ...
-        'Value', 'Male');
-    % Dropdown for Light Cycle
-    uilabel(fig, 'Position', [20 90 80 22], 'Text', 'Light Cycle:');
-    lightCycleDropdown = uidropdown(fig, ...
-        'Position', [120 90 150 22], ...
-        'Items', {'20:00_12:00', '01:00_17:00', 'NaN'}, ...
-        'Value', '20:00_12:00');
-    % Text field for Fly Name
-    uilabel(fig, 'Position', [20 40 80 22], 'Text', 'Fly Name:');
-    flyNameField = uieditfield(fig, 'text', ...
-        'Position', [120 40 150 22], ...
-        'Value', '');  % Empty default value
+        'Value', '4');
+
+    % Dropdown for Strain
+    uilabel(fig, 'Position', [20 100 80 22], 'Text', 'Strain:');
+    strainDropdown = uidropdown(fig, ...
+        'Position', [120 100 150 22], ...
+        'Items', {'ss324_t4t5', 'jfrc100_es', 'ss00395_TmY3', 'ss03722_Tm5Y'}, ...
+        'Value', 'ss324_t4t5');
+
     % Variable to hold selections
-    selections = struct('Strain', '', 'Age', '', 'Sex', '', 'LightCycle', '', 'FlyName', '');
+    selections = struct('Frame', '', 'ArenaSide', '', 'Age', '', 'Strain', '');
+
     % Confirm Button with callback function to retrieve values and close the figure
     confirmButton = uibutton(fig, 'push', ...
         'Position', [100 10 100 30], ...
         'Text', 'Confirm', ...
-        'ButtonPushedFcn', @(btn, event) confirmSelections());
+        'ButtonPushedFcn', @(btn, event) confirmSelections(frameEditField, arenaDropdown, ageDropdown, strainDropdown, fig));
+
     % Wait for the figure to close before proceeding
     uiwait(fig);
 
     % Callback function to store selections and close the figure
-    function confirmSelections()
-        selections.Strain = strainDropdown.Value;
+    function confirmSelections(frameEditField, arenaDropdown, ageDropdown, strainDropdown,fig)
+        selections.Frame = frameEditField.Value;
+        selections.Side = arenaDropdown.Value;
         selections.Age = ageDropdown.Value;
-        selections.Sex = sexDropdown.Value;
-        selections.LightCycle = lightCycleDropdown.Value;
-        selections.FlyName = flyNameField.Value;
+        selections.Strain = strainDropdown.Value;
         close(fig);
     end
-end
+
+end 
+
+
+
+
+
+
+
+
+

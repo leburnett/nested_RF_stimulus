@@ -31,7 +31,7 @@ px_rng = [crop_h_st, crop_h_end, crop_w_st, crop_w_end];
 
 % Fill in the location with the central part of pattern. 
 for i = 1:n_frames_pattern
-    Pats(int8(disp_y1):int8(disp_y2), int8(disp_x1):int8(disp_x2), i) = pattern.Pats(crop_h_st:crop_h_end, crop_w_st:crop_w_end, i);
+    Pats(int16(disp_y1):int16(disp_y2), int16(disp_x1):int16(disp_x2), i) = pattern.Pats(crop_h_st:crop_h_end, crop_w_st:crop_w_end, i);
 end
 
 %

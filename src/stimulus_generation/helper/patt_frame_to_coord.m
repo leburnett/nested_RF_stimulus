@@ -1,4 +1,4 @@
-function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color)
+function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color, arena_side)
 % Find the [x,y] coordinate of the screen from the identifying which frames 
 % of protocol 1 the cell responded to best.
 
@@ -10,7 +10,11 @@ function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color)
 %% Load the patterns used: 
 
 % Assuming using left at the moment:
-pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03\Patterns';
+if arena_side == "L"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03\Patterns';
+elseif arena_side == "R"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\RHS\protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-03-24_15-25-60\Patterns';    
+end 
 cd(pattern_path)
 
 pat2 = dir('0002_*');

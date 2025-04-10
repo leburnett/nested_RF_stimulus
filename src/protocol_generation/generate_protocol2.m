@@ -1,4 +1,4 @@
-function generate_protocol2(peak_frame)
+function generate_protocol2()
 % Takes an array containing the frames of the patterns displayed in
 % protocol 1 to which the cell had the strongest voltage response. It then
 % uses these frames to determine the pixel on the screen on which to centre
@@ -10,22 +10,23 @@ function generate_protocol2(peak_frame)
 % It creates the position functions for these stimuli and runs the
 % protocol. 
 
-% Inputs:
-% ______
-% 'peak_frames' - [n_condition, n_rep, [peak_frame, peak_voltage]]
-
 % _________________________________________________________________________
+    
+    metadata = get_input_parameters();
+    peak_frame = metadata.Frame;
+    screen_hemi = metadata.Side;
+
     px_intensity = [6, 0, 15];
     px_crop_flash = 30;
     px_crop_bar = 30;
 
-    % Pixel limits of the screen:
+    % Pixel limits of the entire screen - this will not change for screen_hemi:
     screen_width_start = 17;
     screen_width_end = 192;
     screen_height_start = 1;
     screen_height_end = 48;
 
-    [x, y, on_off] = patt_frame_to_coord(peak_frame, px_intensity(1));
+    [x, y, on_off] = patt_frame_to_coord(peak_frame, px_intensity(1), screen_hemi);
 
     % Warning message if [x,y] is close to the edge of the screen.
     if x < screen_width_start+(px_crop_flash/2) || x > screen_width_end-(px_crop_flash/2)
@@ -66,7 +67,7 @@ function generate_protocol2(peak_frame)
             generate_bar_pos_fns(bar_pos_fn_dir, px_crop_bar)
     
     % 5 - generate 'CurrentExp' from these components. 
-           [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder);
+           [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder, metadata);
 
     % 6 - run the protocol:
             run_protocol2(exp_folder, pattern_order, func_order, trial_dur)

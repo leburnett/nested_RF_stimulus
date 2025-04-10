@@ -1,4 +1,4 @@
-function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder)
+function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder, metadata)
 
 %% check for correct folders
 pattern_folder = fullfile(exp_folder, 'Patterns');
@@ -20,8 +20,7 @@ n_dir = 2;
 n_speeds = 2;
 % 2 reps = forward and reverse direction
 % 3 reps = n_speeds
-pattern_order = [1, flash_patt, repmat(repelem(bar_patt, n_dir), [1, n_speeds])]; 
-% two "flash_patt" at the beginning - one for grey presentation.
+pattern_order = [flash_patt, repmat(repelem(bar_patt, n_dir), [1, n_speeds])];
 n_patts = numel(pattern_order);
 
 for p = 1:n_patts
@@ -38,8 +37,6 @@ currentExp.pattern.num_patterns = num_files;
 
 
 %% read position functions
-generate_static_function(function_folder)
-
 matinfo = dir(fullfile(function_folder, "*.mat"));
 pfninfo = dir(fullfile(function_folder, "*.pfn"));
 num_files = length({pfninfo.name});
@@ -49,9 +46,8 @@ trial_dur = nan([1, n_patts]);
 fns_flash = [1,2];
 fns_28dps = [3,4];
 fns_56dps = [5,6];
-fn_static = num_files;
 
-func_order = [fn_static, fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_56dps, [1,n_bar_patt])];
+func_order = [fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_56dps, [1,n_bar_patt])];
 
 for p = 1:n_patts
     f = func_order(p);
@@ -67,6 +63,6 @@ currentExp.totalDuration = total_dur;
 currentExp.function.numFunc = num_files;
 
 %% save currentExp structure
-save(fullfile(exp_folder, 'currentExp.mat'),'currentExp', 'pattern_order', 'func_order', 'trial_dur');
+save(fullfile(exp_folder, 'currentExp.mat'),'currentExp', 'pattern_order', 'func_order', 'trial_dur', 'metadata');
 
 end
