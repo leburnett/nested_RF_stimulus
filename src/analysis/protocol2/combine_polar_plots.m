@@ -1,103 +1,114 @@
 
 % Load in the data from the 'results' folder
-data_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/control_RNAi';
+data_folder = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/control_RNAi/ON';
+cd(data_folder)
+strrs = split(data_folder, '/');
 
-file_list = dir('peak_vals*');
+if strrs{end-1} == "control_RNAi"
+    strain = "control";
+else 
+    strain = "ttl";
+end 
+
+cell_type = strrs{end};
+
+file_list = dir('*_peak_vals*');
 n_exp = height(file_list);
 
-% ang_vals = zeros(n_exp, 17);
-% vals = zeros(n_exp, 17);
+% Initialise empty arrays for filling in:
 dd = [];
+data_aligned = cell(32, n_exp);
+order_idx = nan(16, n_exp);
 
-col = [0.8 0.8 0.8]; 
+%% Align data and generate aligned polar plot for all cells of the type and strain:
 
-%% 
-
-figure 
+figure
 
 for i = 1:n_exp
 
+    % Load the data from one cell:
     load(file_list(i).name);
+
+    %% 1 - rearrange data to be in sequential order for each angle. 
+    % Before, it was in the order in which the stimuli were presented. Same
+    % orientations, in the opposite directions sequentially. Whereas now, they
+    % move around a circle in 1/16*pi sections. 
    
-    % Find the max voltage for each direction to the 28 dps stimulus. 
-    % max_v_polar = vertcat(max_v(:, 1), max_v(1, 1));
+    % data_ordered = align_data_by_seq_angles(data);
+
+    %% 2 - plot the timeseries responses of the individual cell to the 16 different directions
+    % Plots the mean of 3 reps per each direction on an individual subplot.
+    % slow - 28 dps = top row. 
+    % fast - 56 dps - bottom row. 
     
-    %% Vector sum
-    
-    responses = max_v_polar(1:end-1)-median_voltage;  % peak neural responses
-    directions = angls(1:end-1)'; 
-    
-    % Compute vector components
-    x_component = responses.*cos(directions);
-    y_component = responses.*sin(directions);
+    % plot_linear_timeseries_16D(data_ordered)
 
-    % Compute vector sum
-    vector_sum_x = sum(x_component)';
-    vector_sum_y = sum(y_component)';
+    %% 3 - polar plot - re-orientated so that the direction nearest to the direction of the vector sum points upwards - only 28 dps
 
-    % Compute magnitude and direction
-    magnitude = sqrt(vector_sum_x.^2 + vector_sum_y.^2);
-    angle_rad = atan2(vector_sum_y, vector_sum_x);
+    % [d, ord] = find_PD_and_order_idx(max_v_polar, median_voltage);
 
-    [~, peak_index] = max(responses);
+    % Add this cell's order to the combined array.
+    order_idx(:, i) = ord;
 
-    target_direction = 1.5708;  % Target direction (π/2 radians)
-    current_peak_direction = directions(peak_index);
-    rotation_offset = target_direction - current_peak_direction;
-    
-    aligned_directions = mod(directions + rotation_offset, 2*pi);
-    d = [aligned_directions, responses];
-    d = sortrows(d, 1);
-    
-    % PLOT 
-  
+    % Repeat the first value to close the circle.
+    data_to_plot = vertcat(d, d(1, :));  
 
-    % subplot(1,3,1)
-    % polarplot(angls, max_v_polar-median_voltage, 'Color', col, 'LineWidth', 1.5);
-    % hold on
-    % 
-    % subplot(1,3,2)
-    % polarplot([0 angle_rad], [0 magnitude], 'r-')
-    % hold on
-    % 
-    % % % Find how much to shift the angles to in order to be facing vertically.
-    % % shift_angl = 90*pi/180 - angle_rad;
-    % % % Shift the current angles by this much:
-    % % new_angls = angls + shift_angl;
-    % 
-    % subplot(1,3,3)
-    % data_to_plot = vertcat(d, d(1, :));
-    % polarplot(data_to_plot(:, 1), data_to_plot(:, 2), 'Color', col, 'LineWidth', 1);
-    % hold on
-    % polarplot(new_angls, max_v_polar-median_voltage, 'Color', col, 'LineWidth', 1);
-    % hold on
+    % Normalise responses so that max = 1.
+    data_to_plot(:,2) = data_to_plot(:, 2)/max(data_to_plot(:, 2)); 
 
-    % ang_vals(i, :) = d;
-    % vals(i, :) = max_v_polar-median_voltage;
+    % Plot the polar plot for this cell - data aligned with PD at 90
+    % degrees (up). 
+
+    if strain == "control"
+        col = [0.8 0.8 0.8];
+    elseif strain == "ttl"
+        col = [1 0.8 0.8];
+    end 
+
+    polarplot(data_to_plot(:, 1), data_to_plot(:, 2), 'Color', col, 'LineWidth', 1);
+    hold on
+    rlim([0 1.1])
+
+    % Combine the peak response arrays across cells.
+    % All cells have their PD to pi/2 here.
     if i == 1
         dd = d;
     else
-        dd(:, i+1) = d(:, 2);
+        dd(:, i+1) = d(:, 2); % second column contains the peak voltage responses.
     end 
-    
+
+    %% 4 - reorder the timeseries data, so that PD data is all in the same row. 
+    % 
+    % for kk = 1:32 % for each direction
+    % 
+    %     if kk<17
+    %         ord_id = ord(kk);
+    %     else 
+    %         ord_id = ord(kk-16)+16;
+    %     end 
+    % 
+    %     data_aligned(ord_id, i) = data_ordered(kk, 4); % Combine the mean timeseries only.
+    % end 
+
 end 
 
-f = gcf;
-f.Position = [11 642  1778   390];
+%% Plot the mean onto the polarplot
 
 % Plot the mean on top
-
 ang = dd(:, 1);
 mag = mean(dd(:, 2:end), 2);
 
 ang = vertcat(ang, ang(1));
 mag = vertcat(mag, mag(1));
 
-subplot(1,3,3)
-polarplot(ang, mag, 'Color', 'r', 'LineWidth', 2);
+% Normalise max to 1.
+mag = mag/max(mag);
 
-sgtitle('control RNAi')
+if strain == "control"
+    col = 'k';
+elseif strain == "ttl"
+    col = "r";
+end 
 
-
-figure;
-polarplot(ang, mag, 'Color', 'r', 'LineWidth', 2);
+polarplot(ang, mag, 'Color', col, 'LineWidth', 2);
+title(strcat(strain, '-', cell_type))
