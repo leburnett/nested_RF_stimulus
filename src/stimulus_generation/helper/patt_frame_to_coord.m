@@ -1,4 +1,5 @@
-function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color, screen_hemi)
+function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color, arena_side)
+
 % Find the [x,y] coordinate of the screen from the identifying which frames 
 % of protocol 1 the cell responded to best.
 
@@ -8,12 +9,13 @@ function [x, y, on_off] = patt_frame_to_coord(peak_frame, bkg_color, screen_hemi
 %_______________________________________________________________________
 
 %% Load the patterns used depending on which arena half the pattern was presented on: 
-assert(ismember(screen_hemi, {'L', 'R'}), 'screen_hemi must be either "L" or "R"')
+assert(ismember(arena_side, {'L', 'R'}), 'screen_hemi must be either "L" or "R"')
 
-if screen_hemi == "L"
-    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40\Patterns';
-elseif screen_hemi == "R"
-    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\RHS\protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-03-24_15-11-40\Patterns';
+% Assuming using left at the moment:
+if arena_side == "L"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\LHS\protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03\Patterns';
+elseif arena_side == "R"
+    pattern_path = 'C:\matlabroot\G4_Protocols\nested_RF_stimulus\protocols\RHS\protocol1_10kHz_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_04-08-25_08-08-42\Patterns';    
 end 
 
 cd(pattern_path)
@@ -31,7 +33,7 @@ if ~isnan(peak_frame)
     f = allf2(:, :, peak_frame);
 
     [a, b] = find(f~=bkg_color); 
-    max_col = max(f);
+    max_col = max(max(f));
     if max_col>bkg_color % contains pixels higher than bkg - ON 
         on_off = 'on';
     else 
