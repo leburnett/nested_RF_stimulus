@@ -1,4 +1,4 @@
-function process_bars_p2(exp_folder, PROJECT_ROOT)
+function resultant_angle = process_bars_p2(exp_folder, PROJECT_ROOT)
 
     results_folder = fullfile(PROJECT_ROOT, "results", "bar_results");
     if ~isfolder(results_folder)
@@ -35,7 +35,7 @@ function process_bars_p2(exp_folder, PROJECT_ROOT)
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
 
     % Plot only the polar plot with an arrow overlaid.
-    plot_polar_with_arrow(max_v, median_v, params, save_fig)
+    resultant_angle = plot_polar_with_arrow(max_v, median_v, params, save_fig);
     
     % Plot a heat map of the maximum responses to the bars moving in the 16
     % directions at 2 different speeds.
@@ -105,6 +105,7 @@ function process_bars_p2(exp_folder, PROJECT_ROOT)
     bar_results.fast.vector_sum = vector_sum_fast;
     bar_results.fast.DSI_vector = DSI_fast;
     bar_results.fast.DSI_pdnd = DSI_pdnd_fast;
+    bar_results.resultant_angle = resultant_angle;
     
     save(fullfile(results_folder, strcat('peak_vals_', strain_str, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
         , "bar_results"...

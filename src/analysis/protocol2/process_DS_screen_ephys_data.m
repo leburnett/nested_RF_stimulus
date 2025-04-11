@@ -4,9 +4,9 @@ exp_folder = cd;
 
 PROJECT_ROOT = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2";
 
-process_flash_p2(exp_folder, PROJECT_ROOT)
+resultant_angle = process_bars_p2(exp_folder, PROJECT_ROOT);
 
-process_bars_p2(exp_folder, PROJECT_ROOT)
+process_flash_p2(exp_folder, PROJECT_ROOT, resultant_angle)
 
 
 end 

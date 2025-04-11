@@ -1,4 +1,4 @@
-function plot_polar_with_arrow(max_v, median_voltage, params, save_fig)
+function resultant_angle = plot_polar_with_arrow(max_v, median_voltage, params, save_fig)
 
     % Convert max values for both conditions into polar format
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars

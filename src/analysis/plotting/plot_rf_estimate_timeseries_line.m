@@ -147,7 +147,7 @@ end
 % Add an arrow on top representing the vector sum of responses to bar
 % stimuli. 
 magnitude_arrow = 0.85;
-angl = -1.8146;
+angl = params.resultant_angle;
 %  'angl' = direction of vector sum of bar responses in radians.
 center_x = 0.5;
 center_y = 0.5;
