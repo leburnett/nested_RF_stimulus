@@ -1,4 +1,4 @@
-function process_flash_p2(exp_folder, PROJECT_ROOT)
+function process_flash_p2(exp_folder, PROJECT_ROOT, resultant_angle)
 
 results_folder = fullfile(PROJECT_ROOT, "results", "flash_results");
 if ~isfolder(results_folder)
@@ -17,6 +17,7 @@ on_off = params.on_off;
 params.date = date_str;
 params.time = time_str;
 params.strain = strain_str;
+params.resultant_angle = resultant_angle;
 
 % sampling_rate = 10000;
 
