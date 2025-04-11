@@ -3,7 +3,11 @@ function [date_str, time_str, Log, params, pfnparam] = load_protocol2_data(exp_f
     % Input experiment folder with data from protocol 2:
     cd(exp_folder)
 
-    strrs = split(exp_folder, '/');
+    if contains(exp_folder, '/')
+        strrs = split(exp_folder, '/');
+    elseif contains(exp_folder, '\')
+        strrs = split(exp_folder, '\');
+    end 
     exp_meta = strrs{end};
     
     date_str = exp_meta(end-15:end-6);

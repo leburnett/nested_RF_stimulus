@@ -10,7 +10,7 @@ if ~isfolder(figures_folder)
     mkdir(figures_folder);
 end
 
-strain_str = "T4T5"; % eventually will get this from metadata. 
+strain_str = "TmY3"; % eventually will get this from metadata. 
 
 [date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
 on_off = params.on_off;
