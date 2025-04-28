@@ -5,15 +5,22 @@ function data = parse_bar_data(f_data, v_data)
     idx = find(diff_f_data == min(diff_f_data)); % where the flash stimuli end.
 
     % BAR stimulus duration 
-    dur_t = (2.273+1.155)*10000*16; % (dur_bar_slow + dur_bar_fast) * acq_speed * n_directions. 
+    % dur_t = (2.273+1.155)*10000*16; % (dur_bar_slow + dur_bar_fast) * acq_speed * n_directions. 
     
     % Find the timings of when the bar stimuli start and end: 
     % 1120 is added because idx(2) etc is the end of the last flash and then we
     % add 1120 because that is the gap between the last flash and the beginning
-    % of the bar stimuli. 
-    rep1_rng = [idx(2)+1120, idx(2)+dur_t];
-    rep2_rng = [idx(4)+1120, idx(4)+dur_t];
-    rep3_rng = [idx(6)+1120, numel(f_data)]; % til the end of the recording.
+    % of the bar stimuli.
+    start_f1 = find(f_data(idx(2)+1121:end) > 0, 1, 'first') + (idx(2)+1120);
+    end_f1 = find(f_data(start_f1:end) == 0, 1, 'first') + start_f1;
+    rep1_rng = [start_f1, end_f1];
+
+    start_f2 = find(f_data(idx(4)+1121:end) > 0, 1, 'first') + (idx(4)+1120);
+    end_f2 = find(f_data(start_f2:end) == 0, 1, 'first') + start_f2;
+    rep2_rng = [start_f2, end_f2];
+
+    start_f3 = find(f_data(idx(6)+1121:end) > 0, 1, 'first') + (idx(6)+1120);
+    rep3_rng = [start_f3, numel(f_data)]; % til the end of the recording.
     
     %% Combine the voltage timeseries data from the three repetitions into 
     % one data structure. 

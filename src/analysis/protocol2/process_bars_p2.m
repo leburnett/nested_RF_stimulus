@@ -1,4 +1,4 @@
-function resultant_angle = process_bars_p2(exp_folder, PROJECT_ROOT)
+function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
 
     results_folder = fullfile(PROJECT_ROOT, "results", "bar_results");
     if ~isfolder(results_folder)
@@ -10,7 +10,7 @@ function resultant_angle = process_bars_p2(exp_folder, PROJECT_ROOT)
         mkdir(figures_folder);
     end
     
-    strain_str = "T4T5"; % eventually will get this from metadata. 
+    % strain_str = "TmY3"; % eventually will get this from metadata. 
     
     [date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
     on_off = params.on_off;

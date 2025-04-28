@@ -99,7 +99,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     end
     
     % Add polar plot in the center
-    axCentral = polaraxes('Position', centralPosition);
+    axCentral = polaraxes('Position', centralPosition, 'ThetaTick', rad2deg(angls));
     hold on
     
     % Convert max values for both conditions into polar format
