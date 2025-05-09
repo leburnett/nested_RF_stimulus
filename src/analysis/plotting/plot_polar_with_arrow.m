@@ -14,12 +14,13 @@ function resultant_angle = plot_polar_with_arrow(max_v, median_voltage, params, 
     col = [0.3 0.3 0.3];
     
     figure;
-    polarplot(theta, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 3);
+    polarplot(theta, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
     hold on
-    polarplot(theta, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 3);
+    polarplot(theta, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
     ax = gca;
     ax.LineWidth = 1.2;
     ax.FontSize = 15;
+    ax.ThetaTick = rad2deg(theta);
     ax.ThetaTickLabel = {};
     hold on
     add_arrow_to_polarplot(resultant_magnitude, resultant_angle, col)

@@ -34,11 +34,13 @@ function data = parse_bar_data(f_data, v_data)
         
         frames_rep = f_data(st_val:end_val);
         
+        % Look for min / max 
         r_min = islocalmin(frames_rep);
         r_min_vals = find(r_min);
         r_st = [st_val, r_min_vals + st_val, end_val];
     
         r_max = islocalmax(frames_rep);
+        % r_max = find(frames_rep(1:end-1) == 60 & frames_rep(2:end) == 61);
         r_max_vals = find(r_max);
         r_nd = r_max_vals + st_val;
         
@@ -46,6 +48,20 @@ function data = parse_bar_data(f_data, v_data)
         idxs_all{i} = sort(all_idxs); % Store sorted indices
     end
     
+% TEST 
+% Plot the parsing between stimuli
+
+% figure; plot(f_data); hold on;
+% for iii = 1:numel(idxs_all{1,1})
+%     all_rep1 = idxs_all{1,1};
+%     x_val = all_rep1(iii);
+%     plot([x_val, x_val], [0 75], 'r');
+% end 
+% 
+% for kk = 1:8
+%     plot([r_max(kk)+ rep_ranges{i}(1), r_max(kk)+ rep_ranges{i}(1)], [0 75], 'g'); hold on
+% end 
+
     % Extract data segments using the computed indices
     num_segments = numel(idxs_all{1}) - 1; % Assuming all idxs_all{i} have the same size
     data = cell(num_segments, 3); % Preallocate data cell array
@@ -55,6 +71,10 @@ function data = parse_bar_data(f_data, v_data)
             data{i, j} = v_data(idxs_all{j}(i):idxs_all{j}(i+1)-1);
         end
     end
+
+    % stf = 1828960;
+    % endf = 1852243;
+    % data{i, j} = v_data(stf:endf);
 
     for j = 1:height(data)
         % Extract data for all repetitions and ensure column vectors
