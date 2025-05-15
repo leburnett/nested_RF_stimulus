@@ -10,8 +10,13 @@ function [resultant_magnitude, resultant_angle] = vector_sum_polar(rho, theta)
 
     % Convert polar coordinates to Cartesian coordinates
     % [x, y] = pol2cart(theta, rho);
-    x = sum(rho .* cos(theta));
-    y = sum(rho .* sin(theta));
+    if theta(1) == theta(end)
+        x = sum(rho(1:end-1) .* cos(theta(1:end-1)));
+        y = sum(rho(1:end-1) .* sin(theta(1:end-1)));
+    else
+        x = sum(rho .* cos(theta));
+        y = sum(rho .* sin(theta));
+    end 
 
     % % Compute the vector sum in Cartesian coordinates
     % sum_x = sum(x);
