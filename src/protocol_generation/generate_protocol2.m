@@ -49,15 +49,24 @@ function generate_protocol2()
     % 2 - create 4 pixel flash stimuli with 50% overlapping grid, centred on [X,Y]
     % - this makes both the patterns and the functions for the flash.  
             
-        % 28 dps - slower
+        % 28 dps - 4 pixel flashes 
             flash_dur_slow = 0.16;
             int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
+            px_flash = 4;
+            px_crop_flash = 30;
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
     
-        % 56 dps - faster
-            flash_dur_fast = 0.08;
-            int_dur_fast = 0.22; % total 300ms    % before, 0.17 - total = 250ms
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_fast, int_dur_fast, exp_folder)
+        % 28 dps - 6 pixel flashes
+            flash_dur_slow = 0.16;
+            int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
+            px_flash = 6;
+            px_crop_flash = 33;
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
+    
+        % % 56 dps - faster
+        %     flash_dur_fast = 0.08;
+        %     int_dur_fast = 0.22; % total 300ms    % before, 0.17 - total = 250ms
+        %     generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_fast, int_dur_fast, exp_folder)
     
     % 3 - create patterns with bar stimulus centred on [x,y] 
             generate_bar_stimulus_xy(x, y, px_intensity, px_crop_bar, on_off, exp_folder)
