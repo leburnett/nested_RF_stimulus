@@ -16,7 +16,7 @@ function generate_protocol2()
     peak_frame = metadata.Frame;
     screen_hemi = metadata.Side;
 
-    px_intensity = [6, 0, 15];
+    px_intensity = [4, 0, 15]; % used to be [6 0 15]
     px_crop_flash = 30;
     px_crop_bar = 30;
 
@@ -26,7 +26,7 @@ function generate_protocol2()
     screen_height_start = 1;
     screen_height_end = 48;
 
-    [x, y, on_off] = patt_frame_to_coord(peak_frame, px_intensity(1), screen_hemi);
+    [x, y, on_off] = patt_frame_to_coord(peak_frame, screen_hemi);
 
     % Warning message if [x,y] is close to the edge of the screen.
     if x < screen_width_start+(px_crop_flash/2) || x > screen_width_end-(px_crop_flash/2)
@@ -49,15 +49,24 @@ function generate_protocol2()
     % 2 - create 4 pixel flash stimuli with 50% overlapping grid, centred on [X,Y]
     % - this makes both the patterns and the functions for the flash.  
             
-        % 28 dps - slower
-            flash_dur_slow = 0.160;
-            int_dur_slow = 0.340; % total = 500ms
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
+        % 28 dps - 4 pixel flashes 
+            flash_dur_slow = 0.16;
+            int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
+            px_flash = 4;
+            px_crop_flash = 30;
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
     
-        % 56 dps - faster
-            flash_dur_fast = 0.08;
-            int_dur_fast = 0.17; % total = 250ms
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_fast, int_dur_fast, exp_folder)
+        % 28 dps - 6 pixel flashes
+            flash_dur_slow = 0.16;
+            int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
+            px_flash = 6;
+            px_crop_flash = 33;
+            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
+    
+        % % 56 dps - faster
+        %     flash_dur_fast = 0.08;
+        %     int_dur_fast = 0.22; % total 300ms    % before, 0.17 - total = 250ms
+        %     generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, on_off, flash_dur_fast, int_dur_fast, exp_folder)
     
     % 3 - create patterns with bar stimulus centred on [x,y] 
             generate_bar_stimulus_xy(x, y, px_intensity, px_crop_bar, on_off, exp_folder)
@@ -77,5 +86,10 @@ function generate_protocol2()
     %       Runs through each pattern 'orientation' ON - forward and flip
     %       direction - then OFF pattern forward and flip - at one speed, then
     %       repeats through the two other speeds.
+
+    % Find the peak_frame number to run the same protocol with the opposite
+    % contrast stimuli. 
+    find_inv_peak_frame(peak_frame);
+
 end 
 

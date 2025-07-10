@@ -1,4 +1,4 @@
-function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, flash_dur, int_dur, exp_folder)
+function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, px_flash,  on_off, flash_dur, int_dur, exp_folder)
 % Generate the patterns and functions for the 4 x 4 pixel flashes - on a
 % 50% overlapping grid of size 30 x 30 pixels, centred on the 'peak' of 
 % responses to Protocol 1 [x,y].
@@ -25,7 +25,7 @@ function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, flash_d
     params.y = y;
     params.px_intensity = px_intensity; % Intensity parameters of flash stimulus - [bkg_color, off_color, on_color]
     params.px_rng = [disp_y1, disp_y2, disp_x1, disp_x2]; % Pixel range of screen to present on - [row_start, row_end, col_start, col_end]
-    params.flash_sz_px = 4; % Size of flash in pixels
+    params.flash_sz_px = px_flash; % Size of flash in pixels
     params.overlap = 0.5; % Overlap of flashes - between 0 and 1. 
     params.protocol = 'protocol2';
     

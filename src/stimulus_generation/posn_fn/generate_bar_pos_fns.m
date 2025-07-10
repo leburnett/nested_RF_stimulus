@@ -3,6 +3,9 @@ function generate_bar_pos_fns(save_dir, px_crop)
 % Create functions for the forward and 'flip' direction. 
 % 3 different speeds - 14 dps, 28 dps and 56 dps.
 
+% July 2025 - added 1s of static first frame before each
+% sawtooth.
+
     for dps = [28, 56]
     
         if px_crop == 45 
@@ -52,21 +55,21 @@ function generate_bar_pos_fns(save_dir, px_crop)
             pfnparam.type = 'pfn'; %number of frames in pattern
             pfnparam.frames = 288; %number of frames in pattern
             pfnparam.gs_val = 4; %brightness bits in pattern
-            pfnparam.section = { 'sawtooth' }; %static, sawtooth, traingle, sine, cosine, or square
-            pfnparam.dur = [ dur ]; %section duration (in s)
-            pfnparam.val = [ 1 ]; %function value for static sections
-            pfnparam.high = [ fr_high ]; %high end of function range {for non-static sections}
-            pfnparam.low = [ fr_low ]; %low end of function range {for non-static sections}
-            pfnparam.freq = [ freq ]; %frequency of section {for non-static sections}
-            pfnparam.size_speed_ratio = [ 40 ]; %size/speed ratio {for looms}
-            pfnparam.flip = [ flip ]; %flip the range of values of function {for non-static sections}
+            pfnparam.section = {'static' 'sawtooth'}; %static, sawtooth, traingle, sine, cosine, or square
+            pfnparam.dur = [1 dur]; %section duration (in s)
+            pfnparam.val = [1 1]; %function value for static sections
+            pfnparam.high = [62 fr_high]; %high end of function range {for non-static sections}
+            pfnparam.low = [1 fr_low ]; %low end of function range {for non-static sections}
+            pfnparam.freq = [1 freq ]; %frequency of section {for non-static sections}
+            pfnparam.size_speed_ratio = [40 40]; %size/speed ratio {for looms}
+            pfnparam.flip = [0 flip]; %flip the range of values of function {for non-static sections}
             
             %% generate function
             func = G4_Function_Generator(pfnparam);
             
             %% save function
             pfnparam.ID = get_function_ID('pfn',save_dir);
-            filename = strcat(string(dps), 'dps_', flip_str, dur_str, 's_', string(fr_low), '-', string(fr_high), '_288fr_1-25step');
+            filename = strcat(string(dps), 'dps_', flip_str, dur_str, 's_', string(fr_low), '-', string(fr_high), '_288fr_1-25step_3s_static');
             save_function_G4(func, pfnparam, save_dir, filename);
         end
     end 
