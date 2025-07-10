@@ -6,18 +6,19 @@ n_6px_flashes = 128;
 n_on_off = 2;
 
 % Parameters that can be changed:
-t_interval_start = 2;
+t_interval_start = 5;
 n_reps = 4;
 t_flash = 0.2;
-t_bkg = 0.05; % originally 0.05; 50ms.
+t_bkg = 0.2; % originally 0.05; 50ms.
 
 % Calculate
-total_t_secs = t_interval_start + n_reps * (n_on_off*((t_flash+t_bkg)*n_12px_flashes)+ n_on_off*((t_flash+t_bkg)*n_6px_flashes));
+total_t_secs = n_reps * (t_interval_start + n_on_off*((t_flash+t_bkg)*n_12px_flashes)+ n_on_off*((t_flash+t_bkg)*n_6px_flashes));
 total_t_mins = total_t_secs/60;
 
-% 5.3667 minutes for P1 (all reps)
+% 5.4667 minutes for P1 (all reps) - 0.2 + 0.05 - 2s bkg before flashes
+% 8.5667 minutes for P1 (all reps) - 0.2 + 0.2 
+% 7.5 minutes for P1 (all reps) - 0.2 + 0.15 
 
-% How long of a gap should we have inbetweeen flashes? 
 
 %% Protocol 2: 
 
