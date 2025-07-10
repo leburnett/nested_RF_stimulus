@@ -1,7 +1,7 @@
 function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
 % Run protocol 2 
     %% Experiment metadata from user input:
-    n_reps = 3;
+    n_reps = 1;
     
     %% set up for experiment
     %Load configuration and start G4 Host
