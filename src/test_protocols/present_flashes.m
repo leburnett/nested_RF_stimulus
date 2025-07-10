@@ -39,7 +39,7 @@ elseif flash_size == 6
 end 
 
 % HARD CODE THE DIRECTORY WITH THE POSITION FUNCTION IN
-exp_folder = "C:\matlabroot\G4_Protocols\5flash_protocol";
+exp_folder = "C:\matlabroot\G4_Protocols\nested_RF_stimulus\src\test_protocols\5flash_protocol";
 
 pattern_folder = fullfile(exp_folder, "Patterns");
 if ~exist(pattern_folder,'dir')
