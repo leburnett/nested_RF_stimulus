@@ -6,10 +6,10 @@ n_6px_flashes = 128;
 n_on_off = 2;
 
 % Parameters that can be changed:
-t_interval_start = 5;
+t_interval_start = 2;
 n_reps = 4;
 t_flash = 0.2;
-t_bkg = 0.2; % originally 0.05; 50ms.
+t_bkg = 0.1; % originally 0.05; 50ms.
 
 % Calculate
 total_t_secs = n_reps * (t_interval_start + n_on_off*((t_flash+t_bkg)*n_12px_flashes)+ n_on_off*((t_flash+t_bkg)*n_6px_flashes));
@@ -26,12 +26,12 @@ n_reps = 3;
 n_flashes = 196;
 
 sflash_dur = 0.16;
-sflash_bkg = 0.34;
+sflash_bkg = 0.44; % was 0.34
 slow_flash_t = sflash_dur + sflash_bkg;
 total_sflash = slow_flash_t * n_flashes; % seconds
 
 fflash_dur = 0.08;
-fflash_bkg = 0.17;
+fflash_bkg = 0.22; % was 0.17
 fast_flash_t = fflash_dur + fflash_bkg;
 total_fflash = fast_flash_t * n_flashes; % seconds
 
@@ -48,7 +48,7 @@ total_fflash = fast_flash_t * n_flashes; % seconds
 
 dur_sbar = 2.328;
 dur_fbar = 1.164;
-static_t = 1; % Changed to 1.
+static_t = 1; % was 0
 n_dir = 16; % 8 orientations - both directions. 
 
 total_sbars = (dur_sbar + static_t) * n_dir; 
