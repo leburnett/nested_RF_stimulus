@@ -50,13 +50,10 @@ rf_results.Time = time_str;
 rf_results.Strain = strain_str;
 rf_results.Type = on_off;
 
-for slow_fast = ["slow", "fast"]
+for px_size = [4, 6]
 
-    if slow_fast == "slow"
-        speed_str = "160ms";
-    elseif slow_fast == "fast"
-        speed_str = "80ms";
-    end 
+    slow_fast = "slow";
+    speed_str = "160ms";
     
     [data_comb,...
         cmap_id,...
@@ -64,7 +61,7 @@ for slow_fast = ["slow", "fast"]
         var_within_reps,...
         diff_mean,...
         max_data,...
-        min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, PROJECT_ROOT);
+        min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT);
     
     med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
     med_var_W_reps = var(reshape(var_within_reps, [1, 196]));
