@@ -10,8 +10,6 @@ function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
         mkdir(figures_folder);
     end
     
-    % strain_str = "TmY3"; % eventually will get this from metadata. 
-    
     [date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
     on_off = params.on_off;
     params.date = date_str;
@@ -28,7 +26,7 @@ function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
     data = parse_bar_data(f_data, v_data); % Update this to work for both slow and fast bars
     
     % Plot the timeseries responses with a polar plot in the middle.
-    save_fig = 0;
+    save_fig = 1;
     [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig);
     f = gcf;
     f.Position = [303   380   688   667];

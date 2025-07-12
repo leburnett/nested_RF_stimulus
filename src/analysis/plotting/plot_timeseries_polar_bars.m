@@ -86,6 +86,9 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
             % Set consistent Y-limits
             ylim([-80 -10])
     
+            % % % % TODO -- -- Update this to make the range of time over
+            % which we are looking at - 9000 start / end. 
+
             % Store max/min values from last column of data = mean over the 3
             % repetitions:
             d = data{d_idx, 4}; 
@@ -95,6 +98,9 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     
             % Turn off axes for better visualization
             axis(ax, 'off');
+
+            % % % TODO - - - Add lines when the stimulus starts / stops? - 9000
+            % datapoints added before and after. 
         end
     end
     
