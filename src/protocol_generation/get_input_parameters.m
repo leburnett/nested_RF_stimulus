@@ -32,7 +32,7 @@ function selections = get_input_parameters()
         'Value', 'ss324_t4t5');
 
     % Variable to hold selections
-    selections = struct('Frame', '', 'ArenaSide', '', 'Age', '', 'Strain', '');
+    selections = struct('Frame', '', 'Side', '', 'Age', '', 'Strain', '');
 
     % Confirm Button with callback function to retrieve values and close the figure
     confirmButton = uibutton(fig, 'push', ...
