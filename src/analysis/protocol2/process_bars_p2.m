@@ -40,12 +40,14 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     % Parse the raw voltage data for the different bar stimuli
     data = parse_bar_data(f_data, v_data, on_off); % Update this to work for both slow and fast bars
     
+    %% PLOTTING THE BAR DATA
+
     % Plot the timeseries responses with a polar plot in the middle.
     save_fig = 1;
     [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig, figures_folder);
     f = gcf;
     f.Position = [303   380   688   667];
-    
+
     % Convert max values for both conditions into polar format
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
@@ -57,10 +59,12 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     % directions at 2 different speeds.
     plot_heatmap_bars(max_v)
     
+    %% ANALYSING THE BAR DATA
+
     % Align the data angles to plot a linear timeseries plot:
     data_ordered = align_data_by_seq_angles(data);
     
-    % Find PR and the order to re-order the data to align PD to pi/2.
+    % Find PD and the order to re-order the data to align PD to pi/2.
     % 1 - slower bar stimuli
     [d_slow, ord, magnitude_slow, angle_rad_slow, fwhm_slow, cv_slow, thetahat_slow, kappa_slow] = find_PD_and_order_idx(max_v_polar1, median_v); % use the max v polar for the slower bars.
     
@@ -126,7 +130,6 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     save(fullfile(results_folder, strcat('peak_vals_', metadata.Strain, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
         , "bar_results"...
         , 'data' ...
-        , 'data_ordered'...
         , 'data_aligned'...
         , 'ord'...
         , 'd_slow'...

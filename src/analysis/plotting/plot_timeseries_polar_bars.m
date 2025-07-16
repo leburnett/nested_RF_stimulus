@@ -1,8 +1,42 @@
 function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, params, save_fig, fig_save_folder)
+    % Central polar plot of maximum voltage for each direction, with timeseries of voltage data for each moving bar stimulus.
+    % Responses to fast bars are in light blue and responses to slow bars in dark blue. 
 
-    % Central polar plot with timeseries around in location 
-    % representative of bar direction. Responses to fast bars are in light 
-    % blue and responses to slow bars in dark blue. 
+    % Inputs
+    % ------
+    %       data: cell array [n_conditions * 2, n_reps +1]
+    %           Timeseries voltage data for each condition (rows). The
+    %           first (n_reps) columns are the repetition data and the
+    %           (n_reps +1) column is the mean data across the reps. 
+
+    %       median_voltage: float
+    %           Median voltage across the entire recording.
+
+    %       params: struct
+    %           Contains meta data about the experiment. Used for saving. 
+
+    %       save_fig : bool
+    %           Boolean value for whether to save the figures of not. If
+    %           True, then the figures are saved to `fig_sve_folder`, if
+    %           False then the figures are created but not saved. 
+
+    %       fig_save_folder : str
+    %           Path where to save the figures.           
+
+    % Outputs
+    % -------
+
+    %       max_v: arrray [n_conditions, n_speeds]
+    %           98th percentile value of the mean voltage during each bar condition. Range of data includes the time 
+    %           when bar stimulus is shown + 200ms after the bar stimulus ends. Excludes the interval time before 
+    %           the bar stimulus starts.
+
+    %       min_v: arrray [n_conditions, n_speeds]
+    %           2nd percentile value of the mean voltage during the second half of each bar condition. Range of data 
+    %           includes the time when bar stimulus is shown + 200ms after the bar stimulus ends. Excludes the interval
+    %           time before the bar stimulus starts.   
+
+    % ________________________________________________________________________________________
     
     % Number of subplots
     numPlots = 16;
@@ -41,6 +75,8 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     
     % Define colors for the two conditions
     colors = {[0.2 0.4 0.7], [0.4 0.8 1]};  % Dark blue (28 dps) and Light blue (56 dps)
+
+    n_conditions = size(data, 1)/2;
     
     %% Create the figure
     figure
@@ -50,6 +86,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     
         % Loop to create subplots
         for i = 1:numPlots
+
             % Compute subplot position
             x = centerX + radius * cos(theta(i)); 
             y = centerY + radius * sin(theta(i));
@@ -63,10 +100,12 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     
             % Get the data index - which row in 'data' contains the data for
             % the desired direction.
-            d_idx = plot_order(i) + 16*(sp-1);
+            d_idx = plot_order(i) + n_conditions*(sp-1);
     
-            % Plot data for each repetition
-            for r = 1:4
+            n_reps = size(data, 2)-1;
+
+            % Plot the timeseries data for each repetition and the mean
+            for r = 1:n_reps
                 d2plot = data{d_idx, r};
                 x_vals = 1:numel(d2plot);
     
@@ -75,11 +114,13 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
                     plot([1 x_vals(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1);  
                 end 
     
-                % Plot repetitions in gray, last rep in condition color
-                if r < 4
+                % Plot repetitions in gray, last rep (mean) in condition color
+                if r < n_reps+1
                     plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
                 else 
                     plot(x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
+                    plot([9000 9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.5) % Start of bar stimulus
+                    plot([numel(x_vals)-9000 numel(x_vals)-9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.5) % End of bar stimulus.
                 end
             end 
     
@@ -89,11 +130,17 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
             % % % % TODO -- -- Update this to make the range of time over
             % which we are looking at - 9000 start / end. 
 
-            % Store max/min values from last column of data = mean over the 3
-            % repetitions:
-            d = data{d_idx, 4}; 
+            % Store max/min values from the mean voltage per condition.
+            d = data{d_idx, n_reps+1}; 
+
+            % Remove the 900ms before and last 700ms after stimulus to look
+            % for min / max response.
+            d = d(9000:end-7000);
+
+            % Number of data points now:
             n_vals_d = numel(d);
-            max_v(i, sp) = prctile(d(floor(n_vals_d/8):end), 98); % ignore the first 8th of the condition
+
+            max_v(i, sp) = prctile(d, 98); % ignore the first 8th of the condition
             min_v(i, sp) = prctile(d(floor(n_vals_d/2):end), 2); % find the min during the 2nd half of the condition.
     
             % Turn off axes for better visualization

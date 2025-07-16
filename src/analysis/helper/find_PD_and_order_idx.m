@@ -3,11 +3,40 @@ function [d, ord, magnitude, angle_rad, fwhm, cv, thetahat, kappa] = find_PD_and
     % direction (PD) for each cell. Use this value to then re-organise the
     % peak data so that the peak responses is always aligned to pi/2 (up).
 
+    % Inputs
+    % ------
+
+    % max_v_polar : array 
+
+    % median_voltage: float
+
+    % Outputs
+    % -------
+
+    % d : array of size [16, 2]
+
+    % ord : array
+
+    % magnitude : float
+
+    % angle_rad : float
+
+    % fwhm : float
+
+    % cv : float
+
+    % thetahat : float
+
+    % kappa : float
+
+    % ________________________________________________________________________________________
+
     % Angles in radians to be used.
     angls = linspace(0, 2*pi, 17)';
     angls = angls(1:end-1); 
 
-    % Median-subtracted peak voltages
+    % Median-subtracted peak voltages - remove last value to not double
+    % weight.
     responses = max_v_polar(1:end-1)-median_voltage;  % peak neural responses
     
     %% 1 - Find vector sum of responses to find PD. 
