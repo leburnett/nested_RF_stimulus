@@ -1,4 +1,4 @@
-function process_flash_p2(exp_folder, strain_str, PROJECT_ROOT, resultant_angle)
+function process_flash_p2(exp_folder, metadata, PROJECT_ROOT, resultant_angle)
 
 results_folder = fullfile(PROJECT_ROOT, "results", "flash_results");
 if ~isfolder(results_folder)
@@ -16,7 +16,7 @@ end
 on_off = params.on_off;
 params.date = date_str;
 params.time = time_str;
-params.strain = strain_str;
+params.strain = metadata.Strain;
 params.resultant_angle = resultant_angle;
 
 % sampling_rate = 10000;
@@ -48,7 +48,7 @@ var_filtered_v = var(filtered_voltage_data);
 rf_results = struct();
 rf_results.Date = date_str;
 rf_results.Time = time_str;
-rf_results.Strain = strain_str;
+rf_results.Strain = metadata.Strain;
 rf_results.Type = on_off;
 
 for px_size = [4, 6]
@@ -73,7 +73,7 @@ for px_size = [4, 6]
     
     % Timeseries plot:
     f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, px_size, idx, on_off, params);
-    fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', on_off, "_", speed_str, ".pdf"));
+    fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', metadata.Strain, '_', on_off, "_", speed_str, ".pdf"));
     exportgraphics(f_timeseries ...
             , fname ...
             , 'ContentType', 'vector' ...
@@ -82,7 +82,7 @@ for px_size = [4, 6]
     
     % Simple heat map plot:
     f_heatmap = plot_heatmap_flash_responses(data_comb2);
-    fname = fullfile(figures_folder, strcat('Heatmap_', date_str, '_', time_str, '_', strain_str, '_', on_off, "_", speed_str, ".pdf"));
+    fname = fullfile(figures_folder, strcat('Heatmap_', date_str, '_', time_str, '_', metadata.Strain, '_', on_off, "_", speed_str, ".pdf"));
     exportgraphics(f_heatmap ...
             , fname ...
             , 'ContentType', 'vector' ...
@@ -120,7 +120,7 @@ for px_size = [4, 6]
 
 end 
 
-save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', strain_str, '_', on_off, '.mat')), 'rf_results');
+save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', metadata.Strain, '_', on_off, '.mat')), 'rf_results');
 
 end 
 

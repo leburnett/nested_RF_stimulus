@@ -4,37 +4,6 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
     median_v = median(v_data);
     v2_data = v_data - median_v;
 
-    % Find where the flash stimuli end. 
-    % idx = find(diff_f_data == min(diff_f_data));
-    max_frame_n = max(f_data);
-    if max_frame_n > 390
-        first_flash_y = 197;
-    else
-        first_flash_y = 1;
-    end 
-
-    idx = find(diff_f_data == first_flash_y & f_data(2:end) == first_flash_y); % First flash. 
-
-    % TEST - 'idx' values = end of the different groups of full flash stimuli. 
-    figure; 
-    plot(f_data);
-    hold on;
-    for iii = 1:numel(idx)
-        plot([idx(iii), idx(iii)], [0 400], 'm');
-    end 
-    
-    % % 340 ms OFF - bkg - 160 ms FLASH. 500 ms = 0.5s. 
-    % % 170 ms OFF - bkg - 80 ms FLASH - 0.25s
-
-    % % July 2025 onwards - increased interval time from 340ms to 440ms. 
-    if slow_fast == "slow"
-        slow_flashes_dur = 6000; % 0.6s * sampling rate.
-        % flash_dur_ms_slow = 976700;
-    % elseif slow_fast == "fast"
-    %     fast_flashes_dur = 2500;
-    %     flash_dur_ms_fast = 976700/2;
-    end 
-    
     if px_size == 4
         n_flashes = 196;
         n_rows_cols = 14;
@@ -43,6 +12,43 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
         n_rows_cols = 10;
     end 
 
+    % Find the timepoints when the flash stimuli end. 
+    if on_off == "on"
+        % 1 - find the start of the 4px flashes.
+        idx1 = find(diff_f_data == 197 & f_data(2:end) == 197); 
+        idx1([2,4,6]) = [];
+        % 2 - find the start of the 6px flashes.
+        idx2 = find(diff_f_data == 101 & f_data(2:end) == 101); 
+        idx = [idx1, idx2];
+        idx = sort(idx);
+
+    elseif on_off == "off"
+        % Both 4px and 6px flashes start with frame 1. 
+        % 'idx' is an array of the timepoints when the 4px flashes start
+        % and the 6px flashes start. 'idx' should be an array of size [1,6]
+        idx = find(diff_f_data == 1 & f_data(2:end) == 1); % First flash. 
+    end 
+
+    % TEST - 'idx' values = start of the different groups of flash stimuli. 
+    % figure; 
+    % plot(f_data);
+    % hold on;
+    % for iii = 1:numel(idx)
+    %     plot([idx(iii), idx(iii)], [0 400], 'm');
+    % end 
+    
+    % % 340 ms OFF - bkg - 160 ms FLASH. 500 ms = 0.5s. 
+    % % 170 ms OFF - bkg - 80 ms FLASH - 0.25s
+
+    % % July 2025 onwards - increased interval time from 340ms to 440ms. 
+    if slow_fast == "slow"
+        slow_flashes_dur = 7000; % 0.6s * sampling rate.
+        % flash_dur_ms_slow = 976700;
+    % elseif slow_fast == "fast"
+    %     fast_flashes_dur = 2500;
+    %     flash_dur_ms_fast = 976700/2;
+    end 
+    
     % Empty arrays to fill - 196 flashes/values. 
     data_comb = zeros(n_rows_cols, n_rows_cols);
     cmap_id = zeros(n_rows_cols, n_rows_cols);
@@ -68,34 +74,37 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
                 if r == 1 % rep 1
                     if px_size == 4
                         rng_rep1 = f_data(idx(1):idx(2));
+                        start_idx = idx(1);
                     else 
                         rng_rep1 = f_data(idx(2):idx(2)+608000);
+                        start_idx = idx(2);
                     end 
-                    start_idx = rng_rep1(1);
                     start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
                 elseif r == 2 % rep 2 
                     if px_size == 4
                         rng_rep2 = idx(3):idx(4);
+                        start_idx = idx(3);
                     else
                         rng_rep2 = f_data(idx(4):idx(4)+608000);
+                        start_idx = idx(4);
                     end 
-                    start_idx = rng_rep2(1);
-                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+                    start_flash_idxs = find(diff(rng_rep2)>0)+start_idx-1;
                 elseif r == 3 % rep3 
                     if px_size == 4
                         rng_rep3 = idx(5):idx(6);
+                        start_idx = idx(5);
                     else
                         rng_rep3 = f_data(idx(6):idx(6)+608000);
+                        start_idx = idx(6);
                     end
-                    start_idx = rng_rep3(1);
-                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+                    start_flash_idxs = find(diff(rng_rep3)>0)+start_idx-1;
                 end 
         
                 % Extract data 1000 timepoints before the flash starts
                 % til the end of the interval before the next flash. 
-                d = f_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000); % frame data during flash. 
-                v = v2_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000); % median-subtracted voltage data
-                v_raw = v_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000);
+                d = f_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000-1); % frame data during flash. 
+                v = v2_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000-1); % median-subtracted voltage data
+                v_raw = v_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000-1);
 
                 data_frame(r, :) = d;
                 data_flash(r, :) = v;

@@ -1,4 +1,4 @@
-function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
+function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
 
     results_folder = fullfile(PROJECT_ROOT, "results", "bar_results");
     if ~isfolder(results_folder)
@@ -14,22 +14,38 @@ function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
     on_off = params.on_off;
     params.date = date_str;
     params.time = time_str;
-    params.strain = strain_str;
+    params.strain = metadata.Strain;
     
     f_data = Log.ADC.Volts(1, :); % frame data
     
     v_data = Log.ADC.Volts(2, :)*10; % voltage data
     median_v = median(v_data);
+
+    % Display figure of the frame position and voltage data to get a quick
+    % overview of the quality of the recording:
+    figure; 
+    subplot(2,1,1)
+    plot(f_data);
+    xlim([0 numel(f_data)])
+    ylabel('Frame #')
+    subplot(2,1,2)
+    plot(v_data);
+    xlim([0 numel(f_data)])
+    ylabel('Voltage')
+    f = gcf;
+    f.Position = [50 633 1679 376];
+
     % v2_data = v_data - median_v; % Get the median-subtracted voltage.
     
     % Parse the raw voltage data for the different bar stimuli
-    data = parse_bar_data(f_data, v_data); % Update this to work for both slow and fast bars
+    data = parse_bar_data(f_data, v_data, on_off); % Update this to work for both slow and fast bars
     
     % Plot the timeseries responses with a polar plot in the middle.
     save_fig = 1;
     [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig, figures_folder);
     f = gcf;
     f.Position = [303   380   688   667];
+    
     % Convert max values for both conditions into polar format
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
@@ -71,7 +87,7 @@ function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
     
     bar_results.Date = date_str;
     bar_results.Time = time_str;
-    bar_results.Strain = strain_str;
+    bar_results.Strain = metadata.Strain;
     bar_results.Type = on_off;
     bar_results.slow.max_v_polar = {max_v_polar1};
     bar_results.fast.max_v_polar = {max_v_polar2};
@@ -107,7 +123,7 @@ function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
     bar_results.fast.DSI_pdnd = DSI_pdnd_fast;
     bar_results.resultant_angle = resultant_angle;
     
-    save(fullfile(results_folder, strcat('peak_vals_', strain_str, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
+    save(fullfile(results_folder, strcat('peak_vals_', metadata.Strain, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
         , "bar_results"...
         , 'data' ...
         , 'data_ordered'...
