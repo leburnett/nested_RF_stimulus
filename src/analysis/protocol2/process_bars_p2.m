@@ -27,7 +27,7 @@ function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
     
     % Plot the timeseries responses with a polar plot in the middle.
     save_fig = 1;
-    [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig);
+    [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig, figures_folder);
     f = gcf;
     f.Position = [303   380   688   667];
     % Convert max values for both conditions into polar format
@@ -35,7 +35,7 @@ function resultant_angle = process_bars_p2(exp_folder, strain_str, PROJECT_ROOT)
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
 
     % Plot only the polar plot with an arrow overlaid.
-    resultant_angle = plot_polar_with_arrow(max_v, median_v, params, save_fig);
+    resultant_angle = plot_polar_with_arrow(max_v, median_v, params, save_fig, figures_folder);
     
     % Plot a heat map of the maximum responses to the bars moving in the 16
     % directions at 2 different speeds.

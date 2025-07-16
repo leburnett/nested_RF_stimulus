@@ -2,11 +2,20 @@ function data = parse_bar_data(f_data, v_data)
 
 
     diff_f_data = diff(f_data);
-    idx = find(diff_f_data == -100); % where the flash stimuli end.
+
+    % Find out if the ON / OFF flashes were presented:
+    max_frame_n = max(f_data);
+    if max_frame_n > 390
+       drop_at_end = -200;
+    else
+        drop_at_end = -100;
+    end 
+
+    idx = find(diff_f_data == drop_at_end); % where the flash stimuli end.
 
     % BAR stimulus duration 
     % dur_t = (2.273+1.155)*10000*16; % (dur_bar_slow + dur_bar_fast) * acq_speed * n_directions. 
-    
+    % 
     % figure; 
     % plot(f_data);
     % hold on;

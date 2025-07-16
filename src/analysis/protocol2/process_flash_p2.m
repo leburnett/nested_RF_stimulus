@@ -23,7 +23,8 @@ params.resultant_angle = resultant_angle;
 
 f_data = Log.ADC.Volts(1, :); % frame data
 diff_f_data = diff(f_data);
-idx = find(diff_f_data == min(diff_f_data)); % where the flash stimuli end.
+idx = find(diff_f_data == 1 & f_data(2:end) ==1); % First flash.
+% idx = find(diff_f_data == min(diff_f_data)); % where the flash stimuli end.
 
 v_data = Log.ADC.Volts(2, :)*10; % voltage data
 median_v = median(v_data);
@@ -54,24 +55,24 @@ for px_size = [4, 6]
 
     slow_fast = "slow";
     speed_str = "160ms";
+
+    if px_size == 4
+        n_flashes = 196;
+    elseif px_size == 6
+        n_flashes = 100;
+    end 
     
-    [data_comb,...
-        cmap_id,...
-        var_across_reps,...
-        var_within_reps,...
-        diff_mean,...
-        max_data,...
-        min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT);
+    [data_comb,cmap_id,var_across_reps,var_within_reps,diff_mean,max_data,min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT);
     
-    med_var_X_reps = median(reshape(var_across_reps, [1, 196]));
-    med_var_W_reps = var(reshape(var_within_reps, [1, 196]));
-    med_diff_mean = median(reshape(diff_mean, [1, 196]));
+    med_var_X_reps = median(reshape(var_across_reps, [1, n_flashes]));
+    med_var_W_reps = var(reshape(var_within_reps, [1, n_flashes]));
+    med_diff_mean = median(reshape(diff_mean, [1, n_flashes]));
     
     % Rescale the combined data to be between 0 and 1.
     data_comb2 = rescale(data_comb, 0, 1);
     
     % Timeseries plot:
-    f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, idx, on_off, params);
+    f_timeseries = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, px_size, idx, on_off, params);
     fname = fullfile(figures_folder, strcat('Timeseries_', date_str, '_', time_str, '_', strain_str, '_', on_off, "_", speed_str, ".pdf"));
     exportgraphics(f_timeseries ...
             , fname ...

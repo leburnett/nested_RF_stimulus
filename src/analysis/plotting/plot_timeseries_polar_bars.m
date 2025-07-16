@@ -1,4 +1,4 @@
-function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, params, save_fig)
+function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, params, save_fig, fig_save_folder)
 
     % Central polar plot with timeseries around in location 
     % representative of bar direction. Responses to fast bars are in light 

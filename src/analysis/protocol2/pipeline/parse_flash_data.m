@@ -6,15 +6,22 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
 
     % Find where the flash stimuli end. 
     % idx = find(diff_f_data == min(diff_f_data));
-    idx = find(diff_f_data == 1 & f_data(2:end) ==1); % First flash. 
+    max_frame_n = max(f_data);
+    if max_frame_n > 390
+        first_flash_y = 197;
+    else
+        first_flash_y = 1;
+    end 
+
+    idx = find(diff_f_data == first_flash_y & f_data(2:end) == first_flash_y); % First flash. 
 
     % TEST - 'idx' values = end of the different groups of full flash stimuli. 
-    % figure; 
-    % plot(f_data);
-    % hold on;
-    % for iii = 1:numel(idx)
-    %     plot([idx(iii), idx(iii)], [0 400], 'm');
-    % end 
+    figure; 
+    plot(f_data);
+    hold on;
+    for iii = 1:numel(idx)
+        plot([idx(iii), idx(iii)], [0 400], 'm');
+    end 
     
     % % 340 ms OFF - bkg - 160 ms FLASH. 500 ms = 0.5s. 
     % % 170 ms OFF - bkg - 80 ms FLASH - 0.25s
@@ -167,24 +174,14 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
         % fnum(i) = flash_frame_num;
         % disp(flash_frame_num)
     
-        if px_size == 4
-            if on_off == "on" % from 196
-                rows = 14 - mod((flash_frame_num - 196), 14);   % Rows decrease from 14 to 1
-                cols = floor((flash_frame_num - 196) / 14) + 1; % Columns increase normally
-            elseif on_off == "off" % 1- 196
-                rows = 14 - mod(flash_frame_num, 14);   % Rows decrease from 14 to 1
-                cols = floor(flash_frame_num / 14) + 1; % Columns increase normally
-            end
-        elseif px_size == 6
-            if on_off == "on" % from 100
-                rows = 10 - mod((flash_frame_num - 100), 10);   % Rows decrease from 14 to 1
-                cols = floor((flash_frame_num - 100) / 10) + 1; % Columns increase normally
-            elseif on_off == "off" % 1- 100
-                rows = 10 - mod(flash_frame_num, 10);   % Rows decrease from 14 to 1
-                cols = floor(flash_frame_num / 10) + 1; % Columns increase normally
-            end
-        end 
-        
+        if on_off == "on" % from 196
+            rows = n_rows_cols - mod(flash_frame_num - n_flashes, n_rows_cols);   % Rows decrease from 14 to 1
+            cols = floor((flash_frame_num - n_flashes) / n_rows_cols) + 1; % Columns increase normally
+        elseif on_off == "off" % 1- 196
+            rows = n_rows_cols - mod(flash_frame_num, n_rows_cols);   % Rows decrease from 14 to 1
+            cols = floor(flash_frame_num / n_rows_cols) + 1; % Columns increase normally
+        end
+
         data_comb(rows, cols) = val;
         cmap_id(rows, cols) = cm;
         var_across_reps(rows, cols) = mean_cv_across_trials;

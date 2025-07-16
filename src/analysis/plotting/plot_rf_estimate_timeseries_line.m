@@ -1,12 +1,19 @@
-function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, idx, on_off, params)
+function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, px_size, idx, on_off, params)
 % Spatial plot of the timeseries responses to the flashes in each position.
 % Colour coded lines. Red above baseline, blue below. 
 
 f = figure;
 
 % Define subplot grid dimensions
-nRows = 14;
-nCols = 14;
+if px_size == 4
+    nRows = 14;
+    nCols = 14;
+    n_flashes = 196;
+elseif px_size == 6
+    nRows = 10;
+    nCols = 10;
+    n_flashes = 100;
+end 
 
 % Define spacing reduction factor
 spacingFactor = 0.1; % Reducing spacing by 75%
@@ -20,49 +27,56 @@ newWidth = origWidth * (1 - spacingFactor);
 newHeight = origHeight * (1 - spacingFactor);
 
 if slow_fast == "slow"
-    flashes_dur = 5000; % 0.5s * sampling rate.
-    dur_ms = 976700;
+    flashes_dur = 6000; % 0.5s * sampling rate.
+    % dur_ms = 976700;
     speed_str = "160ms_flash";
-elseif slow_fast == "fast"
-    flashes_dur = 2500;
-    dur_ms = 976700/2;
-    speed_str = "80ms_flash";
+% elseif slow_fast == "fast"
+%     flashes_dur = 2500;
+%     dur_ms = 976700/2;
+%     speed_str = "80ms_flash";
 end
 
-for i = 1:196
+for i = 1:n_flashes
 
+    data_frame = ones(3, flashes_dur);
     data_flash = ones(3, flashes_dur); 
 
     for r = 1:3 
 
         if slow_fast == "slow"
-            if r == 1
-                end_t = idx(1); 
-            elseif r == 2
-                end_t = idx(3);
-            elseif r == 3
-                end_t = idx(5); 
-            end 
-        elseif slow_fast == "fast"
-            if r == 1
-                end_t = idx(2); 
-            elseif r == 2
-                end_t = idx(4);
-            elseif r == 3
-                end_t = idx(6); 
-            end 
+            if r == 1 % rep 1
+                    if px_size == 4
+                        rng_rep1 = f_data(idx(1):idx(2));
+                    else 
+                        rng_rep1 = f_data(idx(2):idx(2)+608000);
+                    end 
+                    start_idx = rng_rep1(1);
+                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+                elseif r == 2 % rep 2 
+                    if px_size == 4
+                        rng_rep2 = idx(3):idx(4);
+                    else
+                        rng_rep2 = f_data(idx(4):idx(4)+608000);
+                    end 
+                    start_idx = rng_rep2(1);
+                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+                elseif r == 3 % rep3 
+                    if px_size == 4
+                        rng_rep3 = idx(5):idx(6);
+                    else
+                        rng_rep3 = f_data(idx(6):idx(6)+608000);
+                    end
+                    start_idx = rng_rep3(1);
+                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+                end
         end 
 
-        edge_vals = end_t-dur_ms:flashes_dur:end_t;
-
-        if i < 196
-            d = f_data(edge_vals(i):edge_vals(i+1)-1);
-            v = v2_data(edge_vals(i):edge_vals(i+1)-1);
-        elseif i == 196
-            d = f_data(edge_vals(196):edge_vals(196)+flashes_dur-1);
-            v = v2_data(edge_vals(196):edge_vals(196)+flashes_dur-1);
-        end 
-
+         % Extract data 1000 timepoints before the flash starts
+        % til the end of the interval before the next flash. 
+        d = f_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000); % frame data during flash. 
+        v = v2_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000); % median-subtracted voltage data
+               
+        data_frame(r, :) = d;
         data_flash(r, :) = v;
     end 
 
@@ -71,12 +85,12 @@ for i = 1:196
 
     flash_frame_num = max(d)-1;
 
-    if on_off == "on" % from 196
-        rows = 14 - mod((flash_frame_num - 196), 14);   % Rows decrease from 14 to 1
-        cols = floor((flash_frame_num - 196) / 14) + 1; % Columns increase normally
+     if on_off == "on" % from 196
+        rows = nRows - mod((flash_frame_num - n_flashes), nRows);   % Rows decrease from 14 to 1
+        cols = floor((flash_frame_num - n_flashes) / nRows) + 1; % Columns increase normally
     elseif on_off == "off" % 1- 196
-        rows = 14 - mod(flash_frame_num, 14);   % Rows decrease from 14 to 1
-        cols = floor(flash_frame_num / 14) + 1; % Columns increase normally
+        rows = nRows - mod(flash_frame_num, nRows);   % Rows decrease from 14 to 1
+        cols = floor(flash_frame_num / nRows) + 1; % Columns increase normally
     end
 
     val  = data_comb2(rows, cols);
@@ -123,7 +137,13 @@ for i = 1:196
     plot([1 xmax], [0, 0], 'Color', [0.2 0.2 0.2]) % Plot '0' = median. 
     ylim([-10 25])
 
-    if i == 171 
+    if px_size == 4
+        first_subpl = 171;
+    elseif px_size == 6
+        first_subpl = 60; %% % % Check that this is correct. 
+    end 
+
+    if i == first_subpl
         xticks([0, 160, 500])
         yticks([-10, 0, 25])
         ax = gca;
@@ -162,13 +182,13 @@ annotation('arrow', [center_x - arrow_x/2, center_x + arrow_x/2], ...
 f.Position = [77   265   862   782]; %[77  76   1379   971];
 
 exportgraphics(f ...
-        , strcat(params.date, "_", params.time, "_", params.strain, "_spatialRF_timeseries_", speed_str, "_wArrow.pdf") ...
+        , strcat(params.date, "_", params.time, "_", params.strain, "_spatialRF_timeseries_", speed_str, "_px-size", string(px_size), "_wArrow.pdf") ...
         , 'ContentType', 'vector' ...
         , 'BackgroundColor', 'none' ...
         ); 
 
 exportgraphics(f ...
-        , strcat(params.date, "_", params.time, "_", params.strain, "_spatialRF_timeseries_", speed_str, "_wArrow.png") ...
+        , strcat(params.date, "_", params.time, "_", params.strain, "_spatialRF_timeseries_", speed_str, "_px-size", string(px_size), "_wArrow.png") ...
         ); 
 
 end
