@@ -1,5 +1,29 @@
 function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT)
 
+% Parse the flash data.
+
+% Inputs
+% ------
+% f_data
+% v_data
+% on_off
+% slow_fast
+% px_size
+% PROJECT_ROOT
+
+% Outputs
+% -------
+
+% data_comb
+% cmap_id
+% var_across_reps
+% var_within_reps
+% diff_mean
+% max_data
+% min_data
+
+% ________________________________________________________________________
+
     diff_f_data = diff(f_data);
     median_v = median(v_data);
     v2_data = v_data - median_v;
@@ -22,12 +46,26 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
         idx = [idx1, idx2];
         idx = sort(idx);
 
+        % For finding the end of the 6 pixel flashes
+        drop_at_end = -200; % ON flashes. the last 6 pixel flash is frame 200.
+
     elseif on_off == "off"
         % Both 4px and 6px flashes start with frame 1. 
         % 'idx' is an array of the timepoints when the 4px flashes start
         % and the 6px flashes start. 'idx' should be an array of size [1,6]
         idx = find(diff_f_data == 1 & f_data(2:end) == 1); % First flash. 
+
+        % For finding the end of the 6 pixel flashes
+        drop_at_end = -100; % ON flashes. the last 6 pixel flash is frame 200.
     end 
+
+
+    % This finds when the difference in frame number == drop_at_end. 
+    % This should find 6 values. Values 1, 3 and 5 are wthin the 4 pixel
+    % flashes and values 2,4 and 6 correspond to the timing of the very end
+    % of the last flash.
+    idx_6px = find(diff_f_data == drop_at_end); % where the flash stimuli end.
+    idx_6px([1,3,5]) = []; 
 
     % TEST - 'idx' values = start of the different groups of flash stimuli. 
     % figure; 
@@ -69,6 +107,7 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
             data_flash_raw = ones(3, slow_flashes_dur); 
             data_frame = ones(3, slow_flashes_dur); 
         
+
             for r = 1:3
         
                 if r == 1 % rep 1
@@ -76,7 +115,7 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
                         rng_rep1 = f_data(idx(1):idx(2));
                         start_idx = idx(1);
                     else 
-                        rng_rep1 = f_data(idx(2):idx(2)+608000);
+                        rng_rep1 = f_data(idx(2):idx_6px(1));
                         start_idx = idx(2);
                     end 
                     start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
@@ -85,7 +124,7 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
                         rng_rep2 = idx(3):idx(4);
                         start_idx = idx(3);
                     else
-                        rng_rep2 = f_data(idx(4):idx(4)+608000);
+                        rng_rep2 = f_data(idx(4):idx_6px(2));
                         start_idx = idx(4);
                     end 
                     start_flash_idxs = find(diff(rng_rep2)>0)+start_idx-1;
@@ -94,7 +133,7 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
                         rng_rep3 = idx(5):idx(6);
                         start_idx = idx(5);
                     else
-                        rng_rep3 = f_data(idx(6):idx(6)+608000);
+                        rng_rep3 = f_data(idx(6):idx_6px(3));
                         start_idx = idx(6);
                     end
                     start_flash_idxs = find(diff(rng_rep3)>0)+start_idx-1;
@@ -113,6 +152,19 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
 
         end 
         
+        %% Check - find beginning of each individual flash
+
+        % figure; plot(f_data); hold on;
+        % plot([start_flash_idxs(i), start_flash_idxs(i)], [0 400], 'r') % start of flash 1
+        % plot([start_flash_idxs(2), start_flash_idxs(2)], [0 400], 'r') % start of flash 2
+
+        % Show the actual range extracted
+        % figure; plot(f_data); hold on;
+        % plot([start_flash_idxs(i)-1000, start_flash_idxs(i)-1000], [0 400], 'c')
+        % plot([start_flash_idxs(i)+6000-1, start_flash_idxs(i)+6000-1], [0 400], 'c')
+
+
+        %%
         % Check for the variance across reps:
         % var_X_rep = var(var(data_flash));
     

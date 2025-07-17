@@ -15,6 +15,17 @@ elseif px_size == 6
     n_flashes = 100;
 end 
 
+if on_off == "on"
+    % For finding the end of the 6 pixel flashes
+    drop_at_end = -200; % ON flashes. the last 6 pixel flash is frame 200.
+elseif on_off == "off"
+    % For finding the end of the 6 pixel flashes
+    drop_at_end = -100; % ON flashes. the last 6 pixel flash is frame 200.
+end 
+
+idx_6px = find(diff_f_data == drop_at_end); % where the flash stimuli end.
+idx_6px([1,3,5]) = []; 
+
 % Define spacing reduction factor
 spacingFactor = 0.1; % Reducing spacing by 75%
 
@@ -27,7 +38,7 @@ newWidth = origWidth * (1 - spacingFactor);
 newHeight = origHeight * (1 - spacingFactor);
 
 if slow_fast == "slow"
-    flashes_dur = 6000; % 0.5s * sampling rate.
+    flashes_dur = 7000; % 0.5s * sampling rate.
     % dur_ms = 976700;
     speed_str = "160ms_flash";
 % elseif slow_fast == "fast"
@@ -45,36 +56,36 @@ for i = 1:n_flashes
 
         if slow_fast == "slow"
             if r == 1 % rep 1
-                    if px_size == 4
-                        rng_rep1 = f_data(idx(1):idx(2));
-                    else 
-                        rng_rep1 = f_data(idx(2):idx(2)+608000);
-                    end 
-                    start_idx = rng_rep1(1);
-                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
-                elseif r == 2 % rep 2 
-                    if px_size == 4
-                        rng_rep2 = idx(3):idx(4);
-                    else
-                        rng_rep2 = f_data(idx(4):idx(4)+608000);
-                    end 
-                    start_idx = rng_rep2(1);
-                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
-                elseif r == 3 % rep3 
-                    if px_size == 4
-                        rng_rep3 = idx(5):idx(6);
-                    else
-                        rng_rep3 = f_data(idx(6):idx(6)+608000);
-                    end
-                    start_idx = rng_rep3(1);
-                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+                if px_size == 4
+                    rng_rep1 = f_data(idx(1):idx(2));
+                else 
+                    rng_rep1 = f_data(idx(2):idx_6px(1));
+                end 
+                start_idx = rng_rep1(1);
+                start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+            elseif r == 2 % rep 2 
+                if px_size == 4
+                    rng_rep2 = idx(3):idx(4);
+                else
+                    rng_rep2 = f_data(idx(4):idx_6px(2));
+                end 
+                start_idx = rng_rep2(1);
+                start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+            elseif r == 3 % rep3 
+                if px_size == 4
+                    rng_rep3 = idx(5):idx(6);
+                else
+                    rng_rep3 = f_data(idx(6):idx_6px(3));
                 end
+                start_idx = rng_rep3(1);
+                start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+            end
         end 
 
          % Extract data 1000 timepoints before the flash starts
         % til the end of the interval before the next flash. 
-        d = f_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000); % frame data during flash. 
-        v = v2_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000); % median-subtracted voltage data
+        d = f_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000-1); % frame data during flash. 
+        v = v2_data(start_flash_idxs(i)-1000:start_flash_idxs(i)+6000-1); % median-subtracted voltage data
                
         data_frame(r, :) = d;
         data_flash(r, :) = v;
@@ -93,7 +104,9 @@ for i = 1:n_flashes
         cols = floor(flash_frame_num / nRows) + 1; % Columns increase normally
     end
 
+    % Get information about how intense the background colour should be:
     val  = data_comb2(rows, cols);
+    % Get information about what colour map to use:
     cm = cmap_id(rows, cols);
 
     % Compute subplot position
