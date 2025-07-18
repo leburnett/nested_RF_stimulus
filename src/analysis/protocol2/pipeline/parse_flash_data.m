@@ -112,31 +112,31 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
         
                 if r == 1 % rep 1
                     if px_size == 4
-                        rng_rep1 = f_data(idx(1):idx(2));
+                        rng_rep1 = (idx(1):idx(2));
                         start_idx = idx(1);
                     else 
-                        rng_rep1 = f_data(idx(2):idx_6px(1));
+                        rng_rep1 = (idx(2):idx_6px(1));
                         start_idx = idx(2);
                     end 
-                    start_flash_idxs = find(diff(rng_rep1)>0)+start_idx-1;
+                    start_flash_idxs = find(diff(f_data(rng_rep1))>0)+start_idx-1;
                 elseif r == 2 % rep 2 
                     if px_size == 4
                         rng_rep2 = idx(3):idx(4);
                         start_idx = idx(3);
                     else
-                        rng_rep2 = f_data(idx(4):idx_6px(2));
+                        rng_rep2 = (idx(4):idx_6px(2));
                         start_idx = idx(4);
                     end 
-                    start_flash_idxs = find(diff(rng_rep2)>0)+start_idx-1;
+                    start_flash_idxs = find(diff(f_data(rng_rep2))>0)+start_idx-1;
                 elseif r == 3 % rep3 
                     if px_size == 4
                         rng_rep3 = idx(5):idx(6);
                         start_idx = idx(5);
                     else
-                        rng_rep3 = f_data(idx(6):idx_6px(3));
+                        rng_rep3 = (idx(6):idx_6px(3));
                         start_idx = idx(6);
                     end
-                    start_flash_idxs = find(diff(rng_rep3)>0)+start_idx-1;
+                    start_flash_idxs = find(diff(f_data(rng_rep3))>0)+start_idx-1;
                 end 
         
                 % Extract data 1000 timepoints before the flash starts
@@ -254,7 +254,7 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
     end 
 
     % Quality check figures:
-    save_fig = 0;
-    plot_quality_check_var_reps_prctile(var_across_reps, var_within_reps, diff_mean, max_data, min_data, save_fig, PROJECT_ROOT)
+    % save_fig = 0;
+    % plot_quality_check_var_reps_prctile(var_across_reps, var_within_reps, diff_mean, max_data, min_data, save_fig, PROJECT_ROOT)
  
 end 

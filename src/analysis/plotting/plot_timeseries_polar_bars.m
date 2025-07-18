@@ -65,7 +65,8 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     % PD and ND pairs are ordered sequentially in 'data'. e.g. data{1, 4} is
     % left to right and data{2, 4} is right to left.
     
-    plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+    % plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+    plot_order = [1,3,5,7,9,11,14,16,2,4,6,8,10,12,13,15];
     
     angls = linspace(0, 2*pi, 17); % 17 points to include 0 and 2π
     
@@ -105,7 +106,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
             n_reps = size(data, 2)-1;
 
             % Plot the timeseries data for each repetition and the mean
-            for r = 1:n_reps
+            for r = 1:n_reps+1
                 d2plot = data{d_idx, r};
                 x_vals = 1:numel(d2plot);
     
@@ -119,8 +120,8 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
                     plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
                 else 
                     plot(x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
-                    plot([9000 9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.5) % Start of bar stimulus
-                    plot([numel(x_vals)-9000 numel(x_vals)-9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.5) % End of bar stimulus.
+                    plot([9000 9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % Start of bar stimulus
+                    % plot([numel(x_vals)-9000 numel(x_vals)-9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % End of bar stimulus.
                 end
             end 
     
