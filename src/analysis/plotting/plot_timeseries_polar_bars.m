@@ -65,8 +65,15 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     % PD and ND pairs are ordered sequentially in 'data'. e.g. data{1, 4} is
     % left to right and data{2, 4} is right to left.
     
-    % plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
-    plot_order = [1,3,5,7,9,11,14,16,2,4,6,8,10,12,13,15];
+    % Dark bars - two directions are mixed up. Occurred when making patterns with
+    % bkg4... 
+    if params.on_off == "on"
+        % dark bars: 
+        plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+    elseif params.on_off == "off"
+        % light bars: 
+        plot_order = [1,3,5,7,9,11,14,16,2,4,6,8,10,12,13,15];
+    end 
     
     angls = linspace(0, 2*pi, 17); % 17 points to include 0 and 2π
     

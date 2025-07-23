@@ -1,6 +1,21 @@
-function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, px_size, idx, on_off, params)
+function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, px_size, idx, params)
 % Spatial plot of the timeseries responses to the flashes in each position.
 % Colour coded lines. Red above baseline, blue below. 
+
+% Inputs
+% ------
+
+% 'data_comb2'
+% 'cmap_id'
+% 'f_data'
+% 'v2_data'
+% 'slow_fast'
+% 'px_size'
+% 'idx' - indices of when the first 4 pixel flash starts for each rep. 
+% 'params'
+
+
+% _______________________________________________________________________________________________
 
 f = figure;
 
@@ -15,10 +30,10 @@ elseif px_size == 6
     n_flashes = 100;
 end 
 
-if on_off == "on"
+if params.on_off == "on"
     % For finding the end of the 6 pixel flashes
     drop_at_end = -200; % ON flashes. the last 6 pixel flash is frame 200.
-elseif on_off == "off"
+elseif params.on_off == "off"
     % For finding the end of the 6 pixel flashes
     drop_at_end = -100; % ON flashes. the last 6 pixel flash is frame 200.
 end 
@@ -97,10 +112,10 @@ for i = 1:n_flashes
 
     flash_frame_num = max(d)-1;
 
-     if on_off == "on" % from 196
+     if params.on_off == "on" % from 196
         rows = nRows - mod((flash_frame_num - n_flashes), nRows);   % Rows decrease from 14 to 1
         cols = floor((flash_frame_num - n_flashes) / nRows) + 1; % Columns increase normally
-    elseif on_off == "off" % 1- 196
+    elseif params.on_off == "off" % 1- 196
         rows = nRows - mod(flash_frame_num, nRows);   % Rows decrease from 14 to 1
         cols = floor(flash_frame_num / nRows) + 1; % Columns increase normally
     end
