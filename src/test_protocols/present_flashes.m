@@ -8,8 +8,8 @@ function present_flashes(peak_frame, screen_hemi, flash_size)
 % 'peak_frame' and this function will present 5 flashes at that location. 
 
 %% SET PARAMETERS
-n_flashes = 5;
-flash_dur = 0.5;
+n_flashes = 3;
+flash_dur = 1;
 bkg_dur = 0.5;
 n_reps = 1;
 

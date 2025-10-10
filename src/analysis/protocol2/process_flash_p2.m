@@ -70,11 +70,11 @@ var_filtered_v = var(filtered_voltage_data);
 
 % % - - Figure - check flash timing
 % plot_quality_check_flash_timing(f_data, flash_dur_ms, save_fig, PROJECT_ROOT)
-rf_results = struct();
-rf_results.Date = date_str;
-rf_results.Time = time_str;
-rf_results.Strain = metadata.Strain;
-rf_results.Type = on_off;
+% rf_results = struct();
+% rf_results.Date = date_str;
+% rf_results.Time = time_str;
+% rf_results.Strain = metadata.Strain;
+% rf_results.Type = on_off;
 
 for px_size = [4, 6]
 
@@ -89,9 +89,9 @@ for px_size = [4, 6]
     
     [data_comb,cmap_id,var_across_reps,var_within_reps,diff_mean,max_data,min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT);
     
-    med_var_X_reps = median(reshape(var_across_reps, [1, n_flashes]));
-    med_var_W_reps = var(reshape(var_within_reps, [1, n_flashes]));
-    med_diff_mean = median(reshape(diff_mean, [1, n_flashes]));
+    % med_var_X_reps = median(reshape(var_across_reps, [1, n_flashes]));
+    % med_var_W_reps = var(reshape(var_within_reps, [1, n_flashes]));
+    % med_diff_mean = median(reshape(diff_mean, [1, n_flashes]));
     
     % Rescale the combined data to be between 0 and 1.
     data_comb2 = rescale(data_comb, 0, 1);
@@ -115,37 +115,37 @@ for px_size = [4, 6]
             ); 
     
     % Generate plot with Gausssian RF estimates:
-    exc_data = data_comb2;
-    inh_data = data_comb;
-    inh_data(cmap_id~=2)=0;
-    [optEx, R_squared, optInh, R_squaredi, ~, ~] = gaussian_RF_estimate(exc_data, inh_data);
+    % exc_data = data_comb2;
+    % inh_data = data_comb;
+    % inh_data(cmap_id~=2)=0;
+    % [optEx, R_squared, optInh, R_squaredi, ~, ~] = gaussian_RF_estimate(exc_data, inh_data);
     
     % Combine all of the results into a table:
-    rf_results.(slow_fast).data_comb = {data_comb};
-    rf_results.(slow_fast).max_data = {max_data};
-    rf_results.(slow_fast).min_data = {min_data};
-    rf_results.(slow_fast).diff_mean = {diff_mean};
-    rf_results.(slow_fast).cmap_id = {cmap_id};
-    % rf_results.(slow_fast).max_val = prctile(reshape(max_data, [1, 196]), 98);
-    % rf_results.(slow_fast).min_val = prctile(reshape(min_data, [1, 196]), 2);
-    rf_results.(slow_fast).var_within_reps = {var_within_reps};
-    rf_results.(slow_fast).var_across_reps = {var_across_reps};
-    rf_results.(slow_fast).var_filtered_v = var_filtered_v;
-    rf_results.(slow_fast).med_var_X_reps = med_var_X_reps;
-    rf_results.(slow_fast).med_var_W_reps = med_var_W_reps;
-    rf_results.(slow_fast).med_diff_mean = med_diff_mean;
-    rf_results.(slow_fast).R_squared = R_squared;
-    rf_results.(slow_fast).sigma_x_exc = optEx(4);
-    rf_results.(slow_fast).sigma_y_exc = optEx(5);
-    rf_results.(slow_fast).optExc = {optEx};
-    rf_results.(slow_fast).R_squaredi = R_squaredi;
-    rf_results.(slow_fast).optInh = {optInh};
-    rf_results.(slow_fast).sigma_x_inh = optInh(4);
-    rf_results.(slow_fast).sigma_y_inh = optInh(5);
+    % rf_results.(slow_fast).data_comb = {data_comb};
+    % rf_results.(slow_fast).max_data = {max_data};
+    % rf_results.(slow_fast).min_data = {min_data};
+    % rf_results.(slow_fast).diff_mean = {diff_mean};
+    % rf_results.(slow_fast).cmap_id = {cmap_id};
+    % rf_results.(slow_fast).max_val = prctile(reshape(max_data, [1, n_flashes]), n_flashes/2);
+    % rf_results.(slow_fast).min_val = prctile(reshape(min_data, [1, n_flashes]), 2);
+    % rf_results.(slow_fast).var_within_reps = {var_within_reps};
+    % rf_results.(slow_fast).var_across_reps = {var_across_reps};
+    % rf_results.(slow_fast).var_filtered_v = var_filtered_v;
+    % rf_results.(slow_fast).med_var_X_reps = med_var_X_reps;
+    % rf_results.(slow_fast).med_var_W_reps = med_var_W_reps;
+    % rf_results.(slow_fast).med_diff_mean = med_diff_mean;
+    % rf_results.(slow_fast).R_squared = R_squared;
+    % rf_results.(slow_fast).sigma_x_exc = optEx(4);
+    % rf_results.(slow_fast).sigma_y_exc = optEx(5);
+    % rf_results.(slow_fast).optExc = {optEx};
+    % rf_results.(slow_fast).R_squaredi = R_squaredi;
+    % rf_results.(slow_fast).optInh = {optInh};
+    % rf_results.(slow_fast).sigma_x_inh = optInh(4);
+    % rf_results.(slow_fast).sigma_y_inh = optInh(5);
 
 end 
 
-save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', metadata.Strain, '_', on_off, '.mat')), 'rf_results');
+% save(fullfile(results_folder, strcat('rf_results_', date_str,'_', time_str, '_', metadata.Strain, '_', on_off, '.mat')), 'rf_results');
 
 end 
 
