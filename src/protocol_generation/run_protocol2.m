@@ -45,6 +45,15 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
         end
     end 
 
+    % ADD Greyscale at the end - only at the very end - not at the end of
+    % every rep. 
+    ctlr.setControlMode(1);
+    ctlr.setPatternID(pattern_order(1,1));
+    ctlr.setPatternFunctionID(func_order(1,1));
+    trial_t = trial_dur(1, 1);
+    fprintf('Greyscale interval at the end.');
+    ctlr.startDisplay(ceil(trial_t*10)-1); %duration expected in 100ms units
+
     %rename/move results folder
     ctlr.stopLog('showTimeoutMessage', true);
     ctlr.stopDisplay()

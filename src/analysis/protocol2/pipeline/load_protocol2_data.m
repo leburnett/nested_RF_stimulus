@@ -30,7 +30,10 @@ function [date_str, time_str, Log, params, pfnparam] = load_protocol2_data(exp_f
     if isempty(param_file)
         warning("params file does not exist.")
     else
-        load(param_file.name, 'params');
+       % % % % % % % % % % % % THIS CURRENTLY OPENS THE FIRST FILE - 4px
+       % flashes - currently this is only used for file saving so shouldn't
+       % matter with new 6px stimulus. 
+        load(param_file(1).name, 'params');
     end 
 
     func_folder = fullfile(exp_folder, "Functions");

@@ -48,11 +48,10 @@ trial_dur = nan([1, n_patts]);
 
 fns_flash = [1,2];
 fns_28dps = [3,4];
-% fns_56dps = [5,6];
+fns_56dps = [5,6];
 fn_static = num_files;
 
-% func_order = [fn_static, fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_56dps, [1,n_bar_patt])];
-func_order = [fn_static, fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_28dps, [1,n_bar_patt])];
+func_order = [fn_static, fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_56dps, [1,n_bar_patt])];
 
 for p = 1:n_patts
     f = func_order(p);

@@ -1,14 +1,4 @@
 function generate_protocol2()
-% Takes an array containing the frames of the patterns displayed in
-% protocol 1 to which the cell had the strongest voltage response. It then
-% uses these frames to determine the pixel on the screen on which to centre
-% the stimuli that are presented in this following protocol. 
-
-% This script calls the functions that generate the 4 pixel, 50%
-% overlapping flash stimulus and also the moving bar stimulus.
-
-% It creates the position functions for these stimuli and runs the
-% protocol. 
 
 % _________________________________________________________________________
     

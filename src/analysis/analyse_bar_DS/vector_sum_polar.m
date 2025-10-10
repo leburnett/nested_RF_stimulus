@@ -10,6 +10,9 @@ function [resultant_magnitude, resultant_angle] = vector_sum_polar(rho, theta)
 
     % Convert polar coordinates to Cartesian coordinates
     % [x, y] = pol2cart(theta, rho);
+
+    % Exclude the last value if it's the same as the first, don't want to
+    % double weight that direction.
     if theta(1) == theta(end)
         x = sum(rho(1:end-1) .* cos(theta(1:end-1)));
         y = sum(rho(1:end-1) .* sin(theta(1:end-1)));

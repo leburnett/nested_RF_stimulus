@@ -58,12 +58,9 @@ protocols/LHS/protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-
 protocols/LHS/protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40/12_12_2024/no_fly-13_29_99/GridPlots.fig
 protocols/LHS/protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40/12_12_2024/no_fly-13_29_99/metadata.mat
 protocols/LHS/protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40/12_12_2024/no_fly-13_29_99/processedData.mat
-protocols/LHS/protocol1_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-03-24_15-11-40/processing_settings.mat
-protocols/processing_settings.mat
 protocols/RHS/protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-03-24_15-25-60/12_04_2024/no_fly-16_16_64/exp_order.mat
 protocols/RHS/protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-03-24_15-25-60/12_04_2024/no_fly-16_16_64/G4_TDMS_Logs_12-04-2024_16-04-16-32.mat
 protocols/RHS/protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-03-24_15-25-60/12_04_2024/no_fly-16_16_64/metadata.mat
-protocols/RHS/protocol1_4reps_12px_6px_RHS_2sbkg_200msfl_50msint_12-03-24_15-25-60/processing_settings.mat
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03.g4p
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/Patterns/pat0002.pat
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/Patterns/pat0001.pat
@@ -144,7 +141,6 @@ protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/12_24_2024/42F06XJFRC28_T4T5-16_41_38/GridPlots.fig
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/12_24_2024/42F06XJFRC28_T4T5-16_41_38/metadata.mat
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/12_24_2024/42F06XJFRC28_T4T5-16_41_38/processedData.mat
-protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/processing_settings.mat
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/01_10_2025/42F06XJFRC28_T4T5-12_16_55/exp_order.mat
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/01_10_2025/42F06XJFRC28_T4T5-12_16_55/G4_TDMS_Logs_01-10-2025_12-12-16-28.mat
 protocols/LHS/protocol1_10kHz_4reps_12px_6px_LHS_2sbkg_200msfl_50msint_12-13-24_14-33-03/01_10_2025/42F06XJFRC28_T4T5-12_16_55/GridPlots.fig
