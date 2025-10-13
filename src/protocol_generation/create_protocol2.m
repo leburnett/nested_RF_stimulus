@@ -36,7 +36,6 @@ for p = 1:n_patts
 end
 currentExp.pattern.num_patterns = num_files;
 
-
 %% read position functions
 generate_static_function(function_folder)
 

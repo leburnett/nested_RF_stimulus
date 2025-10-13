@@ -5,15 +5,28 @@ function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_da
 % Inputs
 % ------
 
-% 'data_comb2'
-% 'cmap_id'
-% 'f_data'
-% 'v2_data'
-% 'slow_fast'
-% 'px_size'
-% 'idx' - indices of when the first 4 pixel flash starts for each rep. 
-% 'params'
+% 'data_comb2' - contains the min/max val across the flash trial. Used to
+% set the intensity of the coloured background behind each timeseries.
 
+% 'cmap_id' - [n_grid_rows, n_grid_cols] size array containing the values
+% either 1,2 or 3. Sets the colour group that should be used for the 
+% background of each flash subplot. 
+
+% 'f_data' - frame data across the entire experiment. 10kHz acquisition
+% rate. 
+
+% 'v2_data' mediaun subtracted voltage data across the entire experiment. 
+% 10kHz acquisition rate. 
+
+% 'slow_fast' - whether the flash speed was the slower speed or the faster
+% speed. Currently there are only these two hardcoded options. 
+
+% 'px_size' - size of the flash stimuli in pixels. Either 4 or 6 pixels for
+% protocol 2. 
+
+% 'idx' - indices of when the first 4 pixel flash starts for each rep. 
+
+% 'params' - struct containing metadata about the experiment.
 
 % _______________________________________________________________________________________________
 
