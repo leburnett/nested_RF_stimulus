@@ -6,7 +6,7 @@ function generate_bar_pos_fns(save_dir, px_crop)
 % July 2025 - added 1s of static first frame before each
 % sawtooth.
 
-    for dps = [28, 56]
+    for dps = [28, 56, 168]
     
         if px_crop == 45 
 
@@ -37,6 +37,10 @@ function generate_bar_pos_fns(save_dir, px_crop)
                 dur = 1.164;
                 dur_str = '1-164';
                 freq = 0.86154;
+            elseif dps == 168
+                dur = 0.39;
+                dur_str = '0-39';
+                freq = 2.5846;
             end
 
             fr_low = 11;
