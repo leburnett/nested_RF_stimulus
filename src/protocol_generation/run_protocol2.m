@@ -2,12 +2,13 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
 % Run protocol 2 
     %% Experiment metadata from user input:
     % n_reps = 3;
-    
+    bar_flash_pattern = max(pattern_order); % The bar flahs pattern is the last pattern.
+
     %% set up for experiment
     %Load configuration and start G4 Host
     % Check the use of this
     userSettings;
-    
+    tic;
     load(fullfile(exp_folder,'currentExp.mat'));
     num_conditions = numel(pattern_order);
     log_folder = fullfile(exp_folder,'Log Files');
@@ -37,7 +38,18 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
         for c = 1:num_conditions
             %trial portion
             ctlr.setControlMode(1);
-            ctlr.setPatternID(pattern_order(1,c));
+
+            % Use different position functions for bar flashes each rep.
+            if pattern_order(1,c) == bar_flash_pattern
+                if r == 2  
+                    ctlr.setPatternID(bar_flash_pattern+1);
+                elseif r == 3
+                    ctlr.setPatternID(bar_flash_pattern+2);
+                else
+                    ctlr.setPatternID(pattern_order(1,c));
+                end 
+            end 
+
             ctlr.setPatternFunctionID(func_order(1,c));
             trial_t = trial_dur(1, c);
             fprintf(['Rep ', num2str(r), ' of ', num2str(n_reps), ', cond ' num2str(c) ' of ' num2str(num_conditions) ': ' strjoin(currentExp.pattern.pattNames(pattern_order(1,c))) '\n']);
@@ -62,5 +74,6 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
 
     % % Convert TDMS files to mat file - current issues.
     G4_TDMS_folder2struct(log_folder)
+    toc;
 
 end 

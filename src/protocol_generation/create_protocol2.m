@@ -14,26 +14,28 @@ patinfo = dir(fullfile(pattern_folder, '*.pat'));
 num_files = length({patinfo.name});
 
 flash_patt = [1, 2];
-bar_patt = flash_patt(end)+1:num_files;
+bar_patt = flash_patt(end)+1:num_files-1;
+bar_flash_patt = num_files; % Last pattern is the bar flashes.
 n_bar_patt = numel(bar_patt);
-n_dir = 2;
-n_speeds = 2;
-% 2 reps = forward and reverse direction
-% 3 reps = n_speeds
-pattern_order = [1, flash_patt, repmat(repelem(bar_patt, n_dir), [1, n_speeds])]; 
+n_dir = 2; % 2 reps = forward and reverse direction
+n_speeds = 3; % 3 reps = n_speeds
+pattern_order = [1, flash_patt, repmat(repelem(bar_patt, n_dir), [1, n_speeds]), bar_flash_patt]; 
+
 % two "flash_patt" at the beginning - one for grey presentation.
 n_patts = numel(pattern_order);
 
 for p = 1:n_patts
-    f = pattern_order(p);
+    f = pattern_order(p); % Index of pattern to load
     currentExp.pattern.pattNames{p} = matinfo(f).name;
     currentExp.pattern.patternList{p} = patinfo(f).name;
+
     patternIN = load(fullfile(pattern_folder, matinfo(f).name));
     currentExp.pattern.x_num(p) = patternIN.pattern.x_num; % Matlab now has its own built in class "pattern" which conflicts here.
     currentExp.pattern.y_num(p) = patternIN.pattern.y_num;
     currentExp.pattern.gs_val(p) = patternIN.pattern.gs_val;
     currentExp.pattern.arena_pitch(p) = round(rad2deg(patternIN.pattern.param.arena_pitch));
 end
+
 currentExp.pattern.num_patterns = num_files;
 
 %% read position functions
@@ -48,9 +50,11 @@ trial_dur = nan([1, n_patts]);
 fns_flash = [1,2];
 fns_28dps = [3,4];
 fns_56dps = [5,6];
+fns_168dps = [7, 8];
+fn_bar_flash = 9; % Will update this to 10 and 11 for the different reps in "run_protocol2" [9, 10, 11];
 fn_static = num_files;
 
-func_order = [fn_static, fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_56dps, [1,n_bar_patt])];
+func_order = [fn_static, fns_flash, repmat(fns_28dps, [1,n_bar_patt]), repmat(fns_56dps, [1,n_bar_patt]), repmat(fns_168dps, [1,n_bar_patt]), fn_bar_flash];
 
 for p = 1:n_patts
     f = func_order(p);
