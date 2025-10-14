@@ -9,9 +9,7 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
 
 % These will then be randomly selected. 
 
-    n_orientations = 8;
-
-    centre_frames = [30, 33, 33, 34, 34, 34, 34, 35, 34, 34, 32, 32, 32, 34, 34, 34]; % check what the centre frames of the dark bars are.... JY comp. 
+    centre_frames = [30, 33, 33, 34, 34, 34, 34, 35, 34, 34, 32, 32, 32, 34, 34, 34]; 
 
     save_dir = strcat(exp_folder, '\patterns');
     if ~isfolder(save_dir)
@@ -34,6 +32,7 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
 
     % Make empty pattern - this will include the frames for each
     % orientation.
+    n_orientations = 8;
     n_frames_orient = (n_flank*2 + 1);
     n_frames_pattern = n_frames_orient * n_orientations;
     bkg_color = px_intensity(1);
@@ -48,9 +47,12 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
     % Generate 'cropped' bar stimuli centred on the [x,y] coordinates.
     for p = patt_ids
 
+        % Load the appropriate bar pattern:
         fname = bar_patts(p).name;
         patt_file = fullfile(bar_patts(p).folder, fname);
+        load(patt_file, 'pattern');
 
+        % FInd where on the screen to position the cropped stimulus
         [disp_y1, disp_y2, disp_x1, disp_x2] = centeredSquare(x, y, px_crop);
 
         % crop around the centre of the arena screen [24, 96];
@@ -80,7 +82,7 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
             Pats(int16(disp_y1):int16(disp_y2), int16(disp_x1):int16(disp_x2), overall_id) = pattern.Pats(crop_h_st:crop_h_end, crop_w_st:crop_w_end, frame_id);
         end
 
-        frames_filled = frames_filled + (n_frames_orient*p);
+        frames_filled = frames_filled + n_frames_orient;
 
     end 
 
