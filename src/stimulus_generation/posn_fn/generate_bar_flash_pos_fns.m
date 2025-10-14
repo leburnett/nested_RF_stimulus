@@ -20,19 +20,20 @@ for r = 1:n_reps
 
     value_array = zeros(1, 2 * numel(rand_order)); 
     value_array(1:2:end) = 1; 
-    value_array(2:2:end) = rand_order; 
+    value_array(2:2:end) = rand_order;
+    n_vals = numel(value_array);
 
     % user-defined function parameters
     pfnparam.type = 'pfn'; 
     pfnparam.frames = n_frames_pattern; %number of frames in pattern
     pfnparam.gs_val = 4; %brightness bits in pattern
-    pfnparam.section = repmat({'static'}, 1, n_frames_pattern*2); 
+    pfnparam.section = repmat({'static'}, 1, n_vals); 
     pfnparam.dur = repmat([int_dur flash_dur], 1, n_frames_pattern); %section duration (in s)
     pfnparam.val = value_array; %function value for static sections
-    pfnparam.high = ones(1, n_frames_pattern*2)*n_frames_pattern;
-    pfnparam.low = ones(1, n_frames_pattern*2);
-    pfnparam.freq = ones(1, n_frames_pattern*2);
-    pfnparam.flip = zeros(1, n_frames_pattern*2);
+    pfnparam.high = ones(1, n_vals)*n_frames_pattern;
+    pfnparam.low = ones(1, n_vals);
+    pfnparam.freq = ones(1, n_vals);
+    pfnparam.flip = zeros(1, n_vals);
     
     %% generate function
     func = G4_Function_Generator(pfnparam);

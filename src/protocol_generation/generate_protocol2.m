@@ -84,6 +84,7 @@ function generate_protocol2()
     %       Runs through each pattern 'orientation' ON - forward and flip
     %       direction - then OFF pattern forward and flip - at one speed, then
     %       repeats through the two other speeds.
+    %       Then bar flashes. 
 
     % Find the peak_frame number to run the same protocol with the opposite
     % contrast stimuli. 
