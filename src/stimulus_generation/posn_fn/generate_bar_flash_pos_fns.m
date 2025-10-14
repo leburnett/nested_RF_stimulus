@@ -1,7 +1,6 @@
-function generate_bar_flash_pos_fns(save_dir, n_flank)
+function generate_bar_flash_pos_fns(save_dir, n_flank, n_reps)
 
 % 80ms flashes + 920ms interval - - - match 28 dps moving bars. 
-
 % For each bar pattern, generate a random order 
 
 n_orientations = 8;
@@ -30,6 +29,10 @@ for r = 1:n_reps
     pfnparam.section = repmat({'static'}, 1, n_frames_pattern*2); 
     pfnparam.dur = repmat([int_dur flash_dur], 1, n_frames_pattern); %section duration (in s)
     pfnparam.val = value_array; %function value for static sections
+    pfnparam.high = ones(1, n_frames_pattern*2)*n_frames_pattern;
+    pfnparam.low = ones(1, n_frames_pattern*2);
+    pfnparam.freq = ones(1, n_frames_pattern*2);
+    pfnparam.flip = zeros(1, n_frames_pattern*2);
     
     %% generate function
     func = G4_Function_Generator(pfnparam);
