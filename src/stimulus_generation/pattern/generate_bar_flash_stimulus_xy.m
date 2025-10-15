@@ -40,7 +40,7 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
     arena_px_w = 192;
     
     % Make empty pattern array purely with grey background.
-    Pats = ones(arena_px_h, arena_px_w, n_frames_pattern)*bkg_color;
+    Pats = ones(arena_px_h, arena_px_w, n_frames_pattern+1)*bkg_color;
 
     frames_filled = 0;
     
@@ -79,7 +79,7 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
             % index in which to store the frame
             overall_id = overall_frame_range(i);
 
-            Pats(int16(disp_y1):int16(disp_y2), int16(disp_x1):int16(disp_x2), overall_id) = pattern.Pats(crop_h_st:crop_h_end, crop_w_st:crop_w_end, frame_id);
+            Pats(int16(disp_y1):int16(disp_y2), int16(disp_x1):int16(disp_x2), overall_id+1) = pattern.Pats(crop_h_st:crop_h_end, crop_w_st:crop_w_end, frame_id);
         end
 
         frames_filled = frames_filled + n_frames_orient;
@@ -97,5 +97,12 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
         
     save_pattern_G4(Pats, param, save_dir, patName);
 
- 
+    %test
+    % figure
+    % for i = 1:size(pattern.Pats, 3)
+    % aa = pattern.Pats(:, :, i);
+    % imagesc(aa)
+    % pause(0.2)
+    % end 
+
 end 

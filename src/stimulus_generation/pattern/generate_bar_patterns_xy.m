@@ -51,14 +51,14 @@ save_pattern_G4(Pats, param, save_dir, patName);
 % Visualise the pattern in order.
 % 
 % figure
-% for i = 1:288 %n_frames
-% aa = Pats(:, :, i);
+% for i = 1:100 %288 %n_frames
+% aa = pattern.Pats(:, :, i);
 % imagesc(aa)
-% xlim([0 193])
-% ylim([0 49])
-% clim([0 15])
+% % xlim([0 193])
+% % ylim([0 49])
+% % clim([0 15])
 % pause(0.1)
-% disp(i)
+% % disp(i)
 % end 
 
 % Check bar is not visible in first frame after bkg

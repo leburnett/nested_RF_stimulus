@@ -7,44 +7,56 @@ n_orientations = 8;
 n_frames_orient = (n_flank*2 + 1);
 n_frames_pattern = n_frames_orient * n_orientations;
 
-flash_dur = 0.08;
-flash_str = "0-08";
-int_dur = 0.92; 
-int_str = "0-92";
-
-% Make 3 different position functions, one for each rep.
-for r = 1:n_reps
-
-    % Random order in which to present flashes.
-    rand_order = randperm(88);
-
-    value_array = zeros(1, 2 * numel(rand_order)); 
-    value_array(1:2:end) = 1; 
-    value_array(2:2:end) = rand_order;
-    n_vals = numel(value_array);
-
-    % user-defined function parameters
-    pfnparam.type = 'pfn'; 
-    pfnparam.frames = n_frames_pattern; %number of frames in pattern
-    pfnparam.gs_val = 4; %brightness bits in pattern
-    pfnparam.section = repmat({'static'}, 1, n_vals); 
-    pfnparam.dur = repmat([int_dur flash_dur], 1, n_frames_pattern); %section duration (in s)
-    pfnparam.val = value_array; %function value for static sections
-    pfnparam.high = ones(1, n_vals)*n_frames_pattern;
-    pfnparam.low = ones(1, n_vals);
-    pfnparam.freq = ones(1, n_vals);
-    pfnparam.flip = zeros(1, n_vals);
+for sp = [1,2]
     
-    %% generate function
-    func = G4_Function_Generator(pfnparam);
+    if sp == 1
+        flash_dur = 0.08;
+        flash_str = "80";
+        int_dur = 0.92; 
+        int_str = "920";
+    elseif sp == 2
+        flash_dur = 0.014;
+        flash_str = "14";
+        int_dur = 0.486; 
+        int_str = "486";
+    end 
     
-    %% save function
-    pfnparam.ID = get_function_ID('pfn',save_dir);
-    filename = strcat("bar_flashes_", flash_str, 's_', int_str, 's_', string(n_frames_pattern), 'frames-Rep', string(r));
-    save_function_G4(func, pfnparam, save_dir, filename);
+    % Make 3 different position functions, one for each rep.
+    for r = 1:n_reps
+    
+        % Random order in which to present flashes.
+        rand_order = randperm(88);
+        % Swap the value of 1 for 89 - first frame is blank
+        rand_order(rand_order==1)=89;
+    
+        value_array = zeros(1, 2 * numel(rand_order)); 
+        value_array(1:2:end) = 1; 
+        value_array(2:2:end) = rand_order;
+        n_vals = numel(value_array);
+    
+        % user-defined function parameters
+        pfnparam.type = 'pfn'; 
+        pfnparam.frames = n_frames_pattern+1; %number of frames in pattern
+        pfnparam.gs_val = 4; %brightness bits in pattern
+        pfnparam.section = repmat({'static'}, 1, n_vals); 
+        pfnparam.dur = repmat([int_dur flash_dur], 1, n_frames_pattern); %section duration (in s)
+        pfnparam.val = value_array; %function value for static sections
+        pfnparam.high = ones(1, n_vals)*(n_frames_pattern+1);
+        pfnparam.low = ones(1, n_vals);
+        pfnparam.freq = ones(1, n_vals);
+        pfnparam.flip = zeros(1, n_vals);
+        
+        %% generate function
+        func = G4_Function_Generator(pfnparam);
+        
+        %% save function
+        pfnparam.ID = get_function_ID('pfn',save_dir);
+        filename = strcat("bar_flashes_", flash_str, 'ms_', int_str, 'ms_', string(n_frames_pattern), 'frames-Rep', string(r));
+        save_function_G4(func, pfnparam, save_dir, filename);
+    
+    end 
 
-end 
-
+end
 
 end 
 

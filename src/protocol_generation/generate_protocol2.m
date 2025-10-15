@@ -1,7 +1,6 @@
 function generate_protocol2()
 
 % _________________________________________________________________________
-    
     metadata = get_input_parameters();
     peak_frame = metadata.Frame;
     screen_hemi = metadata.Side;
