@@ -34,12 +34,12 @@ function generate_bar_pos_fns(save_dir, px_crop)
                 dur_str = '2-328';
                 freq = 0.43077;
             elseif dps == 56 
-                dur = 1.164;
-                dur_str = '1-164';
+                dur = 1.175;
+                dur_str = '1-175';
                 freq = 0.86154;
             elseif dps == 168
-                dur = 0.39;
-                dur_str = '0-39';
+                dur = 0.40;
+                dur_str = '0-40';
                 freq = 2.5846;
             end
 
