@@ -2,6 +2,17 @@ function generate_protocol2()
 
 % _________________________________________________________________________
     metadata = get_input_parameters();
+
+    date_str = datetime('now','TimeZone','local','Format','yyyy_MM_dd');
+    time_str = datetime('now','TimeZone','local','Format','HH:mm:ss');
+    metadata.Date = string(date_str);
+    metadata.Time = strrep(string(time_str), ':', '-');
+
+    % Add notes at the beginning:
+    prompt = "Notes at start: ";
+    notes_str_start = input(prompt, 's');
+    metadata.NotesStart = notes_str_start;
+
     peak_frame = metadata.Frame;
     screen_hemi = metadata.Side;
 
@@ -77,6 +88,19 @@ function generate_protocol2()
 
     % 6 - run the protocol:
             run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
+
+    % Add notes at the end
+    prompt = "Notes at end: ";
+    notes_str_end = input(prompt, 's');
+    metadata.NotesEnd = notes_str_end;
+
+    % Send metadata to google sheet:
+    if metadata.Strain == "test"
+        disp("Data not sent to google sheet since this is a test.")
+    else
+        % Export to the google sheet log:
+        export_to_google_sheets(metadata)   
+    end 
 
     % For the experiment design: 
     %       First, 4 pixel flashes, then bars.

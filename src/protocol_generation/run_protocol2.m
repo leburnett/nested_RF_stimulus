@@ -2,7 +2,7 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
 % Run protocol 2 
     %% Experiment metadata from user input:
     % n_reps = 3;
-
+    tic;
     bar_flash_pattern_slow = max(pattern_order)-1; % The bar flash pattern is the last pattern.
     bar_flash_pattern_fast = max(pattern_order);
     %% set up for experiment
@@ -88,8 +88,9 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
     ctlr.close()
     disp('finished');
 
+    toc;
     % % Convert TDMS files to mat file - current issues.
     G4_TDMS_folder2struct(log_folder)
-
+    
 
 end 

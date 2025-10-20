@@ -1,6 +1,6 @@
 function selections = get_input_parameters()
 % Input the parameters for the generation of protocol 2:
-    
+
     % Create a figure window for the input dialog
     fig = uifigure('Name', 'Protocol 2 meta data', 'Position', [500 500 300 300]);
 
@@ -28,8 +28,8 @@ function selections = get_input_parameters()
     uilabel(fig, 'Position', [20 100 80 22], 'Text', 'Strain:');
     strainDropdown = uidropdown(fig, ...
         'Position', [120 100 150 22], ...
-        'Items', {'ss324_t4t5', 'jfrc100_es', 'ss00395_TmY3', 'ss03722_Tm5Y', 'ss02701_TmY18', 'ss02594_TmY5a', '42F06_T4T5', 'test'}, ...
-        'Value', 'ss324_t4t5');
+        'Items', {'42F06_T4T5_control', '42F06_T4T5_ttl', 'ss324_t4t5', 'jfrc100_es', 'ss00395_TmY3', 'ss03722_Tm5Y', 'ss02701_TmY18', 'ss02594_TmY5a', 'test'}, ...
+        'Value', '42F06_T4T5_control');
 
     % Variable to hold selections
     selections = struct('Frame', '', 'Side', '', 'Age', '', 'Strain', '');
