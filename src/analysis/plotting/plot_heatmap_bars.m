@@ -17,8 +17,8 @@ yticks([1,5,9, 13])
 yticklabels({'0', '90', '180', '270'});
 ylabel('Direction - deg')
 
-xticks([1,2])
-xticklabels({'28', '56'})
+xticks([1,2, 3])
+xticklabels({'28', '56', '168'})
 xlabel('Speed - dps')
 
 colorTitleHandle = get(hcb,'Title');

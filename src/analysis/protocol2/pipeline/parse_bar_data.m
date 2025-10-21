@@ -1,65 +1,75 @@
-function data = parse_bar_data(f_data, v_data, on_off)
+function data = parse_bar_data(f_data, v_data)
+    % The voltage and frame data are sampled at 10,000Hz. Therefore, each
+    % value corresponds to (1/10000)s, 0.0001s or 100us.
 
+     % The order of the stimuli (within one repetition)
+    % - 10s grey screen 
+    % - 4 pixel flashes
+    % - 6 pixel flashes
+    % - 3s grey screen
+    % - bar sweeps - 28 dps
+    % - 3s grey screen
+    % - bar sweeps - 56 dps
+    % - 3s grey screen
+    % - bar sweeps - 168 dps
+    % - 3s grey screen
+    % - bar flashes - 80 ms (~28 dps)
+    % - 3s grey screen
+    % - bar flashes - 14 ms (~ 168dps)
 
-    diff_f_data = diff(f_data);
+    %% 1 - Find the beginning of each repetition. This will follow a 10s
+    % grey screen interval. (This seems long winded, but it's a lot faster 
+    % than using "strcomp")
 
-    if on_off == "on"
-       drop_at_end = -200; % ON flashes. the last 6 pixel flash is frame 200.
-    elseif on_off == "off"
-        drop_at_end = -100; % OFF flashes. the last 6 pixel flash is frame 100.
-    end 
+    zero_mask = f_data == 0;
+    d = diff([0 zero_mask 0]);
+    start_idx = find(d == 1);
+    end_idx = find(d == -1) - 1;
+    len = end_idx - start_idx + 1;
+    idx_3 = start_idx(len >= 30000);
 
-    % This finds when the difference in frame number == drop_at_end. 
-    % This should find 6 values. Values 1, 3 and 5 are wthin the 4 pixel
-    % flashes and values 2,4 and 6 correspond to the timing of the very end
-    % of the last flash.
-    idx = find(diff_f_data == drop_at_end); % where the flash stimuli end.
-    idx([1,3,5]) = []; % Remove timepoints within flashes - only want the timepoints that correspond to the end of the 6px flashes. 
-
-    %% Check - timepoints of end of 6 pixel flash stimuli.
-
-    % figure; 
+    % Plot all of the 3s gaps
+    % figure;
     % plot(f_data);
-    % hold on;
-    % for i = 1:numel(idx)
-    %     plot([idx(i), idx(i)], [0 abs(drop_at_end)], 'r');
-    % end 
+    % for i = 1:numel(idx_3)
+    %     hold on;
+    %     plot([idx_3(i), idx_3(i)], [0 200], 'm')
+    % end
 
-    %% Find the range of timepoints during which all of the bar stimuli are presented - per rep. 
+    %% Frame range of all 3 bar sweep stimuli per rep.
 
-    % 1s of grey is now added before every bar movement. It seems that this is
-    % ~9980 datapoints - almost 10000.
-    gap_between_flash_and_bars = 4210; % Number of timepoints from end of last 6 pixel flash and ~1000ms before the first bar stimulus. 
-    array2find = zeros(1, 20000);
-    
-    % Find the timings of when the bar stimuli start and end: 
-    start_f1 = find(f_data(idx(1)+gap_between_flash_and_bars:end) > 0, 1, 'first') + (idx(1)+gap_between_flash_and_bars);
-    end_f1 = strfind(f_data(start_f1:end), array2find) + start_f1; % % % This is very slow. 
-    end_f1 = end_f1(1);
-    rep1_rng = [start_f1, end_f1];
-
-    start_f2 = find(f_data(idx(2)+gap_between_flash_and_bars:end) > 0, 1, 'first') + (idx(2)+gap_between_flash_and_bars);
-    end_f2 = strfind(f_data(start_f2:end), array2find) + start_f2;
-    end_f2 = end_f2(1);
-    rep2_rng = [start_f2, end_f2];
-
-    start_f3 = find(f_data(idx(3)+gap_between_flash_and_bars:end) > 0, 1, 'first') + (idx(3)+gap_between_flash_and_bars);
-    rep3_rng = [start_f3, numel(f_data)]; % til the end of the recording.
+    rep1_rng = [idx_3(2), idx_3(5)];
+    rep2_rng = [idx_3(8), idx_3(11)];
+    rep3_rng = [idx_3(14), idx_3(17)];
 
     %% Check - timepoints corresponding to the start and end of each repetition of bar stimuli (slow and fast)
     
-    % figure; 
-    % plot(f_data);
+    % % y-range for shading
+    % y_low = 0; %150;
+    % y_high = 100; %200;
+    % 
+    % % Plot your line (example)
+    % figure;
     % hold on;
-    % for i = 1:numel(rep1_rng)
-    %     plot([rep1_rng(i), rep1_rng(i)], [0 100], 'm');
-    % end 
-    % for i = 1:numel(rep2_rng)
-    %     plot([rep2_rng(i), rep2_rng(i)], [0 100], 'r');
-    % end 
-    % for i = 1:numel(rep3_rng)
-    %     plot([rep3_rng(i), rep3_rng(i)], [0 100], 'g');
-    % end 
+    % 
+    % % Define the ranges to shade
+    % ranges = [rep1_rng; rep2_rng; rep3_rng];
+    % 
+    % % Loop through each range and add a semi-transparent grey patch
+    % for i = 1:size(ranges,1)
+    %     x1 = ranges(i,1);
+    %     x2 = ranges(i,2);
+    %     patch([x1 x2 x2 x1], [y_low y_low y_high y_high], ...
+    %           [1 0.7 0.7], ...     % grey color (RGB)
+    %           'FaceAlpha', 0.3, ...  % transparency (0 = fully transparent, 1 = opaque)
+    %           'EdgeColor', 'none');  % remove border
+    % end
+    % 
+    % plot(f_data);
+    % ylabel('Frame')
+    % f = gcf;
+    % f.Position = [18  714  1749  244];
+
     
     %% Create cell array of the indices of the beginning and end of each individual bar stimulus in each rep.
     
@@ -73,18 +83,19 @@ function data = parse_bar_data(f_data, v_data, on_off)
         frames_rep = f_data(st_val:end_val);
         diff_vals = diff(frames_rep);
         dd = find(abs(diff_vals)>9);
-        all_idxs = [st_val, dd + st_val];
+        all_idxs = dd + st_val;
         idxs_all{i} = sort(all_idxs); % Store sorted indices
     end
     
+
     %% Check - timing of start and end of each individual bar stimuli 
     
-    % figure; plot(f_data); hold on;
-    % for iii = 1:numel(idxs_all{1,1})
-    %     all_rep1 = idxs_all{1, 1};
-    %     x_val = all_rep1(iii);
-    %     plot([x_val, x_val], [0 75], 'r');
-    % end 
+    figure; plot(f_data); hold on;
+    for iii = 1:numel(idxs_all{1,1})
+        all_rep1 = idxs_all{1, 1};
+        x_val = all_rep1(iii);
+        plot([x_val, x_val], [0 75], 'r');
+    end 
 
     %% Extract the frame ranges for each bar stimulus - including 9000ms before the bar starts and 9000ms after the bar stops.
     
