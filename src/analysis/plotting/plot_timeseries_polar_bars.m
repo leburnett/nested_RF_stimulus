@@ -67,14 +67,8 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     
     % Dark bars - two directions are mixed up. Occurred when making patterns with
     % bkg4... 
-    if params.on_off == "on"
-        % dark bars: 
-        plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
-    elseif params.on_off == "off"
-        % light bars: 
-        plot_order = [1,3,5,7,9,11,14,16,2,4,6,8,10,12,13,15];
-    end 
-    
+    plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+
     angls = linspace(0, 2*pi, 17); % 17 points to include 0 and 2π
     
     % Preallocate max/min voltage arrays
@@ -82,14 +76,14 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     min_v = zeros(numPlots, 2);
     
     % Define colors for the two conditions
-    colors = {[0.2 0.4 0.7], [0.4 0.8 1]};  % Dark blue (28 dps) and Light blue (56 dps)
+    colors = {[0.2 0.4 0.7], [0.4 0.8 1], [0.45, 0.0, 0.55]};  % Dark blue (28 dps) and Light blue (56 dps)
 
-    n_conditions = size(data, 1)/2;
+    n_conditions = numel(plot_order);
     
     %% Create the figure
     figure
     
-    for sp = 1:2
+    for sp = 1:1:3
         col = colors{sp}; % Get color for current condition
     
         % Loop to create subplots
@@ -166,14 +160,16 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     % Convert max values for both conditions into polar format
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
+    max_v_polar3 = vertcat(max_v(:, 3), max_v(1, 3)); % fast bars
     
     % Plot the polar data
     polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 2);
     polarplot(angls, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 2);
+    polarplot(angls, max_v_polar3 - median_voltage, 'Color', colors{3}, 'LineWidth', 2);
     
     % Add title
-    sgtitle(sprintf("28 / 56 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s", ...
-                    strrep(params.date, '_', '-'), strrep(params.time, '_', '-'), params.strain, params.on_off));
+    sgtitle(sprintf("28 / 56 / 168 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s", ...
+                    strrep(params.date, '_', '-'), strrep(params.time, '_', '-'), strrep(params.strain, '_', '-'), params.on_off));
     
     % Set figure size
     set(gcf, 'Position', [303 78 961 969]);

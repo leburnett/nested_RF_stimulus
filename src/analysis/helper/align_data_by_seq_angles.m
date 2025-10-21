@@ -9,17 +9,19 @@ function data_ordered = align_data_by_seq_angles(data)
     
     plot_order= [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
 
-    data_ordered = cell(32, 4);
+    n_speeds = 3;
+    n_dir = 16;
 
-    n_dir_and_sp = height(data);
-    n_speeds = 2;
-    n_dir = n_dir_and_sp/n_speeds;
+    data_ordered = cell(n_dir*n_speeds, 4);
 
-    for k = 1:n_dir_and_sp
+    for k = 1:height(data)
    
-        if k >n_dir % 56 dps
+        if k > n_dir && k <= n_dir*2 % 56 dps
             data_idx = plot_order(k-n_dir);
             data_idx = data_idx+n_dir;
+        elseif k > n_dir*2
+            data_idx = plot_order(k-n_dir*2);
+            data_idx = data_idx+n_dir*2;
         else % 28 dps
             data_idx = plot_order(k);
         end 

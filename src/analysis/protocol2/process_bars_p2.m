@@ -38,7 +38,7 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     % v2_data = v_data - median_v; % Get the median-subtracted voltage.
     
     % Parse the raw voltage data for the different bar stimuli
-    data = parse_bar_data(f_data, v_data, on_off); % Update this to work for both slow and fast bars
+    data = parse_bar_data(f_data, v_data);
     
     %% PLOTTING THE BAR DATA
 
@@ -51,6 +51,7 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     % Convert max values for both conditions into polar format
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
+    max_v_polar3 = vertcat(max_v(:, 3), max_v(1, 3)); % very fast bars
 
     % Plot only the polar plot with an arrow overlaid.
     resultant_angle = plot_polar_with_arrow(max_v, median_v, params, save_fig, figures_folder);
@@ -82,9 +83,14 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     end 
     
     % 2 - faster bar stimuli
-    [d_fast, ord_fast, magnitude_fast, angle_rad_fast, fwhm_fast, cv_fast, thetahat_fast, kappa_fast] = find_PD_and_order_idx(max_v_polar2, median_v);
+    [d_fast, ~, magnitude_fast, angle_rad_fast, fwhm_fast, cv_fast, thetahat_fast, kappa_fast] = find_PD_and_order_idx(max_v_polar2, median_v);
     
     [sym_ratio_fast, DSI_fast, DSI_pdnd_fast, vector_sum_fast] = compute_bar_response_metrics(d_fast);
+
+    % 3 - even faster bar stimuli
+    [d_vfast, ~, magnitude_vfast, angle_rad_vfast, fwhm_vfast, cv_vfast, thetahat_vfast, kappa_vfast] = find_PD_and_order_idx(max_v_polar3, median_v);
+    
+    [sym_ratio_vfast, DSI_vfast, DSI_pdnd_vfast, vector_sum_vfast] = compute_bar_response_metrics(d_vfast);
     
     % % % % % Save the data:
     bar_results = struct();
@@ -95,6 +101,7 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     bar_results.Type = on_off;
     bar_results.slow.max_v_polar = {max_v_polar1};
     bar_results.fast.max_v_polar = {max_v_polar2};
+    bar_results.vfast.max_v_polar = {max_v_polar3};
     bar_results.min_v = {min_v};
     bar_results.max_v = {max_v};
     bar_results.median_voltage = median_v;
@@ -113,10 +120,18 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     bar_results.fast.cv = cv_fast;
     bar_results.fast.thetahat = thetahat_fast;
     bar_results.fast.kappa = kappa_fast;
+
+    bar_results.vfast.magnitude = magnitude_vfast;
+    bar_results.vfast.angle_rad = angle_rad_vfast;
+    bar_results.vfast.fwhm = fwhm_vfast;
+    bar_results.vfast.cv = cv_vfast;
+    bar_results.vfast.thetahat = thetahat_vfast;
+    bar_results.vfast.kappa = kappa_vfast;
     
     % symmetry index
     bar_results.slow.sym_ratio = sym_ratio_slow;
     bar_results.fast.sym_ratio = sym_ratio_fast;
+    bar_results.vfast.sym_ratio = sym_ratio_vfast;
     
     % DSI - vector sum 
     bar_results.slow.vector_sum = vector_sum_slow;
@@ -125,6 +140,9 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     bar_results.fast.vector_sum = vector_sum_fast;
     bar_results.fast.DSI_vector = DSI_fast;
     bar_results.fast.DSI_pdnd = DSI_pdnd_fast;
+    bar_results.vfast.vector_sum = vector_sum_vfast;
+    bar_results.vfast.DSI_vector = DSI_vfast;
+    bar_results.vfast.DSI_pdnd = DSI_pdnd_vfast;
     bar_results.resultant_angle = resultant_angle;
     
     save(fullfile(results_folder, strcat('peak_vals_', metadata.Strain, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
