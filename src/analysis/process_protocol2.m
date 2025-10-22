@@ -14,6 +14,8 @@ resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT);
 
 process_flash_p2(exp_folder, metadata, PROJECT_ROOT, resultant_angle)
 
+process_bar_flashes_p2(exp_folder, metadata, PROJECT_ROOT)
+
 cd(exp_folder)
 
 end 

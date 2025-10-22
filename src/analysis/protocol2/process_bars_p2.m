@@ -23,17 +23,17 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
 
     % Display figure of the frame position and voltage data to get a quick
     % overview of the quality of the recording:
-    figure; 
-    subplot(2,1,1)
-    plot(f_data);
-    xlim([0 numel(f_data)])
-    ylabel('Frame #')
-    subplot(2,1,2)
-    plot(v_data);
-    xlim([0 numel(f_data)])
-    ylabel('Voltage')
-    f = gcf;
-    f.Position = [50 633 1679 376];
+    % figure; 
+    % subplot(2,1,1)
+    % plot(f_data);
+    % xlim([0 numel(f_data)])
+    % ylabel('Frame #')
+    % subplot(2,1,2)
+    % plot(v_data);
+    % xlim([0 numel(f_data)])
+    % ylabel('Voltage')
+    % f = gcf;
+    % f.Position = [50 633 1679 376];
 
     % v2_data = v_data - median_v; % Get the median-subtracted voltage.
     
