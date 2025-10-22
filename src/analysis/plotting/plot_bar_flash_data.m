@@ -7,9 +7,11 @@ function f = plot_bar_flash_data(data, meanData, median_v)
 max_vals = zeros([8, 11]);
 for i = 1:88
     d = meanData{i};
-    max_d = prctile(d(5000:8000), 98);
+    n_points = numel(d);
+    max_d = prctile(d(ceil(n_points*0.5):ceil(n_points*0.75)), 98);
     max_vals(i) = max_d;
 end
+max_overall = max(max_vals(:));
 max_vals_med = max_vals - median_v;
 max_vals_med(max_vals_med<0) = 0;
 normalizedArray = 1- abs(max_vals_med - 0) / (max(max_vals_med(:)) - 0);
@@ -28,7 +30,8 @@ for i = 1:88
         plot(d2, 'Color', [0.75 0.75 0.75], 'LineWidth', 0.7)
     end 
     plot(d, 'Color', 'k', 'LineWidth', 1)
-    ylim([-70 -30])
+    ylim([-70 max_overall*0.9])
+    xlim([0 numel(d)])
     title(string(i))
 end 
 f = gcf;
