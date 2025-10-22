@@ -21,6 +21,7 @@ params.strain = metadata.Strain;
 f_data = Log.ADC.Volts(1, :); % frame data
     
 v_data = Log.ADC.Volts(2, :)*10; % voltage data
+median_v = median(v_data);
 
 [data_slow, data_fast, mean_slow, mean_fast]  = parse_bar_flash_data(f_data, v_data);
 
@@ -31,10 +32,10 @@ fig_fast = plot_bar_flash_data(data_fast, mean_fast, median_v);
 if save_fig
 
     fname_slow = fullfile(figures_folder, strcat("Bar_flashes_80ms_",  strrep(date_str, '_', '-'),'_', strrep(time_str, '_', '-'), '_', strrep(metadata.Strain, '_', '-'), '.pdf')); 
-    saveas(fig_slow, fname_slow, 'ContentType', 'vector', 'BackgroundColor', 'none');
+    exportgraphics(fig_slow, fname_slow, 'ContentType', 'vector', 'BackgroundColor', 'none');
 
     fname_fast = fullfile(figures_folder, strcat("Bar_flashes_14ms_",  strrep(date_str, '_', '-'),'_', strrep(time_str, '_', '-'), '_', strrep(metadata.Strain, '_', '-'), '.pdf')); 
-    saveas(fig_fast, fname_fast, 'ContentType', 'vector', 'BackgroundColor', 'none');
+    exportgraphics(fig_fast, fname_fast, 'ContentType', 'vector', 'BackgroundColor', 'none');
 
 end 
 
