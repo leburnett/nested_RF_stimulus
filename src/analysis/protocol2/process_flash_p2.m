@@ -114,6 +114,7 @@ for px_size = [4, 6]
             , 'ContentType', 'vector' ...
             , 'BackgroundColor', 'none' ...
             ); 
+    close
     
     % Generate plot with Gausssian RF estimates:
     exc_data = data_comb2;

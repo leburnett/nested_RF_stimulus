@@ -93,6 +93,7 @@ clim([med_val-max_val med_val+max_val])
 f1 = gcf; 
 f1.Position = [58, 795, 646, 203];
 
+
 %% Compute and plot 2σ contours with rotation
 theta_vals = linspace(0, 2*pi, 100); % Define angles for contour
 R_exc = [cos(optEx(6)), -sin(optEx(6)); sin(optEx(6)), cos(optEx(6))]; % Rotation matrix for excitatory lobe
@@ -126,6 +127,7 @@ axis square;
 
 f2 = gcf;
 f2.Position = [712, 576, 560, 420];
+close
 
 % Display the results from both the excitatory and inhibitory lobes
 disp('Excitatory lobe:')

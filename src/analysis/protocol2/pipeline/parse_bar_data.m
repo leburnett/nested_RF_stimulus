@@ -90,12 +90,12 @@ function data = parse_bar_data(f_data, v_data)
 
     %% Check - timing of start and end of each individual bar stimuli 
     
-    figure; plot(f_data); hold on;
-    for iii = 1:numel(idxs_all{1,1})
-        all_rep1 = idxs_all{1, 1};
-        x_val = all_rep1(iii);
-        plot([x_val, x_val], [0 75], 'r');
-    end 
+    % figure; plot(f_data); hold on;
+    % for iii = 1:numel(idxs_all{1,1})
+    %     all_rep1 = idxs_all{1, 1};
+    %     x_val = all_rep1(iii);
+    %     plot([x_val, x_val], [0 75], 'r');
+    % end 
 
     %% Extract the frame ranges for each bar stimulus - including 9000ms before the bar starts and 9000ms after the bar stops.
     

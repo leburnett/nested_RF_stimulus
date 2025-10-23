@@ -58,7 +58,7 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     
     % Plot a heat map of the maximum responses to the bars moving in the 16
     % directions at 2 different speeds.
-    plot_heatmap_bars(max_v)
+    % plot_heatmap_bars(max_v)
     
     %% ANALYSING THE BAR DATA
 
