@@ -121,7 +121,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
                     plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
                 else 
                     plot(x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
-                    plot([9000 9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % Start of bar stimulus
+                    % plot([9000 9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % Start of bar stimulus
                     % plot([numel(x_vals)-9000 numel(x_vals)-9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % End of bar stimulus.
                 end
             end 
