@@ -7,8 +7,8 @@ function resultant_angle = plot_polar_with_arrow(max_v, median_voltage, params, 
     colors = {[0.2 0.4 0.7], [0.4 0.8 1]};
  
     theta = linspace(0, 2*pi, 17);
-    rho = [max_v_polar1 - median_voltage]';
-    [~, resultant_angle] = vector_sum_polar(rho, theta);
+    rho = [max_v_polar1(1:end-1, 1) - median_voltage]';
+    [~, resultant_angle] = vector_sum_polar(rho, theta(1:end-1));
     
     resultant_magnitude = 30; 
     col = [0.3 0.3 0.3];

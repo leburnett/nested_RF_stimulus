@@ -23,17 +23,17 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
 
     % Display figure of the frame position and voltage data to get a quick
     % overview of the quality of the recording:
-    figure; 
-    subplot(2,1,1)
-    plot(f_data);
-    xlim([0 numel(f_data)])
-    ylabel('Frame #')
-    subplot(2,1,2)
-    plot(v_data);
-    xlim([0 numel(f_data)])
-    ylabel('Voltage')
-    f = gcf;
-    f.Position = [50 633 1679 376];
+    % figure; 
+    % subplot(2,1,1)
+    % plot(f_data);
+    % xlim([0 numel(f_data)])
+    % ylabel('Frame #')
+    % subplot(2,1,2)
+    % plot(v_data);
+    % xlim([0 numel(f_data)])
+    % ylabel('Voltage')
+    % f = gcf;
+    % f.Position = [50 633 1679 376];
 
     % v2_data = v_data - median_v; % Get the median-subtracted voltage.
     
@@ -43,7 +43,7 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     %% PLOTTING THE BAR DATA
 
     % Plot the timeseries responses with a polar plot in the middle.
-    save_fig = 1;
+    save_fig = 0;
     [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig, figures_folder);
     f = gcf;
     f.Position = [303   380   688   667];
@@ -57,7 +57,7 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
     
     % Plot a heat map of the maximum responses to the bars moving in the 16
     % directions at 2 different speeds.
-    plot_heatmap_bars(max_v)
+    % plot_heatmßap_bars(max_v)
     
     %% ANALYSING THE BAR DATA
 
