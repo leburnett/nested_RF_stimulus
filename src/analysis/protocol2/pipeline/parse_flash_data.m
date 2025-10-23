@@ -54,6 +54,7 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
         % 'idx' is an array of the timepoints when the 4px flashes start
         % and the 6px flashes start. 'idx' should be an array of size [1,6]
         idx = find(diff_f_data == 1 & f_data(2:end) == 1); % First flash. 
+        idx = idx([1,2,5,6, 9, 10]);
 
         % For finding the end of the 6 pixel flashes
         drop_at_end = -100; % ON flashes. the last 6 pixel flash is frame 200.
