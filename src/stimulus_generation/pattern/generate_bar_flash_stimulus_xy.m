@@ -68,7 +68,7 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
         overall_frame_range = (1:n_frames_orient)+frames_filled;
 
         cf_of_pattern = centre_frames(p); % Which frame number has the bar in the centre of the arena. 
-        frames_from_patt = cf_of_pattern-n_flank : cf_of_pattern+n_flank;
+        frames_from_patt = cf_of_pattern-(n_flank*2): 2 : cf_of_pattern+(n_flank*2);
 
         % Fill in the location with the central part of pattern. 
         for i = 1:n_frames_orient
@@ -99,8 +99,8 @@ function generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop, on_off, exp
 
     %test
     % figure
-    % for i = 1:size(pattern.Pats, 3)
-    % aa = pattern.Pats(:, :, i);
+    % for i = 1:size(Pats, 3)
+    % aa = Pats(:, :, i);
     % imagesc(aa)
     % pause(0.2)
     % end 
