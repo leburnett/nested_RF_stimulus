@@ -125,7 +125,7 @@ function stats = get_group_stats(T, target)
     for k = idx'
         d = T.d_slow{k};
         if isnumeric(d) && isequal(size(d), [16 2])
-            vals = [vals, d(:,2)]; %#ok<AGROW>
+            vals = [vals, d(:,2)];
         end
     end
 

@@ -75,12 +75,12 @@ function polar_mean_by_strain(T)
     labs = {};
     hs   = [];
     if ~isempty(stats_control.mean)
-        hs(end+1)   = hCtrl; %#ok<AGROW>
-        labs{end+1} = sprintf('control (n=%d)', stats_control.n); %#ok<AGROW>
+        hs(end+1)   = hCtrl;
+        labs{end+1} = sprintf('control (n=%d)', stats_control.n);
     end
     if ~isempty(stats_ttl.mean)
-        hs(end+1)   = hTtl;  %#ok<AGROW>
-        labs{end+1} = sprintf('ttl (n=%d)', stats_ttl.n); %#ok<AGROW>
+        hs(end+1)   = hTtl;
+        labs{end+1} = sprintf('ttl (n=%d)', stats_ttl.n);
     end
     if ~isempty(hs)
         legend(axPolar, hs, labs, 'Location', 'best');
@@ -122,7 +122,7 @@ function stats = get_group_stats_by_strain(T, substr)
     for k = idx'
         d = T.d_slow{k};
         if isnumeric(d) && isequal(size(d), [16 2])
-            vals = [vals, d(:,2)]; %#ok<AGROW>
+            vals = [vals, d(:,2)];
         end
     end
 
