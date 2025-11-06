@@ -5,8 +5,6 @@ function resultant_angle = plot_polar_with_arrow(max_v, median_voltage, params, 
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
     max_v_polar3 = vertcat(max_v(:, 3), max_v(1, 3)); % very fast bars
 
-    
- 
     theta  = linspace(0, 2*pi, 17);
     resultant_magnitude = 30; 
     colors = {[0.2 0.4 0.7], [0.4 0.8 1], [0.45, 0.0, 0.55]};
@@ -14,10 +12,16 @@ function resultant_angle = plot_polar_with_arrow(max_v, median_voltage, params, 
 
     
     figure;
-    polarplot(theta, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
+    % polarplot(theta, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
+    % hold on
+    % polarplot(theta, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
+    % polarplot(theta, max_v_polar3 - median_voltage, 'Color', colors{3}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
+   
+    polarplot(theta, max_v_polar1, 'Color', colors{1}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
     hold on
-    polarplot(theta, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
-    polarplot(theta, max_v_polar3 - median_voltage, 'Color', colors{3}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
+    polarplot(theta, max_v_polar2, 'Color', colors{2}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
+    polarplot(theta, max_v_polar3, 'Color', colors{3}, 'LineWidth', 3, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'w');
+    
     ax = gca;
     ax.LineWidth = 1.2;
     ax.FontSize = 15;

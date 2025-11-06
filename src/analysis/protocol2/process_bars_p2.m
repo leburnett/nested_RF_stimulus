@@ -5,7 +5,7 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
         mkdir(results_folder);
     end
     
-    figures_folder = fullfile(PROJECT_ROOT, "figures", "bar_stimuli");
+    figures_folder = fullfile(PROJECT_ROOT, "figures", "bar_stimuli", "baselineb4");
     if ~isfolder(figures_folder)
         mkdir(figures_folder);
     end
@@ -23,17 +23,35 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
 
     % Display figure of the frame position and voltage data to get a quick
     % overview of the quality of the recording:
+
+    % % Plot figure of voltage and frame data - linked axes.
     % figure; 
-    % subplot(2,1,1)
+    % tiledlayout(2,1);
+    % ax1 = nexttile;
     % plot(f_data);
     % xlim([0 numel(f_data)])
     % ylabel('Frame #')
-    % subplot(2,1,2)
+    % ax2 = nexttile;
     % plot(v_data);
+    % hold on
+    % plot([0 numel(f_data)], [median_v, median_v], 'r')
     % xlim([0 numel(f_data)])
     % ylabel('Voltage')
+    % linkaxes([ax1, ax2], 'x');
     % f = gcf;
-    % f.Position = [50 633 1679 376];
+    % f.Position = [15 621 1769 322];
+    % 
+    % % Plot voltage and frame data in the same figure.
+    % figure; 
+    % yyaxis left
+    % plot(f_data);
+    % xlim([0 numel(f_data)])
+    % yyaxis right
+    % plot(v_data);
+    % hold on
+    % plot([0 numel(f_data)], [median_v, median_v], 'r')
+    % f = gcf;
+    % f.Position = [15 621 1769 322];
 
     % v2_data = v_data - median_v; % Get the median-subtracted voltage.
     
@@ -151,6 +169,8 @@ function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
         , 'data_aligned'...
         , 'ord'...
         , 'd_slow'...
+        , 'd_fast'...
+        , 'd_vfast'...
         );
 
 end

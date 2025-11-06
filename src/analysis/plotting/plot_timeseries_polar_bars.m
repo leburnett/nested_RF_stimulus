@@ -128,12 +128,13 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     
             % Set consistent Y-limits
             ylim([-80 -10])
-    
-            % % % % TODO -- -- Update this to make the range of time over
-            % which we are looking at - 9000 start / end. 
 
             % Store max/min values from the mean voltage per condition.
             d = data{d_idx, n_reps+1}; 
+
+            % Find the mean voltage in the 900ms before the flash. 
+            d_before_flash = d(1000:9000);
+            mean_before = mean(d_before_flash);
 
             % Remove the 900ms before and last 700ms after stimulus to look
             % for min / max response.
@@ -142,7 +143,9 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
             % Number of data points now:
             n_vals_d = numel(d);
 
-            max_v(i, sp) = prctile(d, 98); % ignore the first 8th of the condition
+            % max_v(i, sp) = prctile(d, 98);
+            max_v(i, sp) = abs(diff([prctile(d, 98), mean_before])); % ignore the first 8th of the condition
+
             min_v(i, sp) = prctile(d(floor(n_vals_d/2):end), 2); % find the min during the 2nd half of the condition.
     
             % Turn off axes for better visualization
@@ -162,10 +165,15 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
     max_v_polar3 = vertcat(max_v(:, 3), max_v(1, 3)); % fast bars
     
+    % % Plot the polar data
+    % polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 2);
+    % polarplot(angls, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 2);
+    % polarplot(angls, max_v_polar3 - median_voltage, 'Color', colors{3}, 'LineWidth', 2);
+    
     % Plot the polar data
-    polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 2);
-    polarplot(angls, max_v_polar2 - median_voltage, 'Color', colors{2}, 'LineWidth', 2);
-    polarplot(angls, max_v_polar3 - median_voltage, 'Color', colors{3}, 'LineWidth', 2);
+    polarplot(angls, max_v_polar1, 'Color', colors{1}, 'LineWidth', 2);
+    polarplot(angls, max_v_polar2, 'Color', colors{2}, 'LineWidth', 2);
+    polarplot(angls, max_v_polar3, 'Color', colors{3}, 'LineWidth', 2);
     
     % Add title
     sgtitle(sprintf("28 / 56 / 168 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s", ...
