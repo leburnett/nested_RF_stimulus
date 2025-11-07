@@ -57,13 +57,13 @@ function generate_protocol2()
             px_flash = 4;
             px_crop_flash = 30;
             generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
-    
-        % 28 dps - 6 pixel flashes
-            flash_dur_slow = 0.16;
-            int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
-            px_flash = 6;
-            px_crop_flash = 33;
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
+        % 
+        % % 28 dps - 6 pixel flashes
+        %     flash_dur_slow = 0.16;
+        %     int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
+        %     px_flash = 6;
+        %     px_crop_flash = 33;
+        %     generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
     
         % % 56 dps - faster
         %     flash_dur_fast = 0.08;
@@ -87,7 +87,7 @@ function generate_protocol2()
            [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder, metadata);
 
     % 6 - run the protocol:
-            run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
+          run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
 
     % Add notes at the end
     prompt = "Notes at end: ";
