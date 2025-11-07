@@ -22,8 +22,8 @@ f.Position = [620   510   620   457];
 
 %% For the MARCM data from Autumn 2025 onwards. "control" / "ttl" now added in the strain name. 
 
-polar_mean_by_strain(T_new)
-title("MARCM-ttl-control-OFF", 'FontSize', 16)
+polar_mean_by_strain(T, "slow")
+title("MARCM-ttl-control-ON", 'FontSize', 16)
 f = gcf;
 f.Position = [620   510   620   457];
 
