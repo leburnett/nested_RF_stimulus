@@ -36,7 +36,7 @@ function polar_mean_by_strain(T, speed)
     rmax = estimate_rmax(stats_control, stats_ttl);
     if ~isnan(rmax) && rmax > 0
         % rlim(axPolar, [0 rmax]);
-         rlim(axPolar, [0 32]);
+         rlim(axPolar, [0 35]);
     end
 
     % Create an overlay Cartesian axes for patches

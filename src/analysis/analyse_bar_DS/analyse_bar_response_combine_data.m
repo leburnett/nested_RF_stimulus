@@ -4,12 +4,21 @@
 
 %% 1 - Create the table:
 T = combine_bar_results();
+T = addOrthoMetrics(T);
 
-T_all = T;
+T_on = T(T.Type == "on", :);
+T_off = T(T.Type == "off", :);
+
 
 %% 2 - Polar plots:
 
-polar_mean_by_strain(T, "slow")
+polar_mean_by_strain(T_on, "slow")
+title("MARCM-ttl-control-ON-w+", 'FontSize', 16)
+f = gcf;
+f.Position = [620   510   620   457];
+
+
+polar_mean_by_strain(T_off, "slow")
 title("MARCM-ttl-control-OFF-w+", 'FontSize', 16)
 f = gcf;
 f.Position = [620   510   620   457];
@@ -24,7 +33,102 @@ plotGroupedBox(T, columnName)
 results = runGroupedStats(T, columnName);
 
 
- 
+%%  5 - Polar Scatter  - metrics versus PD angle.
+
+plotPolarByGroup(T, "v_null_v_max_slow")
+f = gcf;
+f.Position = [620   621   457   346];
+
+rlim([0 1])
+
+
+%% Polar plots - shape based on PD angle. 
+
+T_1 = T(T.angGroup == 1, :);
+T_2 = T(T.angGroup == 2, :);
+T_3 = T(T.angGroup == 3, :);
+T_4 = T(T.angGroup == 4, :);
+
+polar_mean_by_strain(T_4, "slow")
+title("Group-4", 'FontSize', 16)
+f = gcf;
+f.Position = [620   510   620   457];
+
+%% ON cells grouped by PD 
+
+T_1 = T_on(T_on.angGroup == 1, :);
+T_2 = T_on(T_on.angGroup == 2, :);
+T_3 = T_on(T_on.angGroup == 3, :);
+T_4 = T_on(T_on.angGroup == 4, :);
+
+polar_mean_by_strain(T_1, "slow")
+title("Group-1-ON", 'FontSize', 16)
+f = gcf;
+f.Position = [620   510   620   457];
+
+%% OFF cells grouped by PD 
+
+T_1 = T_off(T_off.angGroup == 1, :);
+T_2 = T_off(T_off.angGroup == 2, :);
+T_3 = T_off(T_off.angGroup == 3, :);
+T_4 = T_off(T_off.angGroup == 4, :);
+
+polar_mean_by_strain(T_4, "slow")
+title("Group-4-OFF", 'FontSize', 16)
+f = gcf;
+f.Position = [620   510   620   457];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 %%
