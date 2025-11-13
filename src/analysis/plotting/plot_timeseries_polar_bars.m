@@ -108,26 +108,36 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
 
             % Plot the timeseries data for each repetition and the mean
             for r = 1:n_reps+1
+
                 d2plot = data{d_idx, r};
-                x_vals = 1:numel(d2plot);
+                d2plot2 = d2plot(9000:ceil(numel(d2plot)*0.8));
+
+                d_before_flash = d2plot(1:9000);
+                mean_before = mean(d_before_flash);
+
+                d2plot2 = d2plot2-mean_before;
+
+                x_vals = 1:numel(d2plot2);
     
                 if r == 1 
                     % Plot median voltage background
-                    plot([1 x_vals(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1);  
+                    % plot([1 x_vals(end)], [median_voltage, median_voltage], 'Color', [0.7 0.7 0.7], 'LineWidth', 1); 
+                    plot([1 x_vals(end)], [0, 0], 'Color', [0.7 0.7 0.7], 'LineWidth', 1);  
                 end 
     
                 % Plot repetitions in gray, last rep (mean) in condition color
                 if r < n_reps+1
-                    plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
+                    % plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
                 else 
-                    plot(x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
+                    plot(x_vals, d2plot2, 'Color', col, 'LineWidth', 1.2);
                     % plot([9000 9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % Start of bar stimulus
                     % plot([numel(x_vals)-9000 numel(x_vals)-9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % End of bar stimulus.
                 end
             end 
     
             % Set consistent Y-limits
-            ylim([-80 -10])
+            % ylim([-80 -10])
+            ylim([-10 50])
 
             % Store max/min values from the mean voltage per condition.
             d = data{d_idx, n_reps+1}; 
@@ -138,15 +148,49 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
 
             % Remove the 900ms before and last 700ms after stimulus to look
             % for min / max response.
-            d = d(9000:end-7000);
+            % d = d(9000:end-7000);
+
+            d_stim = d(9000:ceil(numel(d)*0.8));
 
             % Number of data points now:
             n_vals_d = numel(d);
 
             % max_v(i, sp) = prctile(d, 98);
-            max_v(i, sp) = abs(diff([prctile(d, 98), mean_before])); % ignore the first 8th of the condition
+            % max_v(i, sp) = abs(diff([prctile(d_stim, 98), mean_before])); % ignore the first 8th of the condition
+            d_stim2 = d_stim-mean_before;
 
-            min_v(i, sp) = prctile(d(floor(n_vals_d/2):end), 2); % find the min during the 2nd half of the condition.
+            % Only find AUC for the single continuous positive region
+            x = d_stim2;
+            sz = size(x);                 % remember original shape
+            x  = x(:);                    % force column
+        
+            isPos = x > 0;                % strict above zero
+            d = diff([false; isPos; false]);  % now safe (column concat)
+        
+            starts = find(d == 1);
+            ends   = find(d == -1) - 1;
+        
+            idxCol = false(size(x));
+
+            lens = ends - starts + 1;
+            maxLen = max(lens);
+            cand = find(lens == maxLen);
+    
+            if numel(cand) > 1
+                areas = arrayfun(@(i) nansum(x(starts(i):ends(i))), cand);
+                [~, ii] = max(areas);
+                k = cand(ii);
+            else
+                k = cand;
+            end
+            idxCol(starts(k):ends(k)) = true;
+
+            idx = reshape(idxCol, sz); 
+
+
+            max_v(i, sp) = trapz(d_stim2(idx));
+
+            min_v(i, sp) = prctile(d(ceil(n_vals_d/2):end), 2); % find the min during the 2nd half of the condition.
     
             % Turn off axes for better visualization
             axis(ax, 'off');
@@ -164,6 +208,10 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % slow bars
     max_v_polar2 = vertcat(max_v(:, 2), max_v(1, 2)); % fast bars
     max_v_polar3 = vertcat(max_v(:, 3), max_v(1, 3)); % fast bars
+
+    max_v_polar1 = max_v_polar1./max(max_v_polar1);
+    max_v_polar2 = max_v_polar2./max(max_v_polar2);
+    max_v_polar3 = max_v_polar3./max(max_v_polar3);
     
     % % Plot the polar data
     % polarplot(angls, max_v_polar1 - median_voltage, 'Color', colors{1}, 'LineWidth', 2);
@@ -188,7 +236,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
             mkdir(fig_folder)
         end 
         f = gcf; 
-        fname = fullfile(fig_folder, strcat(params.strain, '_', params.on_off, '_', params.date, '_', params.time,'_bar_polar.pdf'));
+        fname = fullfile(fig_folder, strcat(params.strain, '_', params.on_off, '_', params.date, '_', params.time,'_bar_polar_AUC.pdf'));
         exportgraphics(f ...
                 , fname ...
                 , 'ContentType', 'vector' ...
