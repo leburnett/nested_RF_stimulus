@@ -138,7 +138,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, param
 
             % Remove the 900ms before and last 700ms after stimulus to look
             % for min / max response.
-            d = d(9000:end-7000);
+            d = d(9000:numel(d)*0.75);
 
             % Number of data points now:
             n_vals_d = numel(d);
