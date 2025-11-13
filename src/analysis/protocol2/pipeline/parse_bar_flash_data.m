@@ -1,4 +1,4 @@
-function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_data, v_data)
+function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_data, v_data, prop_int)
     
     % The voltage and frame data are sampled at 10,000Hz. Therefore, each
     % value corresponds to (1/10000)s, 0.0001s or 100us.
@@ -34,7 +34,7 @@ function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_d
     len = end_idx - start_idx + 1;
     idx_3 = start_idx(len >= 30000);
 
-    % Plot all of the 3s gaps
+    % % Plot all of the 3s gaps
     % figure;
     % plot(f_data);
     % for i = 1:numel(idx_3)
@@ -54,12 +54,12 @@ function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_d
             rep1_rng = idx_3(5:6);
             rep2_rng = idx_3(11:12);
             rep3_rng = idx_3(17:18);
-            gap_between_flashes = 5000; % Gap between flashes is 1s (10000) but only clip half that for the timeseries.
+            gap_between_flashes = 10000*prop_int; % Gap between flashes is 1s (10000) but only clip half that for the timeseries.
         elseif sp == 2 % fast
             rep1_rng = idx_3(6:7);
             rep2_rng = idx_3(12:13);
             rep3_rng = idx_3(18:19);
-            gap_between_flashes = 2500;
+            gap_between_flashes = 5000*prop_int;
         end 
 
         % Find the timeseries per bar flash position for the first rep. 
