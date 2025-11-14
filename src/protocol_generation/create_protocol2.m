@@ -18,7 +18,7 @@ bar_patt = flash_patt(end)+1:num_files-1;
 bar_flash_patt = num_files; % Last pattern is the bar flashes.
 n_bar_patt = numel(bar_patt);
 n_dir = 2; % 2 reps = forward and reverse direction
-n_speeds = 6; % 3 reps = n_speeds
+n_speeds = 5; % 3 reps = n_speeds
 pattern_order = [1, repmat([repelem(bar_patt, n_dir), 1], [1, n_speeds]), bar_flash_patt, 1, bar_flash_patt]; 
 
 % two "flash_patt" at the beginning - one for grey presentation.
@@ -50,13 +50,13 @@ trial_dur = nan([1, n_patts]);
 
 fns_28dps = [2,3];
 fns_56dps = [4,5];
+% fns_112dps = [6,7];
 fns_168dps = [6,7];
 fns_250dps = [8,9];
-fns_500dps = [10, 11];
-fns_750dps = [12, 13];
+fns_500dps = [10,11];
 
-fn_bar_flash_slow = 14; % Will update this to 10 and 11 for the different reps in "run_protocol2" [9, 10, 11];
-fn_bar_flash_fast = 17;
+fn_bar_flash_slow = 12; % Will update this to 10 and 11 for the different reps in "run_protocol2" [9, 10, 11];
+fn_bar_flash_fast = 15;
 fn_static_10 = num_files-1;
 fn_static_3 = num_files;
 
@@ -66,9 +66,10 @@ func_order = [fn_static_10,...
     repmat(fns_168dps, [1,n_bar_patt]), fn_static_3,...
     repmat(fns_250dps, [1,n_bar_patt]), fn_static_3,...
     repmat(fns_500dps, [1,n_bar_patt]), fn_static_3,...
-    repmat(fns_750dps, [1,n_bar_patt]), fn_static_3,...
     fn_bar_flash_slow, fn_static_3,...
     fn_bar_flash_fast];
+
+    % repmat(fns_112dps, [1,n_bar_patt]), fn_static_3,...
 
 for p = 1:n_patts
     f = func_order(p);
