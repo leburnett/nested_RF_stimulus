@@ -70,7 +70,7 @@ function polar_mean_by_strain(T, speed)
     end
 
     % Keep polar axes on top so grid/ticks are visible
-    uistack(axPolar, 'top');
+    % uistack(axPolar, 'top');
 
     % Legend (lines only)
     labs = {};
