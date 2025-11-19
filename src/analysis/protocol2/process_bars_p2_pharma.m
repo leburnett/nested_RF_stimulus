@@ -1,30 +1,32 @@
 function resultant_angle = process_bars_p2_pharma(exp_folder, metadata, PROJECT_ROOT)
 
-    drug = metadata.drug;
-    application = metadata.application;
-
-    results_folder = fullfile(PROJECT_ROOT, "results", "bar_results", drug, application);
-    if ~isfolder(results_folder)
-        mkdir(results_folder);
-    end
-    
-    figures_folder = fullfile(PROJECT_ROOT, "figures", "bar_stimuli", drug, application);
-    if ~isfolder(figures_folder)
-        mkdir(figures_folder);
-    end
-    
     [date_str, time_str, Log, params, ~] = load_protocol2_data(exp_folder);
     on_off = params.on_off;
     params.date = date_str;
     params.time = time_str;
     params.strain = metadata.Strain;
-    params.drug = metadata.drug;
-    params.application = metadata.application;
+    params.drug = metadata.Drug;
+    if params.drug == "none"
+        params.application = "pre";
+        params.drug = "no-drug";
+    else
+        params.application = "post";
+    end
     
     f_data = Log.ADC.Volts(1, :); % frame data
     
     v_data = Log.ADC.Volts(2, :)*10; % voltage data
     median_v = median(v_data);
+
+    results_folder = fullfile(PROJECT_ROOT, "results", "bar_results", params.drug, params.application);
+    if ~isfolder(results_folder)
+        mkdir(results_folder);
+    end
+    
+    figures_folder = fullfile(PROJECT_ROOT, "figures", "bar_stimuli", params.drug, params.application);
+    if ~isfolder(figures_folder)
+        mkdir(figures_folder);
+    end
 
     % Display figure of the frame position and voltage data to get a quick
     % overview of the quality of the recording:
