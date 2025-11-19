@@ -38,6 +38,7 @@ function plot_each_rep_28dps_pharma(data, params, save_fig, fig_save_folder)
             % the desired direction.
             % d_idx = plot_order(i) + n_conditions*(sp-1);
             d_idx = plot_order(i); % only 28 dps. 
+            % d_idx = plot_order(i)+16; % only 56 dps. 
 
             % Store max/min values from the repetition
             d = data{d_idx, rep}; 
