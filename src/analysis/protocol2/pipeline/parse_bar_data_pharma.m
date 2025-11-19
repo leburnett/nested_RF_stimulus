@@ -48,7 +48,7 @@ function data = parse_bar_data_pharma(f_data, v_data)
     % % y-range for shading
     % y_low = 0; %150;
     % y_high = 100; %200;
-    % 
+    % % 
     % % Plot your line (example)
     % figure;
     % hold on;
@@ -103,13 +103,15 @@ function data = parse_bar_data_pharma(f_data, v_data)
     num_segments = numel(idxs_all{1}) -1; % Assuming all idxs_all{i} have the same size
     data = cell(num_segments, 3); % Preallocate data cell array
     
-    for i = 1:2:num_segments % Every other idx = JUST the moving bar segments not the interval. Line at the beginning of the sweep. 
+    % Start from 3 after the addition of the initial "mock" sweep in the
+    % 180 direction.
+    for i = 3:2:num_segments % Every other idx = JUST the moving bar segments not the interval. Line at the beginning of the sweep. 
         
-        if i < 64
+        if i < 66
             interval_t_ms = 9000; % 10,000Hz acquisition - 10000 = 1s gap.
-        elseif i >= 64 && i < 128 
+        elseif i >= 66 && i < 130 
             interval_t_ms = 5000; % 750ms gap. 
-        elseif i >= 128
+        elseif i >= 130160160160160
             interval_t_ms = 4000; % 500ms gap
         end 
 

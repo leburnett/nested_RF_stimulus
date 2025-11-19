@@ -19,7 +19,7 @@ bar_flash_patt = num_files; % Last pattern is the bar flashes.
 n_bar_patt = numel(bar_patt);
 n_dir = 2; % 2 reps = forward and reverse direction
 n_speeds = 5; % 3 reps = n_speeds
-pattern_order = [1, repmat([repelem(bar_patt, n_dir), 1], [1, n_speeds]), bar_flash_patt, 1, bar_flash_patt]; 
+pattern_order = [1, bar_patt(1), repmat([repelem(bar_patt, n_dir), 1], [1, n_speeds]), bar_flash_patt, 1, bar_flash_patt]; 
 
 % two "flash_patt" at the beginning - one for grey presentation.
 n_patts = numel(pattern_order);
@@ -60,7 +60,9 @@ fn_bar_flash_fast = 15;
 fn_static_10 = num_files-1;
 fn_static_3 = num_files;
 
+% Add a first bar sweep in 180 direction - exclude this from the analysis.
 func_order = [fn_static_10,...
+    fns_28dps(2), ...
     repmat(fns_28dps, [1,n_bar_patt]), fn_static_3,...
     repmat(fns_56dps, [1,n_bar_patt]), fn_static_3,...
     repmat(fns_168dps, [1,n_bar_patt]), fn_static_3,...
