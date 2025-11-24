@@ -73,6 +73,16 @@ f.Position = [620   510   620   457];
 
 
 
+%% Pharmacology results
+% Function that plots before / after drug application. 
+
+polar_mean_by_drug(T, "slow")
+title("CGP54626 - ON", 'FontSize', 16)
+f = gcf;
+f.Position = [620   510   620   457];
+
+
+
 
 
 
