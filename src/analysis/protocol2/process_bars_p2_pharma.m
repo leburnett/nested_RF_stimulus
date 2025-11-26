@@ -72,7 +72,7 @@ function resultant_angle = process_bars_p2_pharma(exp_folder, metadata, PROJECT_
     [max_v, min_v] = plot_timeseries_polar_bars_pharma(data, median_v, params, save_fig, figures_folder);
 
     % Plot repetition responses to bar sweeps in grid formation: 
-    plot_timeseries_grid_bars_pharma(data, median_v, params, save_fig, fig_save_folder)
+    plot_timeseries_grid_bars_pharma(data, median_v, params, save_fig, figures_folder)
 
     % Convert max values for both conditions into polar format
     max_v_polar1 = vertcat(max_v(:, 1), max_v(1, 1)); % 28 dps

@@ -60,7 +60,7 @@ function plot_each_rep_28dps_pharma(data, params, save_fig, fig_save_folder)
         max_v_polar = vertcat(max_v(:, rep), max_v(1, rep)); %
         polarplot(angls, max_v_polar, 'Color', colors{rep}, 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 5, 'MarkerFaceColor', 'w');
         title(strcat("Rep ", string(rep)), 'FontSize', 15);
-        rlim([0 30])
+        rlim([0 40])
     end
     
     nexttile
@@ -70,7 +70,7 @@ function plot_each_rep_28dps_pharma(data, params, save_fig, fig_save_folder)
         hold on
     end 
     title("All reps");
-    rlim([0 30])
+    rlim([0 40])
     
     % Add title
     sgtitle(sprintf("28 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s - %s %s", ...

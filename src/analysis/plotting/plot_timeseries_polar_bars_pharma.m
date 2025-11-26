@@ -129,7 +129,8 @@ function [max_v, min_v] = plot_timeseries_polar_bars_pharma(data, median_v, para
             end 
     
             % Set consistent Y-limits
-            ylim([-75 -30])
+            ylim([-75 -15])
+            xlim([1 max(x_vals)])
 
             % Store max/min values from the mean voltage per condition.
             d = data{d_idx, n_reps+1}; 

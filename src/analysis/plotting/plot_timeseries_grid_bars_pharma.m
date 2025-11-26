@@ -97,7 +97,7 @@ function plot_timeseries_grid_bars_pharma(data, median_v, params, save_fig, fig_
              end 
     
             % Set consistent Y-limits
-            ylim([-70 -40])
+            ylim([-70 -30])
             xlim([0 max(x_vals)])
 
             if idx > 1
@@ -125,7 +125,7 @@ function plot_timeseries_grid_bars_pharma(data, median_v, params, save_fig, fig_
     end
    
     % Add title
-    sgtitle(sprintf("28 / 56 / 168 / 250 / 500 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s - %s %s", ...
+    sgtitle(sprintf("28 / 56 / 168 / 250 / 500 dps - %s - %s - %s - %s - %s %s", ...
                     strrep(params.date, '_', '-'), strrep(params.time, '_', '-'), strrep(params.strain, '_', '-'), params.on_off, params.application, params.drug), 'FontSize', 16);
     
     % Set figure size
