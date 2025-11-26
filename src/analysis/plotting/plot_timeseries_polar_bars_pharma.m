@@ -120,7 +120,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars_pharma(data, median_v, para
     
                 % Plot repetitions in gray, last rep (mean) in condition color
                 if r < n_reps+1
-                    plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
+                    % plot(x_vals, d2plot, 'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);
                 else 
                     plot(x_vals, d2plot, 'Color', col, 'LineWidth', 1.2);
                     % plot([9000 9000],[-80 -10], 'Color', 'k', 'LineWidth', 0.1) % Start of bar stimulus
@@ -129,7 +129,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars_pharma(data, median_v, para
             end 
     
             % Set consistent Y-limits
-            ylim([-80 -10])
+            ylim([-75 -30])
 
             % Store max/min values from the mean voltage per condition.
             d = data{d_idx, n_reps+1}; 
@@ -137,7 +137,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars_pharma(data, median_v, para
             int_l = interval_len(sp);
 
             % Find the mean voltage in the 900ms before the flash. 
-            d_before_flash = d(1:int_l);
+            d_before_flash = d(int_l*0.25:int_l);
             mean_before = mean(d_before_flash);
 
             % Remove the 900ms before and last 700ms after stimulus to look
@@ -182,7 +182,7 @@ function [max_v, min_v] = plot_timeseries_polar_bars_pharma(data, median_v, para
     polarplot(angls, max_v_polar3, 'Color', colors{3}, 'LineWidth', 2);
     polarplot(angls, max_v_polar4, 'Color', colors{4}, 'LineWidth', 2);
     polarplot(angls, max_v_polar5, 'Color', colors{5}, 'LineWidth', 2);
-    rlim([0 30])
+    rlim([0 40])
     
     % Add title
     sgtitle(sprintf("28 / 56 / 168 / 250 / 500 dps - 4 pixel bar stimuli - 30 pix square - %s - %s - %s - %s - %s %s", ...

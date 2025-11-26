@@ -109,10 +109,10 @@ function data = parse_bar_data_pharma(f_data, v_data)
         
         if i < 66
             interval_t_ms = 9000; % 10,000Hz acquisition - 10000 = 1s gap.
-        elseif i >= 66 && i < 130 
-            interval_t_ms = 5000; % 750ms gap. 
-        elseif i >= 130160160160160
-            interval_t_ms = 4000; % 500ms gap
+        elseif i >= 66 && i < 98 
+            interval_t_ms = 5000; % 750ms gap. 7500
+        elseif i >= 98
+            interval_t_ms = 3000; % 500ms gap. 5000
         end 
 
         for j = 1:3
