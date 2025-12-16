@@ -76,8 +76,19 @@ f.Position = [620   510   620   457];
 %% Pharmacology results
 % Function that plots before / after drug application. 
 
+T = combine_bar_results();
+% Add "drug" and "mins_post" columns to "T"
+T.drug = ones([6,1]);
+T.mins_post = ones([6, 1])*15;
+
+T_pre = T;
+T_post = T;
+
+T = vertcat(T_pre, T_post);
+
+
 polar_mean_by_drug(T, "slow")
-title("CGP54626 - ON", 'FontSize', 16)
+title("CGP54626 - T4", 'FontSize', 16)
 f = gcf;
 f.Position = [620   510   620   457];
 
