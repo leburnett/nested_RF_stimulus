@@ -4,7 +4,7 @@ function resultant_angle = process_bars_p2_pharma(exp_folder, metadata, PROJECT_
     on_off = params.on_off;
     params.date = date_str;
     params.time = time_str;
-    params.strain = metadata.Strain;
+    params.strain = strrep(metadata.Strain, '/', '-');
     params.drug = metadata.Drug;
     if params.drug == "none"
         params.application = "pre";
@@ -175,7 +175,7 @@ function resultant_angle = process_bars_p2_pharma(exp_folder, metadata, PROJECT_
     bar_results.dps168.DSI_pdnd = DSI_pdnd_vfast;
     bar_results.resultant_angle = resultant_angle;
     
-    save(fullfile(results_folder, strcat('peak_vals_', metadata.Strain, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
+    save(fullfile(results_folder, strcat('peak_vals_', params.strain, '_', on_off, '_', date_str, '_', time_str, '.mat'))...
         , "bar_results"...
         , 'data' ...
         , 'data_aligned'...
