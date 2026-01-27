@@ -1,2 +1,12 @@
-# nested_RF_stimulus
- Code to generate nested flash stimulus for identifiying the receptive fields of cells using ephys.
+# Nested receptive field and direction selectivity protocol
+
+This repository contains the code to generate and run the nested receptive field (RF) and direction selectivity protocols for patch electrophysiology experiments in Drosophila melanogaster. The nested RF protocol was designed by LE Burnett in 2024 for patch electrophysiology experiments run by JY Park in the Reiser Lab at HHMI's Janelia Research Campus, and was based on the protocol used in Gruntman et al. 2019.
+
+The first protocol determines the rough receptive field location and preferred contrast of the recorded neuron, while the second protocol probes the direction selectivity of the cell using moving bar stimuli and measures the receptive field structure at higher spatial resolution using small flashing squares.
+
+Pre-made versions of the first protocol can be found within the `protocols` folder. These protocols are organised based on which side of the G4 LED arena the protocol will be presented on (left or right). Inside the protocol folders are '.g4p' files that can be used to run this protocol using the `G4_Display_Tools` function `G4_experiment_conductor`. After presenting this protocol, automatic processing scripts analyse the data and generate plots that show the response of the cell to dark and bright flashes in different positions on the arena. From these plots, the user can determine the `peak_frame` (the frame number that elicited the greatest response) and use this information to generate the second protocol.
+
+The second protocol is made by running the function `generate_protocol2()`. Running this function will open a pop-up window that asks the user to input the `peak_frame` from protocol 1 and which side of the arena protocol 1 was presented on. The function will then generate a new folder named using the ocnvention 'yyyy_MM_dd_HH_mm' that contains the patterns, functions, and experiment file `currentExp.mat` needed to run protocol 2, as well as a `Log` file that contains the recorded data. Although all patterns and functions are generated de novo with every run of the protocol, the bar sweep and bar flash stimuli use premade bar stimuli that are found within the folder `results\patterns\protocol2`. If the parameters of the bar sweep / flash stimuli need to be changed, the user must modify these premade patterns. 
+
+Detailed instructions on how to generate and run both protocols, as well as how to analyse the data, can be found here: https://leburnett.github.io/reiser-documentation/Ephys/ephys_nested_rf.html. 
+
