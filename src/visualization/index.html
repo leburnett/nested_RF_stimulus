@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Nested Receptive Field Protocol</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Section 1: Title and Overview -->
+    <section class="section section-title">
+        <div class="content">
+            <h1>The Nested Receptive Field Protocol</h1>
+            <p class="subtitle">A two-step approach to efficiently map the receptive fields of visual neurons in <em>Drosophila</em></p>
+        </div>
+    </section>
+
+    <!-- Section 2: Experimental Setup -->
+    <section class="section section-setup">
+        <div class="content">
+            <h2>The Experimental Setup</h2>
+            <div class="figure-container">
+                <img src="assets/arena_setup.png" alt="G4 Arena experimental setup showing fly with electrode and LED display" class="figure-image">
+            </div>
+            <div class="description">
+                <p>A fly is tethered in front of a G4 LED arena. Visual stimuli are presented while recording intracellularly from a T4 neuron in the left optic lobe. T4 cells have small receptive fields and respond to visual motion in specific directions.</p>
+                <p class="note">Because T4 cells in the left optic lobe only see the left side of visual space, stimuli are presented on the left hemisphere of the arena.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Protocol 1 - Coarse Mapping -->
+    <section class="section section-protocol1">
+        <div class="content">
+            <h2>Protocol 1: Coarse Receptive Field Mapping</h2>
+            <p class="intro">Protocol 1 systematically presents flashes across the visual field to find where the neuron responds. Both bright (ON) and dark (OFF) flashes are shown at each location.</p>
+
+            <div class="stimulus-demo">
+                <div class="stimulus-item">
+                    <h3>12-pixel flashes</h3>
+                    <div class="gif-container">
+                        <img src="assets/protocol1_12px.gif" alt="12-pixel flash grid animation" class="stimulus-gif">
+                    </div>
+                    <p class="caption">Large flashes (12x12 pixels) at 40 positions provide coarse spatial coverage</p>
+                </div>
+
+                <div class="stimulus-item">
+                    <h3>6-pixel flashes</h3>
+                    <div class="gif-container">
+                        <img src="assets/protocol1_6px.gif" alt="6-pixel flash grid animation" class="stimulus-gif">
+                    </div>
+                    <p class="caption">Medium flashes (6x6 pixels) at 144 positions provide finer resolution</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Analysis -->
+    <section class="section section-analysis">
+        <div class="content">
+            <h2>Analysis: Finding the Peak Response</h2>
+
+            <div class="analysis-description">
+                <p>Neural responses are plotted for each flash location. The numbers above each subplot indicate the pattern frame containing that flash. The user identifies which frame elicited the strongest response and notes whether it was a dark or light flash.</p>
+            </div>
+
+            <div class="analysis-figures">
+                <div class="analysis-item">
+                    <h3>Dark (OFF) Flash Responses</h3>
+                    <div class="figure-container">
+                        <img src="assets/analysis_dark.png" alt="Neural responses to dark flashes" class="analysis-image">
+                    </div>
+                </div>
+
+                <div class="analysis-item">
+                    <h3>Light (ON) Flash Responses</h3>
+                    <div class="figure-container">
+                        <img src="assets/analysis_light.png" alt="Neural responses to light flashes" class="analysis-image">
+                    </div>
+                </div>
+            </div>
+
+            <div class="peak-identification">
+                <div class="callout">
+                    <h3>Identifying the Peak</h3>
+                    <p>In this example, frames 61 and 69 in the dark flash condition show clear depolarizing responses. The user would enter:</p>
+                    <div class="input-example">
+                        <span class="label">Peak frame:</span> <span class="value">61</span>
+                        <span class="label">Contrast:</span> <span class="value">Dark</span>
+                    </div>
+                    <p class="explanation">This tells us: (1) where the receptive field center is located, and (2) that this neuron prefers dark (OFF) stimuli. Protocol 2 will use <strong>only dark stimuli</strong>.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Protocol 2 Setup -->
+    <section class="section section-protocol2-setup">
+        <div class="content">
+            <h2>Protocol 2: Focused Characterization</h2>
+
+            <div class="setup-description">
+                <p>Protocol 2 focuses on a small region (~30x30 pixels) centered on the identified receptive field location. All stimuli use only the preferred contrast (dark, in this example).</p>
+            </div>
+
+            <div class="crop-demo">
+                <div class="figure-container">
+                    <img src="assets/protocol2_region.gif" alt="Protocol 2 region highlighted on arena" class="figure-image">
+                </div>
+                <p class="caption">The blue rectangle shows the region where Protocol 2 stimuli will be presented</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 6: Protocol 2 - Fine Flash Mapping -->
+    <section class="section section-protocol2-flashes">
+        <div class="content">
+            <h2>Protocol 2: Fine Flash Mapping</h2>
+            <p class="intro">Dense, overlapping flash grids map the fine structure of the receptive field within the identified region.</p>
+
+            <div class="stimulus-demo">
+                <div class="stimulus-item">
+                    <h3>4-pixel flashes</h3>
+                    <div class="gif-container">
+                        <img src="assets/protocol2_4px.gif" alt="4-pixel flash grid animation" class="stimulus-gif">
+                    </div>
+                    <p class="caption">4x4 pixel flashes with 50% overlap densely sample the receptive field structure</p>
+                </div>
+
+                <div class="stimulus-item">
+                    <h3>6-pixel flashes</h3>
+                    <div class="gif-container">
+                        <img src="assets/protocol2_6px.gif" alt="6-pixel flash grid animation" class="stimulus-gif">
+                    </div>
+                    <p class="caption">6x6 pixel flashes provide complementary spatial sampling</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 7: Protocol 2 - Bars -->
+    <section class="section section-protocol2-bars">
+        <div class="content">
+            <h2>Protocol 2: Direction Selectivity</h2>
+            <p class="intro">Moving bars test the neuron's direction selectivity. Bars sweep across the receptive field in 16 directions (8 orientations x 2 directions each) at multiple speeds.</p>
+
+            <div class="bar-demo">
+                <div class="orientation-diagram">
+                    <h3>Bar Orientations and Directions</h3>
+                    <svg viewBox="0 0 220 220" class="orientation-svg">
+                        <defs>
+                            <!-- Arrowhead marker -->
+                            <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                <polygon points="0,0 6,3 0,6" fill="#4a9eff"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Center point -->
+                        <circle cx="110" cy="110" r="4" fill="#4a9eff"/>
+
+                        <!-- 8 orientations with bidirectional arrows (using markers) -->
+                        <!-- Each orientation has bars moving in 2 opposite directions -->
+
+                        <!-- 0/8 pi = 0 degrees (horizontal) -->
+                        <line x1="30" y1="110" x2="185" y2="110" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="190" y1="110" x2="35" y2="110" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- 1/8 pi = 22.5 degrees -->
+                        <line x1="47" y1="143" x2="170" y2="74" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="173" y1="77" x2="50" y2="146" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- 2/8 pi = 45 degrees -->
+                        <line x1="53" y1="167" x2="164" y2="56" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="167" y1="53" x2="56" y2="164" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- 3/8 pi = 67.5 degrees -->
+                        <line x1="74" y1="173" x2="143" y2="50" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="146" y1="47" x2="77" y2="170" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- 4/8 pi = 90 degrees (vertical) -->
+                        <line x1="110" y1="190" x2="110" y2="35" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="110" y1="30" x2="110" y2="185" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- 5/8 pi = 112.5 degrees -->
+                        <line x1="143" y1="173" x2="74" y2="50" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="77" y1="47" x2="146" y2="170" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- 6/8 pi = 135 degrees -->
+                        <line x1="164" y1="167" x2="53" y2="56" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="56" y1="53" x2="167" y2="164" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- 7/8 pi = 157.5 degrees -->
+                        <line x1="170" y1="143" x2="47" y2="74" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="50" y1="77" x2="173" y2="146" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- Outer circle for reference -->
+                        <circle cx="110" cy="110" r="95" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4,4"/>
+                    </svg>
+                    <p class="caption">8 orientations x 2 directions = 16 motion directions tested</p>
+                </div>
+
+                <div class="bar-animation">
+                    <h3>Moving Bar Stimuli</h3>
+                    <div class="gif-container">
+                        <img src="assets/protocol2_bars.gif" alt="Moving bar animation" class="stimulus-gif">
+                    </div>
+                    <p class="caption">Dark bars sweep across the receptive field. T4 cells respond preferentially to motion in one direction.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 8: Summary -->
+    <section class="section section-summary">
+        <div class="content">
+            <h2>Summary</h2>
+
+            <div class="workflow-diagram">
+                <div class="workflow-step">
+                    <div class="step-icon">1</div>
+                    <h3>Protocol 1</h3>
+                    <p>Coarse mapping</p>
+                    <ul>
+                        <li>Full hemisphere coverage</li>
+                        <li>Both ON and OFF flashes</li>
+                        <li>40 + 144 positions</li>
+                    </ul>
+                </div>
+
+                <div class="workflow-arrow">&rarr;</div>
+
+                <div class="workflow-step">
+                    <div class="step-icon">A</div>
+                    <h3>Analysis</h3>
+                    <p>Find the peak</p>
+                    <ul>
+                        <li>Plot responses by location</li>
+                        <li>Identify peak frame</li>
+                        <li>Determine contrast preference</li>
+                    </ul>
+                </div>
+
+                <div class="workflow-arrow">&rarr;</div>
+
+                <div class="workflow-step">
+                    <div class="step-icon">2</div>
+                    <h3>Protocol 2</h3>
+                    <p>Fine characterization</p>
+                    <ul>
+                        <li>Cropped region only</li>
+                        <li>Single contrast (preferred)</li>
+                        <li>Dense flashes + moving bars</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="summary-text">
+                <p>This nested approach efficiently allocates recording time: broad coverage first identifies the receptive field location and contrast preference, then detailed characterization reveals the receptive field's fine spatial structure and direction selectivity.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>Nested Receptive Field Protocol Visualization</p>
+    </footer>
+</body>
+</html>
