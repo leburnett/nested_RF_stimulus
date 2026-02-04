@@ -1,10 +1,38 @@
 function [row_start, row_end, col_start, col_end] = centeredSquare(x, y, square_size)
-% Find the coordinates of the subsection of the screen within which the
-% stimulus should be presented, centred on the coordinates [x,y].
-
-% [x,y] are coordinates referring to the pixels of the screen. This coordinate 
-% is found by working backwards from what flash stimulus evokes the greatest
-% response in protocol 1. 
+% CENTEREDSQUARE  Calculate screen region boundaries centered on a point.
+%
+%   [ROW_START, ROW_END, COL_START, COL_END] = CENTEREDSQUARE(X, Y, SQUARE_SIZE)
+%   computes the pixel boundaries of a square region centered on [x,y],
+%   ensuring the region stays within the valid screen area.
+%
+%   INPUTS:
+%     x           - Horizontal pixel coordinate (column, 17-192)
+%     y           - Vertical pixel coordinate (row, 1-48)
+%     square_size - Width/height of the square region in pixels
+%
+%   OUTPUTS:
+%     row_start - First row (y) of the region (1-48)
+%     row_end   - Last row (y) of the region (1-48)
+%     col_start - First column (x) of the region (17-192)
+%     col_end   - Last column (x) of the region (17-192)
+%
+%   SCREEN DIMENSIONS:
+%     The G4 arena display is 192x48 pixels (12 panels x 3 panels).
+%     Valid display area: columns 17-192, rows 1-48.
+%     Column 1-16 is typically not used (panel configuration).
+%
+%   EDGE HANDLING:
+%     If centering the square would extend beyond screen boundaries,
+%     the region is shifted to fit within the valid screen area.
+%     This ensures stimuli remain fully visible even for RF centers
+%     near screen edges.
+%
+%   EXAMPLE:
+%     % Get 30x30 pixel region centered at position [100, 24]
+%     [r1, r2, c1, c2] = centeredSquare(100, 24, 30);
+%     % Returns: r1=9, r2=38, c1=85, c2=114
+%
+%   See also GENERATE_FLASH_STIMULUS_XY, GENERATE_BAR_STIMULUS_XY
 %___________________________________________________________________________
     
     % Screen dimensions

@@ -1,25 +1,43 @@
 function func = generate_func_for_flash(bkg_frame, bkg_dur, flash_seq, flash_dur, on_off)
-% Generate the 'func' position function array to be read by the controller.
-% This array consists of integer values which refer to the pattern id to be
-% shown at each 2ms interval because the system runs at 500Hz (updates 
-% every 2ms) when showing 4-bit patterns.
-
-% Inputs
-% ______
-
-% 'bkg_frame' - frame of pattern which contains the background frame.
-% Should normally be the first frame of the pattern.
-
-% 'bkg_dur' - duration in seconds for how long to present this background
-% frame between flash stimuli
-
-% 'flash_seq' - a [1 x n_flashes] array of the order in which to display
-% the flashes. The index number refers to which frame of the pattern to read in. 
-
-% 'flash_dur' - duration in seconds for which to display each flash.
-
-% 'on_off' - whether to show just ON flashes, just OFF flashes or both.
-% Possible options are 'on', 'off' or 'both'.
+% GENERATE_FUNC_FOR_FLASH  Build position function array for flash stimuli.
+%
+%   FUNC = GENERATE_FUNC_FOR_FLASH(BKG_FRAME, BKG_DUR, FLASH_SEQ, ...
+%       FLASH_DUR, ON_OFF)
+%   creates the position function array that controls which pattern frame
+%   is displayed at each time point during the flash stimulus presentation.
+%
+%   INPUTS:
+%     bkg_frame - Frame index in the pattern containing the background
+%                 (typically 1, the first frame)
+%     bkg_dur   - Duration of inter-flash interval in seconds
+%     flash_seq - 1 x n_flashes array specifying flash presentation order
+%                 (from GENERATE_FLASH_ORDER)
+%     flash_dur - Duration of each flash presentation in seconds
+%     on_off    - Flash polarity to present:
+%                 'on'   - Only bright flashes (frames n_flashes+2 to 2n+1)
+%                 'off'  - Only dark flashes (frames 2 to n_flashes+1)
+%                 'both' - Alternating ON and OFF flashes
+%
+%   OUTPUT:
+%     func - 1 x M array of frame indices, where M depends on total
+%            duration. Each element specifies which pattern frame to
+%            display during that 2ms time step.
+%
+%   TIMING:
+%     The G4 system updates at 500Hz (every 2ms) for 4-bit patterns.
+%     Each element in func represents one 2ms time step.
+%     Example: 200ms flash = 100 elements in func
+%
+%   FRAME INDEXING:
+%     Pattern structure: [bkg, OFF_1..OFF_n, ON_1..ON_n]
+%     - OFF flash i is at frame index: flash_seq(i) + 1
+%     - ON flash i is at frame index: flash_seq(i) + n_flashes + 1
+%
+%   INTERLEAVING (for 'both'):
+%     When presenting both contrasts, ON and OFF flashes are interleaved
+%     to allow comparison of responses at similar time points.
+%
+%   See also GENERATE_FLASH_FUNCTION, GENERATE_FLASH_ORDER
 % ______________________________________________________________
 
 % 1 - Generate array of ones for the 'interval' when the background frame

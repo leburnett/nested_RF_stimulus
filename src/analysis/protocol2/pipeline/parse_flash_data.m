@@ -1,27 +1,46 @@
 function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT)
-
-% Parse the flash data.
-
-% Inputs
-% ------
-% f_data
-% v_data
-% on_off
-% slow_fast
-% px_size
-% PROJECT_ROOT
-
-% Outputs
-% -------
-
-% data_comb
-% cmap_id
-% var_across_reps
-% var_within_reps
-% diff_mean
-% max_data
-% min_data
-
+% PARSE_FLASH_DATA  Extract and analyze flash stimulus responses from recording.
+%
+%   [DATA_COMB, CMAP_ID, VAR_ACROSS, VAR_WITHIN, DIFF_MEAN, MAX_DATA, MIN_DATA]
+%       = PARSE_FLASH_DATA(F_DATA, V_DATA, ON_OFF, SLOW_FAST, PX_SIZE, PROJECT_ROOT)
+%   identifies flash stimulus timing, extracts responses, and computes
+%   spatial response maps for receptive field analysis.
+%
+%   INPUTS:
+%     f_data       - 1xN array of frame numbers at each time point
+%     v_data       - 1xN array of voltage values at each time point (10kHz)
+%     on_off       - 'on' or 'off' indicating flash polarity
+%     slow_fast    - 'slow' for standard timing (currently only 'slow' used)
+%     px_size      - Flash size in pixels (4 or 6)
+%     PROJECT_ROOT - Base path for saving quality check figures
+%
+%   OUTPUTS:
+%     data_comb      - NxN matrix of response values at each grid position
+%                      N=14 for 4px flashes, N=10 for 6px flashes
+%     cmap_id        - NxN matrix of response classification:
+%                      1 = excitatory (positive), 2 = inhibitory (negative),
+%                      3 = neutral (below threshold)
+%     var_across_reps - NxN matrix of coefficient of variation across 3 reps
+%     var_within_reps - NxN matrix of CV within each rep (temporal variance)
+%     diff_mean       - NxN matrix of max-min response difference
+%     max_data        - NxN matrix of 98th percentile of mean response
+%     min_data        - NxN matrix of 2nd percentile of mean response
+%
+%   RESPONSE CLASSIFICATION:
+%     Excitatory: |max| >= |min| AND diff_resp > 3
+%     Inhibitory: |max| < |min| AND diff_resp > 2.8
+%     Neutral: response below threshold
+%
+%   TIMING:
+%     Extracts 7s window per flash (1s before, flash, 5s after)
+%     3 repetitions averaged for final response estimate
+%
+%   GRID STRUCTURE:
+%     4px flashes: 14x14 grid = 196 positions, 50% overlap
+%     6px flashes: 10x10 grid = 100 positions, 50% overlap
+%     Rows correspond to vertical position (y), columns to horizontal (x)
+%
+%   See also PROCESS_FLASH_P2, GAUSSIAN_RF_ESTIMATE, LOAD_PROTOCOL2_DATA
 % ________________________________________________________________________
 
     diff_f_data = diff(f_data);

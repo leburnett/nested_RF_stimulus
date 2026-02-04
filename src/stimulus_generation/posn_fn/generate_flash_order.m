@@ -1,18 +1,41 @@
 function outputSequence = generate_flash_order(fl_rows, fl_cols)
-
-% Generate the order in which flashes should be presented in the RF
-% stimulus. The screen is split up into a grid based on the size of the
-% flashes. This grid is then split into quadrants and flashes are shown
-% sequenctially in the same position within each quadrant in order.
-
-% This works with a pattern that has the flashes ordered going down the
-% ROWS first, then across the COLUMNS. 
-
-% Required inputs:
-% - pixel_size 
-% - size of screen used (in pixels)
-% - additionally in future, if the grid is overlapping or non-overlapping.
-
+% GENERATE_FLASH_ORDER  Create quadrant-interleaved flash presentation order.
+%
+%   OUTPUTSEQUENCE = GENERATE_FLASH_ORDER(FL_ROWS, FL_COLS)
+%   generates a sequence of frame indices that presents flashes in a
+%   spatially distributed order to minimize adaptation effects between
+%   adjacent flashes.
+%
+%   INPUTS:
+%     fl_rows - Number of rows in the flash grid
+%     fl_cols - Number of columns in the flash grid
+%
+%   OUTPUT:
+%     outputSequence - 1 x (fl_rows*fl_cols) array of frame indices
+%                      specifying the order to present flashes
+%
+%   ALGORITHM:
+%     The flash grid is divided into four quadrants:
+%       Q1 (top-left)     Q2 (top-right)
+%       Q3 (bottom-left)  Q4 (bottom-right)
+%
+%     For each position within a quadrant, the function cycles through
+%     all four quadrants before moving to the next position. This ensures
+%     consecutive flashes are spatially separated, reducing local
+%     adaptation artifacts in the neural response.
+%
+%   PATTERN COMPATIBILITY:
+%     Designed for patterns with column-major ordering (flashes ordered
+%     going down rows first, then across columns). Uses sub2ind() for
+%     conversion between [row,col] and linear frame indices.
+%
+%   EXAMPLE:
+%     % For a 14x14 flash grid (196 flashes)
+%     order = generate_flash_order(14, 14);
+%     % order = [1, 8, 99, 106, 2, 9, 100, 107, ...]
+%     % Cycles through all 4 quadrants for each position
+%
+%   See also GENERATE_FLASH_FUNCTION, GENERATE_FUNC_FOR_FLASH
 % ______________________________________________________________
 
     % Determine the size of the grid of flashes

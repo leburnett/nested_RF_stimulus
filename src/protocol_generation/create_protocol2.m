@@ -1,4 +1,40 @@
 function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder, metadata)
+% CREATE_PROTOCOL2  Assemble currentExp.mat from patterns and functions.
+%
+%   [PATTERN_ORDER, FUNC_ORDER, TRIAL_DUR] = CREATE_PROTOCOL2(EXP_FOLDER, METADATA)
+%   reads all pattern and position function files from the experiment folder,
+%   organizes them into the correct presentation order, and saves the
+%   experiment configuration to currentExp.mat.
+%
+%   INPUTS:
+%     exp_folder - Full path to the experiment directory containing
+%                  'Patterns/' and 'Functions/' subdirectories
+%     metadata   - Structure from GET_INPUT_PARAMETERS containing:
+%                  .Frame, .Side, .Age, .Strain
+%
+%   OUTPUTS:
+%     pattern_order - 1xN array specifying pattern presentation order
+%                     Format: [grey, 4px_flash, 6px_flash, bars_slow, bars_fast]
+%     func_order    - 1xN array specifying function presentation order
+%                     Matched to pattern_order for each trial
+%     trial_dur     - 1xN array of trial durations in seconds
+%
+%   EXPERIMENT STRUCTURE:
+%     The protocol presents stimuli in this order:
+%       1. Static grey screen (5s background)
+%       2. 4px flash pattern with flash position function
+%       3. 6px flash pattern with flash position function
+%       4. Bar patterns (8 orientations) at 28 dps - forward & backward
+%       5. Bar patterns (8 orientations) at 56 dps - forward & backward
+%     Each condition is repeated 3 times during RUN_PROTOCOL2.
+%
+%   SAVED FILE:
+%     currentExp.mat contains:
+%       - currentExp structure with pattern/function metadata
+%       - pattern_order, func_order, trial_dur arrays
+%       - metadata structure for analysis reference
+%
+%   See also GENERATE_PROTOCOL2, RUN_PROTOCOL2, GENERATE_STATIC_FUNCTION
 
 %% check for correct folders
 pattern_folder = fullfile(exp_folder, 'Patterns');

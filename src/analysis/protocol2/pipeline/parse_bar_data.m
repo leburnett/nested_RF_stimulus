@@ -1,5 +1,39 @@
 function data = parse_bar_data(f_data, v_data, on_off)
-
+% PARSE_BAR_DATA  Extract individual bar stimulus responses from recording.
+%
+%   DATA = PARSE_BAR_DATA(F_DATA, V_DATA, ON_OFF) identifies the timing of
+%   each moving bar stimulus presentation and extracts the corresponding
+%   voltage responses for all 3 repetitions.
+%
+%   INPUTS:
+%     f_data - 1xN array of frame numbers at each time point
+%     v_data - 1xN array of voltage values at each time point (10kHz)
+%     on_off - 'on' or 'off' indicating which contrast was presented
+%
+%   OUTPUT:
+%     data - Mx4 cell array where M = number of bar stimuli (32 total):
+%            data{i,1} - Rep 1 voltage trace for bar stimulus i
+%            data{i,2} - Rep 2 voltage trace for bar stimulus i
+%            data{i,3} - Rep 3 voltage trace for bar stimulus i
+%            data{i,4} - Mean voltage across all 3 reps
+%            Each trace includes 9s pre-stimulus and 9s post-stimulus
+%
+%   BAR STIMULUS STRUCTURE:
+%     Protocol 2 presents 16 bar directions at 2 speeds = 32 bar stimuli.
+%     Each bar direction includes forward and backward movement.
+%     Order: 8 orientations x 2 directions x 2 speeds
+%
+%   TIMING DETECTION:
+%     1. Finds end of flash stimuli (frame drops by -100 or -200)
+%     2. Locates start of bar stimuli after gap_between_flash_and_bars
+%     3. Identifies individual bar boundaries by frame differences > 9
+%     4. Extracts voltage with 9s padding before and after each bar
+%
+%   NOTE:
+%     Assumes 10kHz sampling rate (10000 samples = 1 second)
+%     Bar stimuli are preceded by 1s static gray screen
+%
+%   See also PROCESS_BARS_P2, LOAD_PROTOCOL2_DATA
 
     diff_f_data = diff(f_data);
 

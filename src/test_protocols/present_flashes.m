@@ -1,11 +1,41 @@
 function present_flashes(peak_frame, screen_hemi, flash_size)
-
-% THIS DOES NOT SAVE THE DATA
-
-% Uses the patterns generated for Protocol 1 
-% After running Protocol 1 the EphysGrid plots are generated.
-% From these plots, use the numbers above each subplot to enter as
-% 'peak_frame' and this function will present 5 flashes at that location. 
+% PRESENT_FLASHES  Quick RF verification by presenting test flashes.
+%
+%   PRESENT_FLASHES(PEAK_FRAME, SCREEN_HEMI, FLASH_SIZE) presents a short
+%   sequence of flashes at a specified location to verify the receptive
+%   field position before running the full Protocol 2.
+%
+%   INPUTS:
+%     peak_frame   - Frame number from Protocol 1 to test (from EphysGrid plot)
+%     screen_hemi  - 'L' (left) or 'R' (right) hemisphere
+%     flash_size   - Flash size in pixels (12 or 6)
+%
+%   IMPORTANT: This function does NOT save the recorded data. It is
+%   intended for quick visual/audio verification of RF location only.
+%
+%   PROTOCOL:
+%     - Presents 5 flashes at the specified location
+%     - Flash duration: 500ms
+%     - Inter-flash interval: 500ms (background)
+%     - Total duration: ~5 seconds
+%
+%   WORKFLOW:
+%     1. After running Protocol 1, examine EphysGrid response plots
+%     2. Note the frame number (shown above each subplot) with best response
+%     3. Run this function with that frame number
+%     4. Listen/observe neural response to verify RF location
+%     5. If confirmed, proceed with GENERATE_PROTOCOL2
+%
+%   EXAMPLE:
+%     % Test flash at frame 45, left hemisphere, using 6px flashes
+%     present_flashes(45, 'L', 6)
+%
+%   PREREQUISITES:
+%     - Protocol 1 patterns must exist in the appropriate protocols folder
+%     - G4 Display Tools installed and arena connected
+%     - userSettings.m configured
+%
+%   See also GENERATE_5FLASH_FUNCTION, GENERATE_PROTOCOL2 
 
 %% SET PARAMETERS
 n_flashes = 5;
