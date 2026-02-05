@@ -1,5 +1,36 @@
-% Function to fit Gaussian to given indices
 function optParams = fitGaussian(xData, yData, zData, idx)
+% FITGAUSSIAN  Fit a 2D Gaussian to selected data points.
+%
+%   OPTPARAMS = FITGAUSSIAN(XDATA, YDATA, ZDATA, IDX) fits a non-rotated
+%   2D Gaussian function to a subset of response data specified by idx.
+%
+%   INPUTS:
+%     xData - 1D array of x coordinates (column positions)
+%     yData - 1D array of y coordinates (row positions)
+%     zData - 1D array of response values
+%     idx   - Logical or numeric indices specifying which points to fit
+%
+%   OUTPUT:
+%     optParams - 6-element array of optimized Gaussian parameters:
+%                 [A, x0, y0, sigma_x, sigma_y, B]
+%                 A       = amplitude
+%                 (x0,y0) = center coordinates
+%                 sigma_x = x standard deviation
+%                 sigma_y = y standard deviation
+%                 B       = baseline offset
+%
+%   MODEL:
+%     z = A * exp(-((x-x0)^2/(2*sigma_x^2) + (y-y0)^2/(2*sigma_y^2))) + B
+%
+%   PREPROCESSING:
+%     Response data is log-transformed: sign(z) * log(1 + |z|)
+%     This reduces the influence of outliers and improves fit stability.
+%
+%   NOTE:
+%     This is a simplified version without rotation. For rotated Gaussian
+%     fitting, see GAUSSIAN_RF_ESTIMATE.
+%
+%   See also GAUSSIAN_RF_ESTIMATE, LSQCURVEFIT
 
     zData = sign(zData) .* log(1 + abs(zData)); % Log-transform responses
 

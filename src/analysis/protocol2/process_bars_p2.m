@@ -1,4 +1,53 @@
 function resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT)
+% PROCESS_BARS_P2  Analyze bar stimulus responses for direction selectivity.
+%
+%   RESULTANT_ANGLE = PROCESS_BARS_P2(EXP_FOLDER, METADATA, PROJECT_ROOT)
+%   extracts responses to moving bar stimuli, calculates direction
+%   selectivity metrics, and generates visualization figures.
+%
+%   INPUTS:
+%     exp_folder   - Full path to the Protocol 2 experiment directory
+%     metadata     - Structure containing: .Strain, .Frame, .Side, .Age
+%     PROJECT_ROOT - Base directory for saving results and figures
+%
+%   OUTPUT:
+%     resultant_angle - Preferred direction in radians (vector sum result)
+%
+%   ANALYSIS PIPELINE:
+%     1. Loads voltage and frame data from TDMS log files
+%     2. Parses individual bar stimulus responses using PARSE_BAR_DATA
+%     3. Calculates max/min voltage for each of 16 directions
+%     4. Computes direction selectivity metrics:
+%        - DSI (vector sum and PD/ND methods)
+%        - FWHM of tuning curve
+%        - Circular variance
+%        - Symmetry ratio
+%        - Von Mises parameters (theta, kappa)
+%     5. Generates visualization figures:
+%        - Timeseries with polar plot overlay
+%        - Polar plot with vector sum arrow
+%        - Heatmap of direction responses
+%
+%   OUTPUT FILES:
+%     Saves to PROJECT_ROOT/results/bar_results/:
+%       peak_vals_<strain>_<on_off>_<date>_<time>.mat
+%     Contains: bar_results structure, raw data, aligned data, PD ordering
+%
+%     Saves to PROJECT_ROOT/figures/bar_stimuli/:
+%       PDF figures of timeseries, polar plots, and heatmaps
+%
+%   COMPUTED METRICS:
+%     For both slow (28 dps) and fast (56 dps) bars:
+%       - max_v_polar: Max voltage per direction
+%       - magnitude: Vector sum magnitude
+%       - angle_rad: Preferred direction (radians)
+%       - fwhm: Full-width half-maximum (degrees)
+%       - cv: Circular variance
+%       - DSI_vector: Direction selectivity (vector method)
+%       - DSI_pdnd: Direction selectivity (PD/ND method)
+%       - sym_ratio: Tuning symmetry
+%
+%   See also PARSE_BAR_DATA, FIND_PD_AND_ORDER_IDX, COMPUTE_BAR_RESPONSE_METRICS
 
     results_folder = fullfile(PROJECT_ROOT, "results", "bar_results");
     if ~isfolder(results_folder)

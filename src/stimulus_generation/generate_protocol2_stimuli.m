@@ -1,19 +1,34 @@
 function generate_protocol2_stimuli(peak_frame, on_off)
-% Takes an array containing the frames of the patterns displayed in
-% protocol 1 to which the cell had the strongest voltage response. It then
-% uses these frames to determine the pixel on the screen on which to centre
-% the stimuli that are presented in this following protocol. 
-
-% This script calls the functions that generate the 4 pixel, 50%
-% overlapping flash stimulus and also the moving bar stimulus.
-
-% It creates the position functions for these stimuli and runs the
-% protocol. 
-
-% Inputs:
-% ______
-% 'peak_frames' - [n_condition, n_rep, [peak_frame, peak_voltage]]
-
+% GENERATE_PROTOCOL2_STIMULI  Legacy function for Protocol 2 generation.
+%
+%   GENERATE_PROTOCOL2_STIMULI(PEAK_FRAME, ON_OFF) generates and runs
+%   Protocol 2 stimuli centered on the identified RF location.
+%
+%   NOTE: This is an earlier version of the protocol generation workflow.
+%   For current usage, use GENERATE_PROTOCOL2 instead, which includes
+%   improved parameter handling and metadata collection via GUI.
+%
+%   INPUTS:
+%     peak_frame - Frame number from Protocol 1 with strongest response
+%     on_off     - Contrast preference:
+%                  1 or 'on'  = bright (ON) flashes
+%                  0 or 'off' = dark (OFF) flashes
+%
+%   WORKFLOW:
+%     1. Converts peak frame to screen coordinates [x,y]
+%     2. Creates experiment folder with timestamp
+%     3. Generates 4px overlapping flash stimuli (30px crop area)
+%     4. Generates cropped bar stimuli (45px crop area)
+%     5. Creates position functions for bars
+%     6. Assembles and runs the protocol
+%
+%   DIFFERENCES FROM GENERATE_PROTOCOL2:
+%     - No GUI for metadata input
+%     - Different crop sizes (45px vs 30px for bars)
+%     - Different intensity values (6,0,15 vs 4,0,15)
+%     - No 6px flash grid
+%
+%   See also GENERATE_PROTOCOL2, PATT_FRAME_TO_COORD
 % _________________________________________________________________________
     px_intensity = [6, 0, 15];
     px_crop_flash = 30;

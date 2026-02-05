@@ -1,17 +1,35 @@
 function save_function_G4_test(func, param, save_dir, filename)
-% FUNCTION save_function_G4(type, func, save_dir, filename)
-% 
-% Saves the func variable to both .mat and .pfn (or .afn) files, the former 
-% of which can be easily read back into Matlab and the latter a file which 
-% is read by the controller.
+% SAVE_FUNCTION_G4_TEST  Save position function with fixed ID for testing.
 %
-% inputs:
-% func: array of function values
-% param: full parameters of the input function to be stored in .mat file
-% save_dir: directory to store the function files
-% filename: desired name of the .mat function file
+%   SAVE_FUNCTION_G4_TEST(FUNC, PARAM, SAVE_DIR, FILENAME) saves a position
+%   function to .mat and .pfn files, overwriting any existing function
+%   with the same ID. This is a testing variant that always uses a fixed
+%   function ID to allow quick iteration.
 %
-% 5/1/2023 FL add argument check
+%   INPUTS:
+%     func     - 1xM array of frame indices (position function values)
+%     param    - Structure containing function parameters:
+%                .ID      - Function ID number (fixed in calling function)
+%                .frames  - Number of frames in associated pattern
+%                .gs_val  - Grayscale value (4 for 4-bit patterns)
+%                .type    - 'pfn' (position) or 'afn' (analog)
+%                .dur     - Total duration in seconds
+%     save_dir - Directory to save the function files
+%     filename - Base name for the output files
+%
+%   OUTPUT FILES:
+%     - <ID>_<filename>_G4.mat - MATLAB structure with parameters
+%     - fun<ID>.pfn - Binary function file for G4 controller
+%
+%   DIFFERENCES FROM SAVE_FUNCTION_G4:
+%     This test version does not automatically increment the function ID,
+%     allowing the same function to be overwritten during iterative testing.
+%
+%   FILE FORMAT:
+%     PFN files use a 512-byte header block followed by 16-bit function data.
+%     Frame values are stored as (frame_index - 1) for zero-based indexing.
+%
+%   See also GENERATE_5FLASH_FUNCTION, SAVE_FUNCTION_G4
 
 arguments
     func (1,:) %{mustBeA(func, ["vector"])} % activate this when >MATLAB2020 is requirement

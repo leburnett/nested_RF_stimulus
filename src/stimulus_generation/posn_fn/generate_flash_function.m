@@ -1,15 +1,42 @@
 function generate_flash_function(flash_sz_px, fl_rows, fl_cols, n_frames, bkg_frame, interval_dur, flash_dur, on_off, func_save_dir)
-
-% Generate position function for nested RF flash stimuli.
-
-% 'fl_rows' = the number of rows in the grid of flashes.
-% 'fl_cols' = the number of columns in the grid of flashes.
-% 'bkg_frame' = the index in the pattern of the background frame. Should be
-% the first frame. 
-% 'interval_dur' = duration of interval background screen in seconds.
-% 'flash_dur' = duration of flash in seconds.
-% 'on_off' = whether to present bright "on", dark "off" or both "both"
-% flashes.
+% GENERATE_FLASH_FUNCTION  Create complete position function for flash stimuli.
+%
+%   GENERATE_FLASH_FUNCTION(FLASH_SZ_PX, FL_ROWS, FL_COLS, N_FRAMES, ...
+%       BKG_FRAME, INTERVAL_DUR, FLASH_DUR, ON_OFF, FUNC_SAVE_DIR)
+%   generates and saves the position function file that controls the
+%   temporal sequence of flash presentations for the G4 display system.
+%
+%   INPUTS:
+%     flash_sz_px   - Size of each flash square in pixels (for filename)
+%     fl_rows       - Number of rows in the flash grid
+%     fl_cols       - Number of columns in the flash grid
+%     n_frames      - Total number of frames in the associated pattern
+%     bkg_frame     - Frame index for background (typically 1)
+%     interval_dur  - Duration between flashes in seconds
+%     flash_dur     - Duration of each flash in seconds
+%     on_off        - Flash polarity: 'on', 'off', or 'both'
+%     func_save_dir - Directory to save position function files
+%
+%   WORKFLOW:
+%     1. Calls GENERATE_FLASH_ORDER to determine spatial presentation order
+%     2. Calls GENERATE_FUNC_FOR_FLASH to build the timing array
+%     3. Constructs parameter structure with metadata
+%     4. Saves function files using SAVE_FUNCTION_G4
+%
+%   OUTPUT FILES:
+%     - <flash_sz>px_flashes_<n>flashes_<dur>ms_<int>ms_<on_off>.pfn
+%     - <flash_sz>px_flashes_<n>flashes_<dur>ms_<int>ms_<on_off>_G4.mat
+%
+%   CONSOLE OUTPUT:
+%     Prints number of elements in func and number of unique frames
+%     for verification.
+%
+%   TOTAL DURATION:
+%     Calculated as: (n_elements * 2ms) / 1000 = seconds
+%     Includes initial background + all flashes + inter-flash intervals
+%
+%   See also GENERATE_FLASH_ORDER, GENERATE_FUNC_FOR_FLASH,
+%            GENERATE_FLASH_PATTERN, SAVE_FUNCTION_G4
 % ______________________________________________________________________
 
     % Determine the order in which to display the flashes.

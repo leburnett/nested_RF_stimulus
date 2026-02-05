@@ -1,5 +1,46 @@
 function [optEx, R_squared, optInh, R_squaredi, f1, f2] = gaussian_RF_estimate(response, min_data)
-%% Fit and plot a rotated 2D Gaussian around excitatory and inhibitory lobes
+% GAUSSIAN_RF_ESTIMATE  Fit 2D Gaussian models to receptive field data.
+%
+%   [OPTEX, R_SQUARED, OPTINH, R_SQUAREDI, F1, F2] = ...
+%       GAUSSIAN_RF_ESTIMATE(RESPONSE, MIN_DATA)
+%   fits rotated 2D Gaussian functions to both excitatory and inhibitory
+%   components of the receptive field and generates visualization figures.
+%
+%   INPUTS:
+%     response - NxN matrix of excitatory response values (rescaled 0-1)
+%     min_data - NxN matrix of inhibitory response values (negative peaks)
+%
+%   OUTPUTS:
+%     optEx      - Fitted parameters for excitatory lobe [A,x0,y0,sx,sy,theta,B]
+%     R_squared  - Goodness of fit for excitatory Gaussian (0-1)
+%     optInh     - Fitted parameters for inhibitory lobe [A,x0,y0,sx,sy,theta,B]
+%     R_squaredi - Goodness of fit for inhibitory Gaussian (0-1)
+%     f1         - Figure handle: side-by-side comparison plots
+%     f2         - Figure handle: RF with 1.5 sigma contours
+%
+%   GAUSSIAN MODEL:
+%     The rotated 2D Gaussian function has 7 parameters:
+%       A     - Amplitude (peak height)
+%       x0    - Center x coordinate
+%       y0    - Center y coordinate
+%       sigma_x - Standard deviation along primary axis
+%       sigma_y - Standard deviation along secondary axis
+%       theta   - Rotation angle (radians, -pi to pi)
+%       B     - Baseline offset
+%
+%   FITTING:
+%     Uses lsqcurvefit with bounded optimization
+%     Response data is log-transformed: sign(z) * log(1 + |z|)
+%     Inhibitory data is inverted (*-1) before fitting
+%
+%   FIGURES:
+%     f1 shows three subplots:
+%       1. Original response data
+%       2. Fitted excitatory Gaussian
+%       3. Fitted inhibitory Gaussian
+%     f2 shows RF heatmap with 1.5 sigma contours for both lobes
+%
+%   See also PROCESS_FLASH_P2, LSQCURVEFIT, FITGAUSSIAN
 
 % Define the x and y coordinate grid
 [xGrid, yGrid] = meshgrid(1:size(response,2), 1:size(response,1));

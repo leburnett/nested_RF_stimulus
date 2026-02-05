@@ -1,5 +1,39 @@
-%% Generate nested flash protocol for determining the receptive field of T4 / T5 cells
 function generate_stimulus(params)
+% GENERATE_STIMULUS  Create flash pattern and position function for Protocol 1.
+%
+%   GENERATE_STIMULUS(PARAMS) generates both the visual pattern (.pat file)
+%   and position function (.pfn file) for Protocol 1 flash stimuli. This is
+%   the core stimulus generation function called by GENERATE_PROTOCOL1_STIMULI.
+%
+%   INPUT:
+%     params - Structure containing stimulus parameters:
+%       .root_dir      - Base directory for saving files
+%       .protocol      - Protocol identifier string ('protocol1')
+%       .px_intensity  - [bkg, off, on] pixel intensity values (0-15)
+%       .px_rng        - [row_start, row_end, col_start, col_end] display region
+%       .flash_sz_px   - Flash square size in pixels (e.g., 6, 12)
+%       .overlap       - Flash overlap fraction (0-1, typically 0 for Protocol 1)
+%       .bkg_frame     - Frame number for background (typically 1)
+%       .interval_dur  - Duration of inter-flash interval in seconds
+%       .flash_dur     - Duration of flash presentation in seconds
+%       .on_off        - 'on', 'off', or 'both' flash polarities to generate
+%
+%   WORKFLOW:
+%     1. Creates Patterns/ directory if needed
+%     2. Calls GENERATE_FLASH_PATTERN to create spatial patterns
+%     3. Creates Functions/ directory if needed
+%     4. Calls GENERATE_FLASH_FUNCTION to create temporal sequence
+%     5. Saves params structure to params/ directory for reference
+%
+%   OUTPUT FILES:
+%     - Patterns/<patName>.pat  - Binary pattern file for G4 display
+%     - Patterns/<patName>.mat  - MATLAB pattern structure
+%     - Functions/<funcName>.pfn - Binary position function file
+%     - Functions/<funcName>.mat - MATLAB function structure
+%     - params/<patName>.mat    - Parameter structure for reference
+%
+%   See also GENERATE_PROTOCOL1_STIMULI, GENERATE_FLASH_PATTERN,
+%            GENERATE_FLASH_FUNCTION
     
     ROOT_DIR =  params.root_dir; %'C:\matlabroot\GitHub\nested_RF_stimulus';
     

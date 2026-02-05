@@ -1,4 +1,30 @@
 function generate_static_pos_fn(save_dir, dur_t)
+% GENERATE_STATIC_POS_FN  Create position function for static background display.
+%
+%   GENERATE_STATIC_POS_FN(SAVE_DIR, DUR_T) generates a position function
+%   that displays frame 1 (background) for a specified duration. Used to
+%   present a uniform gray screen before starting the flash sequence.
+%
+%   INPUTS:
+%     save_dir - Directory path to save the position function files
+%     dur_t    - Duration in seconds to display the static background
+%
+%   PURPOSE:
+%     Provides a baseline period at the start of each protocol where only
+%     the background is shown. This allows the neural response to stabilize
+%     before stimulus presentation begins.
+%
+%   OUTPUT FILES:
+%     - <dur_t>s_static_frame1_24frames.pfn - Binary function file
+%     - <dur_t>s_static_frame1_24frames_G4.mat - MATLAB structure
+%
+%   PARAMETERS:
+%     Frame value: 1 (background frame)
+%     Grayscale: 4-bit (gs_val = 4)
+%     Section type: 'static' (constant frame display)
+%
+%   See also GENERATE_STATIC_FUNCTION, GENERATE_FLASH_FUNCTION,
+%            GENERATE_PROTOCOL1_STIMULI
 
     %% user-defined function parameters
     pfnparam.type = 'pfn'; %number of frames in pattern

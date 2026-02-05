@@ -1,7 +1,29 @@
 function fwhm = compute_FWHM(angls, responses)
-    % Ensure angles are sorted in ascending order
-    % [angls, sortIdx] = sort(angls);
-    % responses = responses(sortIdx);
+% COMPUTE_FWHM  Calculate full-width at half-maximum of tuning curve.
+%
+%   FWHM = COMPUTE_FWHM(ANGLS, RESPONSES) computes the angular width
+%   of the directional tuning curve at half its maximum value.
+%
+%   INPUTS:
+%     angls     - 16x1 array of stimulus directions in radians
+%     responses - 16x1 array of neural response values
+%
+%   OUTPUT:
+%     fwhm - Full-width at half-maximum in degrees
+%            Smaller values indicate sharper directional tuning
+%
+%   ALGORITHM:
+%     1. Find maximum response and calculate half-maximum threshold
+%     2. Identify all angles where response exceeds half-maximum
+%     3. FWHM = difference between first and last crossing angles
+%     4. Adjust for circular angle wrap-around if needed
+%
+%   INTERPRETATION:
+%     FWHM of 90 degrees indicates the neuron responds strongly to
+%     a 90-degree range of directions (sharp tuning).
+%     FWHM of 180 degrees indicates broad directional tuning.
+%
+%   See also FIND_PD_AND_ORDER_IDX, COMPUTE_CIRCULAR_VAR
 
     % Find maximum response and half-maximum
     R_max = max(responses);

@@ -1,5 +1,36 @@
 function [resultant_magnitude, resultant_angle] = vector_sum_polar(rho, theta)
-    
+% VECTOR_SUM_POLAR  Compute vector sum of polar coordinates.
+%
+%   [RESULTANT_MAGNITUDE, RESULTANT_ANGLE] = VECTOR_SUM_POLAR(RHO, THETA)
+%   calculates the vector sum of polar coordinate data, typically used
+%   to determine preferred direction from directional tuning responses.
+%
+%   INPUTS:
+%     rho   - 1xN or Nx1 array of magnitudes (response values)
+%     theta - 1xN or Nx1 array of angles in radians
+%             Must be same size as rho
+%
+%   OUTPUTS:
+%     resultant_magnitude - Magnitude of the vector sum
+%     resultant_angle     - Direction of vector sum in radians [0, 2*pi]
+%
+%   ALGORITHM:
+%     1. Converts polar coordinates to Cartesian (x = rho*cos(theta))
+%     2. Sums x and y components separately
+%     3. Converts back to polar (angle and magnitude)
+%
+%   CIRCULAR DATA HANDLING:
+%     If the first and last theta values are identical (completing a
+%     circle), the last value is excluded to avoid double-weighting
+%     that direction.
+%
+%   USAGE:
+%     The resultant angle indicates the preferred direction.
+%     The resultant magnitude indicates the strength of directional
+%     preference (larger = more selective).
+%
+%   See also FIND_PD_AND_ORDER_IDX, PLOT_POLAR_WITH_ARROW
+
     % Ensure input vectors are the same size. 
     if size(rho) ~= size(theta)
         error(strcat("Error: rho and theta must be the same size." + ...

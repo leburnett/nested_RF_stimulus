@@ -1,10 +1,41 @@
 function [x, y, on_off] = patt_frame_to_coord(peak_frame, arena_side)
-
-% Find the [x,y] coordinate of the screen from the identifying which frames 
-% of protocol 1 the cell responded to best.
-
-% 'peak_frame' - [n_condition, n_rep, [peak_frame, peak_voltage]]
-
+% PATT_FRAME_TO_COORD  Convert Protocol 1 peak frame to screen coordinates.
+%
+%   [X, Y, ON_OFF] = PATT_FRAME_TO_COORD(PEAK_FRAME, ARENA_SIDE)
+%   determines the screen position [x,y] and contrast polarity from a
+%   Protocol 1 frame number. This is the primary coordinate conversion
+%   function used when setting up Protocol 2.
+%
+%   INPUTS:
+%     peak_frame  - Frame number (1-256) from Protocol 1 that elicited
+%                   the strongest neural response
+%     arena_side  - 'L' or 'R' indicating which arena hemisphere was used
+%                   'L' = left hemisphere recording (fly's left visual field)
+%                   'R' = right hemisphere recording (fly's right visual field)
+%
+%   OUTPUTS:
+%     x      - Horizontal pixel coordinate (column) of flash center
+%     y      - Vertical pixel coordinate (row) of flash center
+%     on_off - 'on' if flash was bright, 'off' if flash was dark
+%
+%   ALGORITHM:
+%     1. Loads the 6px Protocol 1 pattern file for the specified arena side
+%     2. Extracts the specified frame from the pattern
+%     3. Finds pixels different from background to locate the flash
+%     4. Calculates centroid of flash location
+%     5. Determines ON/OFF based on whether flash pixels are brighter
+%        or darker than background
+%
+%   PATTERN FILES:
+%     Left hemisphere:  protocols/LHS/protocol1_.../Patterns/0002_*.mat
+%     Right hemisphere: protocols/RHS2/protocol1_.../Patterns/0002_*.mat
+%
+%   EXAMPLE:
+%     % Convert frame 45 from left hemisphere recording
+%     [x, y, on_off] = patt_frame_to_coord(45, 'L');
+%     % Returns: x=85, y=24, on_off='on'
+%
+%   See also GENERATE_PROTOCOL2, FRAME_TO_COORD, FIND_INV_PEAK_FRAME
 %_______________________________________________________________________
 
 %% Load the patterns used depending on which arena half the pattern was presented on: 

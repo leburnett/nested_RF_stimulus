@@ -1,15 +1,46 @@
 function [x, y, on_off] = frame_to_coord(peak_frames, bkg_color, threshold_distance, hemi)
-% Find the [x,y] coordinate of the screen from the identifying which frames 
-% of protocol 1 the cell responded to best.
-
-% 'peak_frames' - [n_condition, n_rep, [peak_frame, peak_voltage]]
-% bkg_color - int - pixel intensityvalue used as the background color in the
-% patterns. 
-% 'threshold_distance' - tuple - the maximum desired distance (in pixels) between
-% flash centroids across all of the peak frames found across the
-% repeitions. Tuple because the first number is for condition 1, 12 pixel
-% flashes, and the second is for condition 2 with pixel flashes.
-% 'hemi' - hemisphere that is being recorded from. 
+% FRAME_TO_COORD  Convert multiple peak frames to consensus RF coordinates.
+%
+%   [X, Y, ON_OFF] = FRAME_TO_COORD(PEAK_FRAMES, BKG_COLOR, THRESHOLD_DISTANCE, HEMI)
+%   analyzes peak frames across multiple conditions and repetitions to
+%   determine a robust estimate of the receptive field center position.
+%   Includes outlier detection and removal.
+%
+%   INPUTS:
+%     peak_frames        - 3D array [n_condition, n_rep, 2] containing:
+%                          peak_frames(:,:,1) = frame numbers
+%                          peak_frames(:,:,2) = peak voltage values
+%     bkg_color          - Background pixel intensity value (0-15)
+%     threshold_distance - [dist1, dist2] maximum allowed distance in pixels
+%                          between flash centroids across repetitions
+%                          dist1 = threshold for condition 1 (12px flashes)
+%                          dist2 = threshold for condition 2 (6px flashes)
+%     hemi               - 'left' or 'right' recording hemisphere
+%
+%   OUTPUTS:
+%     x      - Consensus horizontal pixel coordinate (column)
+%     y      - Consensus vertical pixel coordinate (row)
+%     on_off - 'on' or 'off' based on majority of responses
+%
+%   ALGORITHM:
+%     1. Loads Protocol 1 patterns for both flash sizes
+%     2. Extracts flash centroids for each rep/condition
+%     3. Calculates pairwise distances between centroids
+%     4. Identifies and removes outliers beyond threshold
+%     5. Computes centroid of remaining valid points
+%     6. Averages centroids from both conditions
+%     7. Determines ON/OFF preference from majority vote
+%
+%   DIAGNOSTICS:
+%     Prints variance in peak voltage, outlier information, and
+%     final centroid coordinates to console.
+%
+%   NOTE:
+%     This function is more sophisticated than PATT_FRAME_TO_COORD and
+%     handles multiple repetitions with outlier removal. Use when
+%     Protocol 1 data shows variable responses across repetitions.
+%
+%   See also PATT_FRAME_TO_COORD, GENERATE_FAKE_PEAK_FRAMES
 %_______________________________________________________________________
 
 %% Load the patterns used: 
