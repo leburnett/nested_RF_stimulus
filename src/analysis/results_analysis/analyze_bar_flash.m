@@ -155,6 +155,110 @@ for c = 1:numel(conditions)
 end
 
 %% ========================================================================
+%  PHASE 2b: COLUMN SELECTION DIAGNOSTIC PLOTS (PER CELL)
+%  ========================================================================
+
+fprintf('\n=== Phase 2b: Generating column selection diagnostic plots ===\n');
+
+for c = 1:numel(conditions)
+    cond = conditions{c};
+    cells = data_by_condition.(cond);
+    n_cells = numel(cells);
+
+    for ci = 1:n_cells
+        ms = cells{ci}.mean_slow;
+        m1_col = all_results.(cond).col_method1(ci);
+        m2_col = all_results.(cond).col_method2(ci);
+
+        % --- Figure: 8 subplots (one per orientation column) ---
+        % Each subplot shows all 11 position time series with peak markers.
+        fig = figure('Position', [50 100 2200 900], 'Visible', 'off');
+        t_layout = tiledlayout(2, 4, 'TileSpacing', 'compact', 'Padding', 'compact');
+
+        % Shared y-limits across all subplots for this cell
+        all_cell_vals = [];
+        for j = 1:num_orientations
+            for i = 1:num_positions
+                all_cell_vals = [all_cell_vals; ms{i,j}(:)]; %#ok<AGROW>
+            end
+        end
+        y_lo = min(all_cell_vals);
+        y_hi = max(all_cell_vals);
+        y_pad = (y_hi - y_lo) * 0.05;
+
+        for j = 1:num_orientations
+            nexttile;
+            hold on;
+
+            % Collect per-position peak values for Method 1 (absolute max)
+            % and Method 2 (max of each position's peak)
+            pos_peaks = zeros(num_positions, 1);
+            pos_peak_idxs = zeros(num_positions, 1);
+
+            cmap = lines(num_positions);
+            for i = 1:num_positions
+                ts = ms{i,j};
+                plot(ts, 'Color', [cmap(i,:) 0.6], 'LineWidth', 0.8);
+                [pos_peaks(i), pos_peak_idxs(i)] = max(ts);
+            end
+
+            % Mark the absolute maximum across all positions (Method 1 metric)
+            [col_abs_max, best_pos] = max(pos_peaks);
+            plot(pos_peak_idxs(best_pos), col_abs_max, 'v', ...
+                'MarkerSize', 10, 'MarkerFaceColor', [0 0.5 0], ...
+                'MarkerEdgeColor', 'k', 'LineWidth', 1.2);
+
+            % Mark per-position peaks as small dots
+            for i = 1:num_positions
+                plot(pos_peak_idxs(i), pos_peaks(i), '.', ...
+                    'Color', cmap(i,:), 'MarkerSize', 12);
+            end
+
+            % Method 2 metric: difference between max and min of position peaks
+            col_diff = max(pos_peaks) - min(pos_peaks);
+
+            ylim([y_lo - y_pad, y_hi + y_pad]);
+
+            % Build title string with selection indicators
+            title_str = sprintf('Col %d', j);
+            if j == m1_col && j == m2_col
+                title_str = sprintf('Col %d  [M1+M2]', j);
+            elseif j == m1_col
+                title_str = sprintf('Col %d  [M1]', j);
+            elseif j == m2_col
+                title_str = sprintf('Col %d  [M2]', j);
+            end
+            title(title_str, 'FontSize', 9);
+
+            % Annotate with method metrics
+            text(0.02, 0.98, sprintf('max=%.1f', col_abs_max), ...
+                'Units', 'normalized', 'VerticalAlignment', 'top', ...
+                'FontSize', 7, 'Color', [0 0.5 0]);
+            text(0.02, 0.88, sprintf('diff=%.1f', col_diff), ...
+                'Units', 'normalized', 'VerticalAlignment', 'top', ...
+                'FontSize', 7, 'Color', [0.7 0 0]);
+
+            if j == 1 || j == 5
+                ylabel('Voltage');
+            end
+            grid on;
+            set(gca, 'XTick', []);
+        end
+
+        cond_title = strrep(cond, '_', ' ');
+        title(t_layout, sprintf('%s - Cell %d (%s) - Column Selection Diagnostic', ...
+            cond_title, ci, cells{ci}.filename), 'Interpreter', 'none', 'FontSize', 10);
+
+        % Save
+        fig_name = sprintf('column_diagnostic_%s_cell%02d', cond, ci);
+        saveas(fig, fullfile(output_dir, [fig_name '.fig']));
+        exportgraphics(fig, fullfile(output_dir, [fig_name '.png']), 'Resolution', 300);
+        fprintf('  Saved diagnostic for %s cell %d\n', cond, ci);
+        close(fig);
+    end
+end
+
+%% ========================================================================
 %  PHASE 3-4: DATA REORDERING AND PEAK ALIGNMENT
 %  ========================================================================
 
@@ -305,6 +409,108 @@ for c = 1:numel(conditions)
     saveas(fig, fullfile(output_dir, sprintf('bar_flash_analysis_%s.fig', cond)));
     exportgraphics(fig, fullfile(output_dir, sprintf('bar_flash_analysis_%s.png', cond)), 'Resolution', 300);
     fprintf('  Saved figure for %s\n', cond);
+    close(fig);
+end
+
+%% ========================================================================
+%  PHASE 6b: COMBINED CONTROL vs TTL COMPARISON FIGURES (ON and OFF)
+%  ========================================================================
+
+fprintf('\n=== Phase 6b: Generating control vs TTL comparison figures ===\n');
+
+on_off_labels = {'on', 'off'};
+
+for oo = 1:2
+    on_off = on_off_labels{oo};
+    ctrl_cond = ['control_' on_off];
+    ttl_cond  = ['ttl_' on_off];
+
+    ctrl_mean = mean_data.(ctrl_cond);
+    ttl_mean  = mean_data.(ttl_cond);
+
+    n_ctrl = size(aligned_data.(ctrl_cond), 1);
+    n_ttl  = size(aligned_data.(ttl_cond), 1);
+
+    if isempty(ctrl_mean) && isempty(ttl_mean)
+        fprintf('  %s: no data for either condition, skipping.\n', upper(on_off));
+        continue;
+    end
+
+    fig = figure('Position', [50 200 2000 400], 'Visible', 'off');
+    t = tiledlayout(1, num_positions, 'TileSpacing', 'compact', 'Padding', 'compact');
+
+    % Determine shared y-axis from both conditions
+    all_vals = [];
+    if ~isempty(ctrl_mean)
+        all_vals = [all_vals; ctrl_mean(:)];
+    end
+    if ~isempty(ttl_mean)
+        all_vals = [all_vals; ttl_mean(:)];
+    end
+    all_vals = all_vals(~isnan(all_vals));
+    if ~isempty(all_vals)
+        y_lo = prctile(all_vals, 0.5);
+        y_hi = prctile(all_vals, 99.5);
+    else
+        y_lo = -70; y_hi = -40;
+    end
+
+    for pos = 1:num_positions
+        nexttile;
+        hold on;
+
+        h_lines = [];
+        leg_labels = {};
+
+        % Control mean in black
+        if ~isempty(ctrl_mean)
+            h1 = plot(ctrl_mean(pos, :), 'Color', 'k', 'LineWidth', 2);
+            h_lines = [h_lines, h1];
+            leg_labels{end+1} = sprintf('control (n=%d)', n_ctrl);
+        end
+
+        % TTL mean in red
+        if ~isempty(ttl_mean)
+            h2 = plot(ttl_mean(pos, :), 'Color', [0.8 0 0], 'LineWidth', 2);
+            h_lines = [h_lines, h2];
+            leg_labels{end+1} = sprintf('ttl (n=%d)', n_ttl);
+        end
+
+        ylim([y_lo y_hi]);
+        xlim([1 aligned_length]);
+        title(sprintf('Pos %d', pos));
+
+        if pos == 1
+            ylabel('Voltage');
+        else
+            set(gca, 'YTickLabel', []);
+        end
+        set(gca, 'XTick', []);
+
+        % Highlight position 6
+        if pos == center_position
+            ax = gca;
+            ax.Box = 'on';
+            ax.LineWidth = 2;
+            ax.XColor = [0.8 0 0];
+            ax.YColor = [0.8 0 0];
+        end
+
+        grid on;
+
+        % Legend in first subplot only
+        if pos == 1 && ~isempty(h_lines)
+            legend(h_lines, leg_labels, 'Location', 'northwest', 'FontSize', 7);
+        end
+    end
+
+    title(t, sprintf('%s - Control vs TTL Mean Comparison', upper(on_off)));
+
+    % Save
+    fig_name = sprintf('bar_flash_comparison_%s', on_off);
+    saveas(fig, fullfile(output_dir, [fig_name '.fig']));
+    exportgraphics(fig, fullfile(output_dir, [fig_name '.png']), 'Resolution', 300);
+    fprintf('  Saved comparison figure: %s\n', fig_name);
     close(fig);
 end
 
