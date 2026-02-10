@@ -4,10 +4,12 @@
 % Pipeline:
 %   1. Load .mat files and group by condition (control/ttl x on/off)
 %   2. Identify preferred orientation column per cell (two methods)
+%   2b. Generate diagnostic plots showing column selection
 %   3. Reorder rows so maximum response is at position 6
 %   4. Align time series by peak (centered at sample 10,000 in 20,000 array)
 %   5. Average across cells per condition
 %   6. Visualize: 1x11 subplots with individual traces + mean overlay
+%   6b. Control vs TTL comparison figures for PDND and OD axes
 %   7. Generate summary report
 
 clear; close all; clc;
@@ -24,6 +26,7 @@ num_orientations = 8;  % Columns in mean_slow
 center_position = 6;   % Target position for max response
 aligned_length = 20000; % Length of peak-aligned arrays
 peak_center = 10000;   % Sample index where peak is centered
+od_offset = 4;         % Offset to orthogonal direction column
 
 %% ========================================================================
 %  PHASE 1: FILE LOADING AND GROUPING
@@ -190,8 +193,7 @@ for c = 1:numel(conditions)
             nexttile;
             hold on;
 
-            % Collect per-position peak values for Method 1 (absolute max)
-            % and Method 2 (max of each position's peak)
+            % Collect per-position peak values
             pos_peaks = zeros(num_positions, 1);
             pos_peak_idxs = zeros(num_positions, 1);
 
@@ -239,9 +241,12 @@ for c = 1:numel(conditions)
                 'FontSize', 7, 'Color', [0.7 0 0]);
 
             if j == 1 || j == 5
-                ylabel('Voltage');
+                ylabel('Voltage (mV)');
             end
-            grid on;
+            box off
+            ax = gca;
+            ax.TickLength = [0.04 0.04];
+            ax.TickDir = 'out';
             set(gca, 'XTick', []);
         end
 
@@ -259,12 +264,13 @@ for c = 1:numel(conditions)
 end
 
 %% ========================================================================
-%  PHASE 3-4: DATA REORDERING AND PEAK ALIGNMENT
+%  PHASE 3-4: DATA REORDERING AND PEAK ALIGNMENT (PDND + OD)
 %  ========================================================================
 
 fprintf('\n=== Phase 3-4: Reordering and peak alignment ===\n');
 
-aligned_data = struct();
+aligned_data_PDND = struct();
+aligned_data_OD = struct();
 
 for c = 1:numel(conditions)
     cond = conditions{c};
@@ -273,24 +279,36 @@ for c = 1:numel(conditions)
     col_idxs = all_results.(cond).col_method1;  % Use Method 1
 
     % Store aligned data: n_cells x num_positions x aligned_length
-    cond_aligned = NaN(n_cells, num_positions, aligned_length);
+    cond_aligned_PDND = NaN(n_cells, num_positions, aligned_length);
+    cond_aligned_OD   = NaN(n_cells, num_positions, aligned_length);
 
     for ci = 1:n_cells
         ms = cells{ci}.mean_slow;
         best_col = col_idxs(ci);
 
+        % --- PDND axis ---
         % Phase 3: Reorder rows to center max at position 6
-        reordered = reorder_to_center_max(ms, best_col, center_position);
+        reordered_PDND = reorder_to_center_max(ms, best_col, center_position);
 
         % Phase 4: Align peaks
         for pos = 1:num_positions
-            ts = reordered{pos};
-            cond_aligned(ci, pos, :) = align_peak(ts, aligned_length, peak_center);
+            ts = reordered_PDND{pos};
+            cond_aligned_PDND(ci, pos, :) = align_peak(ts, aligned_length, peak_center);
+        end
+
+        % --- OD axis (column 4 away, wrapping around 8 columns) ---
+        od_col = mod(best_col - 1 + od_offset, num_orientations) + 1;
+        reordered_OD = reorder_to_center_max(ms, od_col, center_position);
+
+        for pos = 1:num_positions
+            ts = reordered_OD{pos};
+            cond_aligned_OD(ci, pos, :) = align_peak(ts, aligned_length, peak_center);
         end
     end
 
-    aligned_data.(cond) = cond_aligned;
-    fprintf('  %s: aligned %d cells\n', cond, n_cells);
+    aligned_data_PDND.(cond) = cond_aligned_PDND;
+    aligned_data_OD.(cond)   = cond_aligned_OD;
+    fprintf('  %s: aligned %d cells (PDND + OD)\n', cond, n_cells);
 end
 
 %% ========================================================================
@@ -299,46 +317,32 @@ end
 
 fprintf('\n=== Phase 5: Cross-cell averaging ===\n');
 
-mean_data = struct();
-se_data = struct();
+mean_data_PDND = struct();
+se_data_PDND   = struct();
+mean_data_OD   = struct();
+se_data_OD     = struct();
 
 for c = 1:numel(conditions)
     cond = conditions{c};
-    ad = aligned_data.(cond);  % n_cells x num_positions x aligned_length
-    n_cells = size(ad, 1);
 
-    if n_cells == 0
-        mean_data.(cond) = [];
-        se_data.(cond) = [];
-        continue;
-    end
+    [mean_data_PDND.(cond), se_data_PDND.(cond)] = compute_mean_and_se( ...
+        aligned_data_PDND.(cond), num_positions, aligned_length);
+    [mean_data_OD.(cond), se_data_OD.(cond)] = compute_mean_and_se( ...
+        aligned_data_OD.(cond), num_positions, aligned_length);
 
-    cond_mean = NaN(num_positions, aligned_length);
-    cond_se = NaN(num_positions, aligned_length);
-
-    for pos = 1:num_positions
-        pos_data = squeeze(ad(:, pos, :));  % n_cells x aligned_length
-        if n_cells == 1
-            pos_data = reshape(pos_data, 1, []);
-        end
-        cond_mean(pos, :) = nanmean(pos_data, 1);
-        cond_se(pos, :) = nanstd(pos_data, 0, 1) / sqrt(n_cells);
-    end
-
-    mean_data.(cond) = cond_mean;
-    se_data.(cond) = cond_se;
-    fprintf('  %s: computed mean and SE across %d cells\n', cond, n_cells);
+    n_cells = size(aligned_data_PDND.(cond), 1);
+    fprintf('  %s: computed mean and SE across %d cells (PDND + OD)\n', cond, n_cells);
 end
 
 %% ========================================================================
-%  PHASE 6: VISUALIZATION
+%  PHASE 6: PER-CONDITION VISUALIZATION (PDND)
 %  ========================================================================
 
-fprintf('\n=== Phase 6: Generating figures ===\n');
+fprintf('\n=== Phase 6: Generating per-condition figures ===\n');
 
 for c = 1:numel(conditions)
     cond = conditions{c};
-    ad = aligned_data.(cond);
+    ad = aligned_data_PDND.(cond);
     n_cells = size(ad, 1);
 
     if n_cells == 0
@@ -346,17 +350,20 @@ for c = 1:numel(conditions)
         continue;
     end
 
-    cm = mean_data.(cond);
+    cm = mean_data_PDND.(cond);
 
     fig = figure('Position', [50 200 2000 400], 'Visible', 'off');
     t = tiledlayout(1, num_positions, 'TileSpacing', 'compact', 'Padding', 'compact');
 
-    % Determine shared y-axis limits
+    % Determine shared y-axis limits from ALL data in this condition
     all_vals = ad(:);
     all_vals = all_vals(~isnan(all_vals));
     if ~isempty(all_vals)
-        y_lo = prctile(all_vals, 0.5);
-        y_hi = prctile(all_vals, 99.5);
+        y_lo = min(all_vals);
+        y_hi = max(all_vals);
+        y_pad = (y_hi - y_lo) * 0.05;
+        y_lo = y_lo - y_pad;
+        y_hi = y_hi + y_pad;
     else
         y_lo = -70; y_hi = -40;
     end
@@ -368,150 +375,186 @@ for c = 1:numel(conditions)
         % Plot individual cells as thin lines
         for ci = 1:n_cells
             ts = squeeze(ad(ci, pos, :));
-            plot(ts, 'Color', [0.6 0.6 0.6 0.3], 'LineWidth', 0.5);
+            plot(ts, 'Color', [0.8 0.8 0.8], 'LineWidth', 0.5);
         end
 
         % Overlay mean as thick line
-        plot(cm(pos, :), 'Color', [0.2 0.2 0.8], 'LineWidth', 2.5);
+        plot(cm(pos, :), 'k', 'LineWidth', 1.5);
 
         ylim([y_lo y_hi]);
         xlim([1 aligned_length]);
-        title(sprintf('Pos %d', pos));
+
+        if pos == center_position
+            title(sprintf('Pos %d (PD)', pos));
+        else
+            title(sprintf('Pos %d', pos));
+        end
+
+        box off
+        ax = gca;
+        ax.TickLength = [0.04 0.04];
+        ax.TickDir = 'out';
 
         if pos == 1
-            ylabel('Voltage');
+            ylabel('Voltage (mV)');
+            xlabel('Time (s)');
         else
-            set(gca, 'YTickLabel', []);
+            ax.YAxis.Visible = 'off';
         end
-        set(gca, 'XTick', []);
-
-        % Highlight position 6
-        if pos == center_position
-            ax = gca;
-            ax.Box = 'on';
-            ax.LineWidth = 2;
-            ax.XColor = [0.8 0 0];
-            ax.YColor = [0.8 0 0];
-        end
-
-        grid on;
+        ax.XAxis.Visible = 'off';
 
         % Legend in first subplot only
         if pos == 1
-            legend({'Individual cells', 'Mean'}, 'Location', 'northwest', 'FontSize', 6);
+            legend({'Individual cells', 'Mean'}, 'Location', 'northwest', ...
+                'FontSize', 6, 'Box', 'off');
         end
     end
 
     cond_title = strrep(cond, '_', ' ');
-    title(t, sprintf('%s - Bar Flash Response by Position (n=%d)', cond_title, n_cells));
+    title(t, sprintf('%s - PDND Bar Flash Response by Position (n=%d)', cond_title, n_cells));
 
     % Save figure
-    saveas(fig, fullfile(output_dir, sprintf('bar_flash_analysis_%s.fig', cond)));
-    exportgraphics(fig, fullfile(output_dir, sprintf('bar_flash_analysis_%s.png', cond)), 'Resolution', 300);
-    fprintf('  Saved figure for %s\n', cond);
+    saveas(fig, fullfile(output_dir, sprintf('bar_flash_analysis_PDND_%s.fig', cond)));
+    exportgraphics(fig, fullfile(output_dir, sprintf('bar_flash_analysis_PDND_%s.png', cond)), 'Resolution', 300);
+    fprintf('  Saved PDND figure for %s\n', cond);
     close(fig);
 end
 
 %% ========================================================================
-%  PHASE 6b: COMBINED CONTROL vs TTL COMPARISON FIGURES (ON and OFF)
+%  PHASE 6b: CONTROL vs TTL COMPARISON FIGURES (PDND and OD)
 %  ========================================================================
 
 fprintf('\n=== Phase 6b: Generating control vs TTL comparison figures ===\n');
 
 on_off_labels = {'on', 'off'};
+axis_labels = {'PDND', 'OD'};
+mean_structs = {mean_data_PDND, mean_data_OD};
+se_structs   = {se_data_PDND,   se_data_OD};
+aligned_structs = {aligned_data_PDND, aligned_data_OD};
 
-for oo = 1:2
-    on_off = on_off_labels{oo};
-    ctrl_cond = ['control_' on_off];
-    ttl_cond  = ['ttl_' on_off];
+for ax_idx = 1:2
+    axis_label = axis_labels{ax_idx};
+    m_struct   = mean_structs{ax_idx};
+    s_struct   = se_structs{ax_idx};
+    a_struct   = aligned_structs{ax_idx};
 
-    ctrl_mean = mean_data.(ctrl_cond);
-    ttl_mean  = mean_data.(ttl_cond);
+    for oo = 1:2
+        on_off = on_off_labels{oo};
+        ctrl_cond = ['control_' on_off];
+        ttl_cond  = ['ttl_' on_off];
 
-    n_ctrl = size(aligned_data.(ctrl_cond), 1);
-    n_ttl  = size(aligned_data.(ttl_cond), 1);
+        ctrl_mean = m_struct.(ctrl_cond);
+        ttl_mean  = m_struct.(ttl_cond);
+        ctrl_se   = s_struct.(ctrl_cond);
+        ttl_se    = s_struct.(ttl_cond);
 
-    if isempty(ctrl_mean) && isempty(ttl_mean)
-        fprintf('  %s: no data for either condition, skipping.\n', upper(on_off));
-        continue;
-    end
+        n_ctrl = size(a_struct.(ctrl_cond), 1);
+        n_ttl  = size(a_struct.(ttl_cond), 1);
 
-    fig = figure('Position', [50 200 2000 400], 'Visible', 'off');
-    t = tiledlayout(1, num_positions, 'TileSpacing', 'compact', 'Padding', 'compact');
+        if isempty(ctrl_mean) && isempty(ttl_mean)
+            fprintf('  %s %s: no data for either condition, skipping.\n', axis_label, upper(on_off));
+            continue;
+        end
 
-    % Determine shared y-axis from both conditions
-    all_vals = [];
-    if ~isempty(ctrl_mean)
-        all_vals = [all_vals; ctrl_mean(:)];
-    end
-    if ~isempty(ttl_mean)
-        all_vals = [all_vals; ttl_mean(:)];
-    end
-    all_vals = all_vals(~isnan(all_vals));
-    if ~isempty(all_vals)
-        y_lo = prctile(all_vals, 0.5);
-        y_hi = prctile(all_vals, 99.5);
-    else
-        y_lo = -70; y_hi = -40;
-    end
+        fig = figure('Position', [50 200 2000 400], 'Visible', 'off');
+        t = tiledlayout(1, num_positions, 'TileSpacing', 'compact', 'Padding', 'compact');
 
-    for pos = 1:num_positions
-        nexttile;
-        hold on;
-
-        h_lines = [];
-        leg_labels = {};
-
-        % Control mean in black
+        % Determine shared y-axis from both conditions (use full data range)
+        all_vals = [];
         if ~isempty(ctrl_mean)
-            h1 = plot(ctrl_mean(pos, :), 'Color', 'k', 'LineWidth', 2);
-            h_lines = [h_lines, h1];
-            leg_labels{end+1} = sprintf('control (n=%d)', n_ctrl);
+            all_vals = [all_vals; ctrl_mean(:)];
         end
-
-        % TTL mean in red
         if ~isempty(ttl_mean)
-            h2 = plot(ttl_mean(pos, :), 'Color', [0.8 0 0], 'LineWidth', 2);
-            h_lines = [h_lines, h2];
-            leg_labels{end+1} = sprintf('ttl (n=%d)', n_ttl);
+            all_vals = [all_vals; ttl_mean(:)];
         end
-
-        ylim([y_lo y_hi]);
-        xlim([1 aligned_length]);
-        title(sprintf('Pos %d', pos));
-
-        if pos == 1
-            ylabel('Voltage');
+        all_vals = all_vals(~isnan(all_vals));
+        if ~isempty(all_vals)
+            y_lo = min(all_vals);
+            y_hi = max(all_vals);
+            y_pad = (y_hi - y_lo) * 0.08;
+            y_lo = y_lo - y_pad;
+            y_hi = y_hi + y_pad;
         else
-            set(gca, 'YTickLabel', []);
+            y_lo = -70; y_hi = -40;
         end
-        set(gca, 'XTick', []);
 
-        % Highlight position 6
-        if pos == center_position
+        x_vec = 1:aligned_length;
+
+        for pos = 1:num_positions
+            nexttile;
+            hold on;
+
+            h_lines = [];
+            leg_labels = {};
+
+            % Control: SEM shaded area + mean line (black)
+            if ~isempty(ctrl_mean)
+                m_ctrl = ctrl_mean(pos, :);
+                s_ctrl = ctrl_se(pos, :);
+                valid = ~isnan(m_ctrl);
+                xf = x_vec(valid);
+                upper_ctrl = m_ctrl(valid) + s_ctrl(valid);
+                lower_ctrl = m_ctrl(valid) - s_ctrl(valid);
+                fill([xf fliplr(xf)], [upper_ctrl fliplr(lower_ctrl)], ...
+                    [0.7 0.7 0.7], 'EdgeColor', 'none', 'FaceAlpha', 0.4);
+                h1 = plot(x_vec, m_ctrl, 'k', 'LineWidth', 1.5);
+                h_lines = [h_lines, h1]; %#ok<AGROW>
+                leg_labels{end+1} = sprintf('control (n=%d)', n_ctrl); %#ok<AGROW>
+            end
+
+            % TTL: SEM shaded area + mean line (red)
+            if ~isempty(ttl_mean)
+                m_ttl = ttl_mean(pos, :);
+                s_ttl = ttl_se(pos, :);
+                valid = ~isnan(m_ttl);
+                xf = x_vec(valid);
+                upper_ttl = m_ttl(valid) + s_ttl(valid);
+                lower_ttl = m_ttl(valid) - s_ttl(valid);
+                fill([xf fliplr(xf)], [upper_ttl fliplr(lower_ttl)], ...
+                    [1 0.8 0.8], 'EdgeColor', 'none', 'FaceAlpha', 0.4);
+                h2 = plot(x_vec, m_ttl, 'r', 'LineWidth', 1.5);
+                h_lines = [h_lines, h2]; %#ok<AGROW>
+                leg_labels{end+1} = sprintf('ttl (n=%d)', n_ttl); %#ok<AGROW>
+            end
+
+            ylim([y_lo y_hi]);
+            xlim([1 aligned_length]);
+
+            if pos == center_position
+                title(sprintf('Pos %d (PD)', pos));
+            else
+                title(sprintf('Pos %d', pos));
+            end
+
+            box off
             ax = gca;
-            ax.Box = 'on';
-            ax.LineWidth = 2;
-            ax.XColor = [0.8 0 0];
-            ax.YColor = [0.8 0 0];
+            ax.TickLength = [0.04 0.04];
+            ax.TickDir = 'out';
+
+            if pos == 1
+                ylabel('Voltage (mV)');
+                xlabel('Time (s)');
+            else
+                ax.YAxis.Visible = 'off';
+            end
+            ax.XAxis.Visible = 'off';
+
+            % Legend in first subplot only
+            if pos == 1 && ~isempty(h_lines)
+                legend(h_lines, leg_labels, 'Location', 'northwest', ...
+                    'FontSize', 7, 'Box', 'off');
+            end
         end
 
-        grid on;
+        title(t, sprintf('%s %s - Control vs TTL Mean Comparison', upper(on_off), axis_label));
 
-        % Legend in first subplot only
-        if pos == 1 && ~isempty(h_lines)
-            legend(h_lines, leg_labels, 'Location', 'northwest', 'FontSize', 7);
-        end
+        % Save
+        fig_name = sprintf('bar_flash_comparison_%s_%s', axis_label, on_off);
+        saveas(fig, fullfile(output_dir, [fig_name '.fig']));
+        exportgraphics(fig, fullfile(output_dir, [fig_name '.png']), 'Resolution', 300);
+        fprintf('  Saved comparison figure: %s\n', fig_name);
+        close(fig);
     end
-
-    title(t, sprintf('%s - Control vs TTL Mean Comparison', upper(on_off)));
-
-    % Save
-    fig_name = sprintf('bar_flash_comparison_%s', on_off);
-    saveas(fig, fullfile(output_dir, [fig_name '.fig']));
-    exportgraphics(fig, fullfile(output_dir, [fig_name '.png']), 'Resolution', 300);
-    fprintf('  Saved comparison figure: %s\n', fig_name);
-    close(fig);
 end
 
 %% ========================================================================
@@ -556,13 +599,18 @@ for c = 1:numel(conditions)
         fprintf(fid, '   %4d | %7d | %7d | %s\n', ci, m1(ci), m2(ci), agree_str);
     end
     fprintf(fid, '   Agreement: %.1f%%\n', sum(m1 == m2) / n_cells * 100);
+
+    % Report OD columns
+    fprintf(fid, '   PDND columns (M1): %s\n', mat2str(m1'));
+    od_cols = mod(m1 - 1 + od_offset, num_orientations) + 1;
+    fprintf(fid, '   OD columns:        %s\n', mat2str(od_cols'));
 end
 
 % Per-condition statistics
 fprintf(fid, '\n3. PER-CONDITION STATISTICS\n');
 for c = 1:numel(conditions)
     cond = conditions{c};
-    ad = aligned_data.(cond);
+    ad = aligned_data_PDND.(cond);
     n_cells = size(ad, 1);
     if n_cells == 0, continue; end
 
@@ -600,8 +648,9 @@ fprintf('  Saved report to %s\n', report_path);
 
 %% Save processed data
 save_path = fullfile(output_dir, 'processed_data.mat');
-save(save_path, 'aligned_data', 'mean_data', 'se_data', 'all_results', ...
-    'data_by_condition', 'conditions', '-v7.3');
+save(save_path, 'aligned_data_PDND', 'aligned_data_OD', ...
+    'mean_data_PDND', 'se_data_PDND', 'mean_data_OD', 'se_data_OD', ...
+    'all_results', 'data_by_condition', 'conditions', '-v7.3');
 fprintf('  Saved processed data to %s\n', save_path);
 
 fprintf('\n=== Analysis complete ===\n');
@@ -614,7 +663,7 @@ fprintf('\n=== Analysis complete ===\n');
 function [col_idx, max_val] = find_preferred_column_method1(mean_slow)
 % Find column with maximum voltage response across all positions.
     [num_pos, num_orient] = size(mean_slow);
-    col_maxes = zeros(num_orient, 1);
+    col_maxes = -Inf(num_orient, 1);
     for j = 1:num_orient
         for i = 1:num_pos
             ts = mean_slow{i,j};
@@ -644,7 +693,7 @@ function reordered = reorder_to_center_max(mean_slow, col_idx, center_pos)
     num_pos = size(mean_slow, 1);
 
     % Find which row has the maximum voltage in the selected column
-    row_maxes = zeros(num_pos, 1);
+    row_maxes = -Inf(num_pos, 1);
     for i = 1:num_pos
         ts = mean_slow{i, col_idx};
         row_maxes(i) = max(ts);
@@ -688,4 +737,26 @@ function aligned = align_peak(ts, output_length, peak_center_idx)
     end
 
     aligned(start_idx:end_idx) = ts(ts_start:ts_end);
+end
+
+function [m, se] = compute_mean_and_se(ad, num_positions, aligned_length)
+% Compute nanmean and SEM across cells for each position.
+    n_cells = size(ad, 1);
+    if n_cells == 0
+        m = [];
+        se = [];
+        return;
+    end
+
+    m  = NaN(num_positions, aligned_length);
+    se = NaN(num_positions, aligned_length);
+
+    for pos = 1:num_positions
+        pos_data = squeeze(ad(:, pos, :));  % n_cells x aligned_length
+        if n_cells == 1
+            pos_data = reshape(pos_data, 1, []);
+        end
+        m(pos, :)  = nanmean(pos_data, 1);
+        se(pos, :) = nanstd(pos_data, 0, 1) / sqrt(n_cells);
+    end
 end
