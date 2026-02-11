@@ -9,7 +9,8 @@ function process_1DRF()
     %
     % Saves per-cell figures in individual folders and a summary .mat file.
 
-    %% Paths
+    %% Pathsdebug_PD_mapping('/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/data/1DRF/2025_10_23_10_31')
+
     REPO_ROOT = '/Users/burnettl/Documents/GitHub/nested_RF_stimulus';
     DATA_ROOT = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/data/1DRF';
     FIGURES_ROOT = '/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2/results/1DRF/figures';

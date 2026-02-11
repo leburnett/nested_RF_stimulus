@@ -110,7 +110,7 @@ function result = process_1DRF_single(exp_folder, figures_root)
     [data_slow, ~, mean_slow, ~] = parse_bar_flash_data(f_data, v_data);
 
     %% I: Map PD to bar flash column
-    [bf_col, positions_order] = map_PD_to_bar_flash_column(pd_angle_rad);
+    [bf_col, positions_order] = map_PD_to_bar_flash_column(pd_data_row, pd_angle_rad);
 
     %% J: Plot bar flash PD positions (raw + baseline-subtracted, closes figures internally)
     plot_bar_flash_PD_positions(data_slow, mean_slow, bf_col, positions_order, ...
