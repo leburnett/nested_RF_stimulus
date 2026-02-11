@@ -112,10 +112,9 @@ function result = process_1DRF_single(exp_folder, figures_root)
     %% I: Map PD to bar flash column
     [bf_col, positions_order] = map_PD_to_bar_flash_column(pd_angle_rad);
 
-    %% J: Plot bar flash PD positions
+    %% J: Plot bar flash PD positions (raw + baseline-subtracted, closes figures internally)
     plot_bar_flash_PD_positions(data_slow, mean_slow, bf_col, positions_order, ...
-        median_v, params, cell_fig_folder, pd_angle_rad);
-    close(gcf);
+        median_v, params, cell_fig_folder, pd_angle_rad, exp_folder);
 
     %% K: Compute additional metrics for summary
     max_v_polar_slow = vertcat(max_v(:, 1), max_v(1, 1));
