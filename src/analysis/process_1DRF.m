@@ -47,7 +47,7 @@ function process_1DRF()
                 fprintf('    %s (line %d)\n', ME.stack(s).name, ME.stack(s).line);
             end
             fprintf('\n');
-            failed{end+1} = exp_dirs(i).name; %#ok<AGROW>
+            failed{end+1} = exp_dirs(i).name;
             results{i} = [];
         end
     end

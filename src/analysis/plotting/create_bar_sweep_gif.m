@@ -87,17 +87,14 @@ function create_bar_sweep_gif(pattern_file, is_flip, save_folder, date_str, time
         % Convert pixel values (0-15) to 1-indexed for colormap
         frame_idx = uint8(frame) + 1;
 
-        % Convert to RGB using green colormap
-        rgb_frame = ind2rgb(frame_idx, green_cmap);
-        rgb_uint8 = uint8(rgb_frame * 255);
-
         % Scale up for better visibility (each pixel -> 4x4 block)
-        rgb_uint8 = repelem(rgb_uint8, 4, 4, 1);
+        % Stays 2-D (indexed image) - GIF requires indexed, not RGB
+        frame_scaled = repelem(frame_idx, 4, 4);
 
         if idx == 1
-            imwrite(rgb_uint8, gif_filename, 'gif', 'LoopCount', inf, 'DelayTime', delay_time);
+            imwrite(frame_scaled, green_cmap, gif_filename, 'gif', 'LoopCount', inf, 'DelayTime', delay_time);
         else
-            imwrite(rgb_uint8, gif_filename, 'gif', 'WriteMode', 'append', 'DelayTime', delay_time);
+            imwrite(frame_scaled, green_cmap, gif_filename, 'gif', 'WriteMode', 'append', 'DelayTime', delay_time);
         end
     end
 

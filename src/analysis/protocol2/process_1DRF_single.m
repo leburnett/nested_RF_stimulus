@@ -55,7 +55,7 @@ function result = process_1DRF_single(exp_folder, figures_root)
     end
 
     %% D: Plot bar sweep polar figure
-    save_fig = 1;
+    save_fig = 0;
     [max_v, min_v] = plot_timeseries_polar_bars(data, median_v, params, save_fig, cell_fig_folder);
     f = gcf;
     f.Position = [303, 380, 688, 667];
@@ -94,8 +94,13 @@ function result = process_1DRF_single(exp_folder, figures_root)
         pd_pattern_file = fullfile(pattern_folder, pattern_files(pattern_file_idx).name);
         fprintf('  Pattern file: %s (flip=%d)\n', pattern_files(pattern_file_idx).name, is_flip);
 
-        %% G: Create GIF
-        create_bar_sweep_gif(pd_pattern_file, is_flip, cell_fig_folder, date_str, time_str, pd_angle_rad);
+        %% G: Create GIF (wrapped in try/catch so failure doesn't block remaining analysis)
+        try
+            create_bar_sweep_gif(pd_pattern_file, is_flip, cell_fig_folder, date_str, time_str, pd_angle_rad);
+        catch ME
+            warning('GIF creation failed for %s_%s: %s. Continuing with remaining analysis.', ...
+                date_str, time_str, ME.message);
+        end
     else
         warning('Pattern file index %d exceeds available patterns (%d). Skipping GIF.', ...
             pattern_file_idx, numel(pattern_files));
