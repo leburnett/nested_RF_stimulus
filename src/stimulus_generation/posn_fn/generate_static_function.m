@@ -1,4 +1,5 @@
-function generate_static_function(func_save_dir)
+function generate_static_function(func_save_dir, dur)
+
 % GENERATE_STATIC_FUNCTION  Create 10s static background function for Protocol 2.
 %
 %   GENERATE_STATIC_FUNCTION(FUNC_SAVE_DIR) generates a position function
@@ -28,7 +29,7 @@ function generate_static_function(func_save_dir)
     pfnparam.frames = 24; %number of frames in pattern
     pfnparam.gs_val = 4; %brightness bits in pattern
     pfnparam.section = { 'static' }; %static, sawtooth, traingle, sine, cosine, or square
-    pfnparam.dur = [ 10 ]; %section duration (in s)
+    pfnparam.dur = [ dur ]; %section duration (in s)
     pfnparam.val = [ 1 ]; %function value for static sections
     pfnparam.high = [ 24 ]; %high end of function range {for non-static sections}
     pfnparam.low = [ 1 ]; %low end of function range {for non-static sections}
@@ -40,7 +41,7 @@ function generate_static_function(func_save_dir)
     func = G4_Function_Generator(pfnparam);
     
     pfnparam.ID = get_function_ID('pfn',func_save_dir);
-    filename = '10s_static_frame1_24frames';
+    filename = strcat(string(dur), 's_static_frame1_24frames');
     save_function_G4(func, pfnparam, func_save_dir, filename);
 
 end 

@@ -44,7 +44,7 @@ function [d, ord, magnitude, angle_rad, fwhm, cv, thetahat, kappa] = find_PD_and
 
     % Median-subtracted peak voltages - remove last value to not double
     % weight.
-    responses = max_v_polar(1:end-1)-median_voltage;  % peak neural responses
+    responses = max_v_polar(1:end-1); %-median_voltage;  % peak neural responses
     
     %% 1 - Find vector sum of responses to find PD. 
 

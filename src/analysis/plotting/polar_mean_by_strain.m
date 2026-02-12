@@ -1,4 +1,4 @@
-function polar_mean_by_strain(T)
+function polar_mean_by_strain(T, speed)
 % POLAR_MEAN_BY_STRAIN  Plot mean polar responses (d_slow(:,2)) grouped by Strain.
 % Groups are defined by whether T.Strain contains:
 %   - "control"  -> black (mean) with light gray SEM shading
@@ -18,8 +18,8 @@ function polar_mean_by_strain(T)
     end
 
     % Compute group stats (mean and SEM across cells) by Strain substrings
-    stats_control = get_group_stats_by_strain(T, 'control');
-    stats_ttl     = get_group_stats_by_strain(T, 'ttl');
+    stats_control = get_group_stats_by_strain(T, 'control', speed);
+    stats_ttl     = get_group_stats_by_strain(T, 'ttl', speed);
 
     % Prepare polar axes (for grid + mean lines)
     figure;
@@ -35,7 +35,8 @@ function polar_mean_by_strain(T)
     % Determine a reasonable r-limit (based on all available data)
     rmax = estimate_rmax(stats_control, stats_ttl);
     if ~isnan(rmax) && rmax > 0
-        rlim(axPolar, [0 rmax]);
+        % rlim(axPolar, [0 rmax]);
+         rlim(axPolar, [0 32]);
     end
 
     % Create an overlay Cartesian axes for patches
@@ -111,7 +112,7 @@ function theta = get_theta_from_table(T)
     end
 end
 
-function stats = get_group_stats_by_strain(T, substr)
+function stats = get_group_stats_by_strain(T, substr, speed)
     % Case-insensitive substring match on T.Strain (accepts string/char/categorical)
     S = T.Strain;
     s = string(S); % works for string, char, categorical
@@ -120,7 +121,13 @@ function stats = get_group_stats_by_strain(T, substr)
     idx = find(mask);
     vals = [];
     for k = idx'
-        d = T.d_slow{k};
+        if speed == "slow"
+            d = T.d_slow{k};
+        elseif speed == "fast"
+            d = T.d_fast{k};
+        elseif speed == "vfast"
+            d = T.d_vfast{k};
+        end 
         if isnumeric(d) && isequal(size(d), [16 2])
             vals = [vals, d(:,2)];
         end

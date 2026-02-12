@@ -46,14 +46,26 @@ function generate_protocol2()
 %            CREATE_PROTOCOL2, RUN_PROTOCOL2
 
 % _________________________________________________________________________
-    
     metadata = get_input_parameters();
+
+    date_str = datetime('now','TimeZone','local','Format','yyyy_MM_dd');
+    time_str = datetime('now','TimeZone','local','Format','HH:mm:ss');
+    metadata.Date = string(date_str);
+    metadata.Time = strrep(string(time_str), ':', '-');
+
+    % Add notes at the beginning:
+    prompt = "Notes at start: ";
+    notes_str_start = input(prompt, 's');
+    metadata.NotesStart = notes_str_start;
+
     peak_frame = metadata.Frame;
     screen_hemi = metadata.Side;
 
     px_intensity = [4, 0, 15]; % used to be [6 0 15]
     px_crop_flash = 30;
     px_crop_bar = 30;
+    n_flank = 5;
+    n_reps = 3;
 
     % Pixel limits of the entire screen - this will not change for screen_hemi:
     screen_width_start = 17;
@@ -90,13 +102,13 @@ function generate_protocol2()
             px_flash = 4;
             px_crop_flash = 30;
             generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
-    
-        % 28 dps - 6 pixel flashes
-            flash_dur_slow = 0.16;
-            int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
-            px_flash = 6;
-            px_crop_flash = 33;
-            generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
+        % 
+        % % 28 dps - 6 pixel flashes
+        %     flash_dur_slow = 0.16;
+        %     int_dur_slow = 0.44; % total 600ms    % before, 0.34 - total = 500ms
+        %     px_flash = 6;
+        %     px_crop_flash = 33;
+        %     generate_flash_stimulus_xy(x, y, px_intensity, px_crop_flash, px_flash, on_off, flash_dur_slow, int_dur_slow, exp_folder)
     
         % % 56 dps - faster
         %     flash_dur_fast = 0.08;
@@ -109,18 +121,38 @@ function generate_protocol2()
     % 4 - generate cropped bar position functions.
             bar_pos_fn_dir = fullfile(exp_folder, 'Functions');
             generate_bar_pos_fns(bar_pos_fn_dir, px_crop_bar)
+
+   %  5 - generate the bar flash patterns
+           generate_bar_flash_stimulus_xy(x, y, px_intensity, px_crop_bar, on_off, exp_folder, n_flank)
+
+   %  6 - generate the bar flash position functions
+           generate_bar_flash_pos_fns(bar_pos_fn_dir, n_flank, n_reps)
     
     % 5 - generate 'CurrentExp' from these components. 
            [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder, metadata);
 
     % 6 - run the protocol:
-            run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
+          run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
+
+    % Add notes at the end
+    prompt = "Notes at end: ";
+    notes_str_end = input(prompt, 's');
+    metadata.NotesEnd = notes_str_end;
+
+    % Send metadata to google sheet:
+    if metadata.Strain == "test"
+        disp("Data not sent to google sheet since this is a test.")
+    else
+        % Export to the google sheet log:
+        export_to_google_sheets(metadata)   
+    end 
 
     % For the experiment design: 
     %       First, 4 pixel flashes, then bars.
     %       Runs through each pattern 'orientation' ON - forward and flip
     %       direction - then OFF pattern forward and flip - at one speed, then
     %       repeats through the two other speeds.
+    %       Then bar flashes. 
 
     % Find the peak_frame number to run the same protocol with the opposite
     % contrast stimuli. 

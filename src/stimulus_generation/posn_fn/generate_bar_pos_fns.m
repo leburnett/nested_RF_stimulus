@@ -42,20 +42,20 @@ function generate_bar_pos_fns(save_dir, px_crop)
 % July 2025 - added 1s of static first frame before each
 % sawtooth.
 
-    for dps = [28, 56]
+    for dps = [28, 56, 168, 250, 500]
     
         if px_crop == 45 
 
             if dps == 14
-                dur = 6.08;
+                dur_sweep = 6.08;
                 dur_str = '6-08';
                 freq = 0.16471;
             elseif dps == 28
-                dur = 3.04;
+                dur_sweep = 3.04;
                 dur_str = '3-04';
                 freq = 0.32941;
             elseif dps == 56 
-                dur = 1.52;
+                dur_sweep = 1.52;
                 dur_str = '1-52';
                 freq = 0.65882;
             end
@@ -66,13 +66,35 @@ function generate_bar_pos_fns(save_dir, px_crop)
         elseif px_crop == 30
 
             if dps == 28
-                dur = 2.328;
+                dur_static = 1;
+                dur_sweep = 2.328;
                 dur_str = '2-328';
                 freq = 0.43077;
             elseif dps == 56 
-                dur = 1.164;
-                dur_str = '1-164';
+                dur_static = 1;
+                dur_sweep = 1.175;
+                dur_str = '1-175';
                 freq = 0.86154;
+            elseif dps == 112
+                dur_static = 0.75;
+                dur_sweep = 0.6;
+                dur_str = '0-6';
+                freq = 1.7231;
+            elseif dps == 168
+                dur_static = 0.75;
+                dur_sweep = 0.40;
+                dur_str = '0-40';
+                freq = 2.5846;
+           elseif dps == 250
+                dur_static = 0.5;
+                dur_sweep = 0.266;
+                dur_str = '0-266';
+                freq = 3.8462;
+            elseif dps == 500
+                dur_static = 0.5;
+                dur_sweep = 0.135;
+                dur_str = '0-135';
+                freq = 7.6923;
             end
 
             fr_low = 11;
@@ -92,7 +114,7 @@ function generate_bar_pos_fns(save_dir, px_crop)
             pfnparam.frames = 288; %number of frames in pattern
             pfnparam.gs_val = 4; %brightness bits in pattern
             pfnparam.section = {'static' 'sawtooth'}; %static, sawtooth, traingle, sine, cosine, or square
-            pfnparam.dur = [1 dur]; %section duration (in s)
+            pfnparam.dur = [dur_static dur_sweep]; %section duration (in s)
             pfnparam.val = [1 1]; %function value for static sections
             pfnparam.high = [62 fr_high]; %high end of function range {for non-static sections}
             pfnparam.low = [1 fr_low ]; %low end of function range {for non-static sections}

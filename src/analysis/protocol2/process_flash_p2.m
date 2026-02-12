@@ -79,6 +79,7 @@ if on_off == "off"
     % conveniently for the dark flashes, the first flash of both the 4px
     % and 6px flashes is frame 1. 
     idx = find(diff_f_data == 1 & f_data(2:end) == 1); % First flash.
+    idx = idx([1,2,5,6,9,10]);
 elseif on_off == "on"
     % 4 px flash light flashes:
     idx_4 = find(diff_f_data == 1 + n_flashes_4px & f_data(2:end) == 1 + n_flashes_4px); % First flash.
@@ -160,6 +161,7 @@ for px_size = [4, 6]
             , 'ContentType', 'vector' ...
             , 'BackgroundColor', 'none' ...
             ); 
+    close
     
     % Generate plot with Gausssian RF estimates:
     exc_data = data_comb2;

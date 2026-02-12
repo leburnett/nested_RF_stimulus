@@ -1,4 +1,4 @@
-function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
+function run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
 % RUN_PROTOCOL2  Execute Protocol 2 on the G4 LED arena.
 %
 %   RUN_PROTOCOL2(EXP_FOLDER, PATTERN_ORDER, FUNC_ORDER, TRIAL_DUR)
@@ -38,13 +38,15 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
 %   See also CREATE_PROTOCOL2, GENERATE_PROTOCOL2, G4_TDMS_FOLDER2STRUCT
 
     %% Experiment metadata from user input:
-    n_reps = 3;
-    
+    % n_reps = 3;
+    tic;
+    bar_flash_pattern_slow = max(pattern_order)-1; % The bar flash pattern is the last pattern.
+    bar_flash_pattern_fast = max(pattern_order);
     %% set up for experiment
     %Load configuration and start G4 Host
     % Check the use of this
     userSettings;
-    
+
     load(fullfile(exp_folder,'currentExp.mat'));
     num_conditions = numel(pattern_order);
     log_folder = fullfile(exp_folder,'Log Files');
@@ -74,7 +76,33 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
         for c = 1:num_conditions
             %trial portion
             ctlr.setControlMode(1);
-            ctlr.setPatternID(pattern_order(1,c));
+
+            % Use different position functions for bar flashes each rep.
+            if pattern_order(1,c) == bar_flash_pattern_slow
+                if r == 2  
+                    ctlr.setPatternID(bar_flash_pattern_slow+1);
+                elseif r == 3
+                    ctlr.setPatternID(bar_flash_pattern_slow+2);
+                else
+                    ctlr.setPatternID(pattern_order(1,c));
+                end 
+            else
+                ctlr.setPatternID(pattern_order(1,c));
+            end 
+
+            % Use different position functions for bar flashes each rep.
+            if pattern_order(1,c) == bar_flash_pattern_fast
+                if r == 2  
+                    ctlr.setPatternID(bar_flash_pattern_fast+1);
+                elseif r == 3
+                    ctlr.setPatternID(bar_flash_pattern_fast+2);
+                else
+                    ctlr.setPatternID(pattern_order(1,c));
+                end 
+            else
+                ctlr.setPatternID(pattern_order(1,c));
+            end
+
             ctlr.setPatternFunctionID(func_order(1,c));
             trial_t = trial_dur(1, c);
             fprintf(['Rep ', num2str(r), ' of ', num2str(n_reps), ', cond ' num2str(c) ' of ' num2str(num_conditions) ': ' strjoin(currentExp.pattern.pattNames(pattern_order(1,c))) '\n']);
@@ -97,7 +125,9 @@ function run_protocol2(exp_folder, pattern_order, func_order, trial_dur)
     ctlr.close()
     disp('finished');
 
+    toc;
     % % Convert TDMS files to mat file - current issues.
     G4_TDMS_folder2struct(log_folder)
+    
 
 end 
