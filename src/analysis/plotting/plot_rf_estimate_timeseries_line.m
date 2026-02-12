@@ -1,33 +1,43 @@
 function f = plot_rf_estimate_timeseries_line(data_comb2, cmap_id, f_data, v2_data, slow_fast, px_size, idx, params)
-% Spatial plot of the timeseries responses to the flashes in each position.
-% Colour coded lines. Red above baseline, blue below. 
-
-% Inputs
-% ------
-
-% 'data_comb2' - contains the min/max val across the flash trial. Used to
-% set the intensity of the coloured background behind each timeseries.
-
-% 'cmap_id' - [n_grid_rows, n_grid_cols] size array containing the values
-% either 1,2 or 3. Sets the colour group that should be used for the 
-% background of each flash subplot. 
-
-% 'f_data' - frame data across the entire experiment. 10kHz acquisition
-% rate. 
-
-% 'v2_data' mediaun subtracted voltage data across the entire experiment. 
-% 10kHz acquisition rate. 
-
-% 'slow_fast' - whether the flash speed was the slower speed or the faster
-% speed. Currently there are only these two hardcoded options. 
-
-% 'px_size' - size of the flash stimuli in pixels. Either 4 or 6 pixels for
-% protocol 2. 
-
-% 'idx' - indices of when the first 4 pixel flash starts for each rep. 
-
-% 'params' - struct containing metadata about the experiment.
-
+% PLOT_RF_ESTIMATE_TIMESERIES_LINE  Create spatial grid of timeseries subplots.
+%
+%   F = PLOT_RF_ESTIMATE_TIMESERIES_LINE(DATA_COMB2, CMAP_ID, F_DATA, ...
+%       V2_DATA, SLOW_FAST, PX_SIZE, IDX, PARAMS)
+%   generates a figure with small timeseries plots arranged in a grid
+%   matching the spatial layout of flash stimuli, showing the temporal
+%   response at each receptive field location.
+%
+%   INPUTS:
+%     data_comb2  - NxN matrix of normalized response values (0-1)
+%     cmap_id     - NxN matrix of response type (1=exc, 2=inh, 3=neutral)
+%     f_data      - 1xM array of frame numbers during recording
+%     v2_data     - 1xM array of median-subtracted voltage
+%     slow_fast   - 'slow' for 160ms flashes (currently only option)
+%     px_size     - Flash size in pixels (4 or 6)
+%     idx         - Indices of first flash starts for each repetition
+%     params      - Structure with: .date, .time, .strain, .on_off,
+%                   .resultant_angle (from bar analysis)
+%
+%   OUTPUT:
+%     f - Figure handle
+%
+%   FIGURE LAYOUT:
+%     - 14x14 grid for 4px flashes, 10x10 for 6px flashes
+%     - Each subplot shows averaged voltage response over time
+%     - Red coloring indicates excitatory responses
+%     - Gray lines show baseline period before flash
+%     - Arrow overlay indicates preferred direction from bar analysis
+%
+%   COLOR CODING:
+%     - Red intensity proportional to response magnitude
+%     - Portions above baseline colored red, below in blue
+%     - Gray for non-responsive locations
+%
+%   OUTPUT FILES:
+%     <date>_<time>_<strain>_spatialRF_timeseries_<speed>_px-size<N>_wArrow.pdf
+%     <date>_<time>_<strain>_spatialRF_timeseries_<speed>_px-size<N>_wArrow.png
+%
+%   See also PARSE_FLASH_DATA, PLOT_HEATMAP_FLASH_RESPONSES
 % _______________________________________________________________________________________________
 
 f = figure;

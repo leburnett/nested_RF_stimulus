@@ -1,18 +1,41 @@
-function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, px_flash,  on_off, flash_dur, int_dur, exp_folder)
-% Generate the patterns and functions for the 4 x 4 pixel flashes - on a
-% 50% overlapping grid of size 30 x 30 pixels, centred on the 'peak' of 
-% responses to Protocol 1 [x,y].
-
-% x - x coordinate of pixel (horizontally across screen) to centre stimulus
-% on. 
-% y - y coordinate of pixel (vertically across screen) to centre stimulus
-% on. 
-% px_intensity - [background intensity, high intensity, low intensity] - [6, 15, 0]
-% px_crop - number of pixels square to present stimuli within.
-% on_off - 'on' for bright flashes, 'off' for dark flashes.
-% flash_dur - duration of flash in seconds (0.2 = 200ms)
-% int_dur - duration of interval between flashes in seconds.
-% exp_folder - 
+function generate_flash_stimulus_xy(x, y, px_intensity, px_crop, px_flash, on_off, flash_dur, int_dur, exp_folder)
+% GENERATE_FLASH_STIMULUS_XY  Create flash patterns and functions for Protocol 2.
+%
+%   GENERATE_FLASH_STIMULUS_XY(X, Y, PX_INTENSITY, PX_CROP, PX_FLASH, ...
+%       ON_OFF, FLASH_DUR, INT_DUR, EXP_FOLDER)
+%   generates both pattern and position function files for flash stimuli
+%   centered on the receptive field location identified in Protocol 1.
+%
+%   INPUTS:
+%     x            - Horizontal pixel coordinate (column) of RF center
+%     y            - Vertical pixel coordinate (row) of RF center
+%     px_intensity - [bkg_color, off_color, on_color] intensity values (0-15)
+%                    Example: [4, 0, 15] for medium gray background
+%     px_crop      - Size of square region for stimulus presentation (pixels)
+%                    Example: 30 for 30x30 pixel display area
+%     px_flash     - Size of individual flash squares (pixels)
+%                    Example: 4 for 4x4 pixel flashes
+%     on_off       - Contrast to present: 'on' (bright), 'off' (dark), or 'both'
+%     flash_dur    - Duration of each flash in seconds (e.g., 0.16 for 160ms)
+%     int_dur      - Duration between flashes in seconds (e.g., 0.44 for 440ms)
+%     exp_folder   - Experiment directory for saving files
+%
+%   PROTOCOL 2 FLASH GRID:
+%     Uses 50% overlap between adjacent flashes to increase spatial resolution.
+%     For 4px flashes in 30px area: creates 14x14 grid = 196 flashes
+%     For 6px flashes in 33px area: creates 10x10 grid = 100 flashes
+%
+%   OUTPUT:
+%     Creates files in exp_folder/Patterns/ and exp_folder/Functions/:
+%       - Pattern files (.pat, .mat) with all flash positions
+%       - Position function files (.pfn, .mat) with presentation timing
+%
+%   WORKFLOW:
+%     1. Calculates display bounds using CENTEREDSQUARE
+%     2. Configures parameters structure
+%     3. Calls GENERATE_STIMULUS to create pattern and function files
+%
+%   See also GENERATE_STIMULUS, GENERATE_FLASH_PATTERN, CENTEREDSQUARE
     
     [disp_y1, disp_y2, disp_x1, disp_x2] = centeredSquare(x, y, px_crop);
     fprintf('Square bounds of area to present stimulus within [y1, y2, x1, x2]: [%d, %d, %d, %d]\n', disp_y1, disp_y2, disp_x1, disp_x2);

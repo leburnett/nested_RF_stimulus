@@ -1,4 +1,51 @@
 function process_flash_p2(exp_folder, metadata, PROJECT_ROOT, resultant_angle)
+% PROCESS_FLASH_P2  Analyze flash stimulus responses for receptive field mapping.
+%
+%   PROCESS_FLASH_P2(EXP_FOLDER, METADATA, PROJECT_ROOT, RESULTANT_ANGLE)
+%   extracts responses to flash stimuli and fits 2D Gaussian models to
+%   characterize the spatial receptive field structure.
+%
+%   INPUTS:
+%     exp_folder      - Full path to the Protocol 2 experiment directory
+%     metadata        - Structure containing: .Strain, .Frame, .Side, .Age
+%     PROJECT_ROOT    - Base directory for saving results and figures
+%     resultant_angle - Preferred direction from bar analysis (radians)
+%
+%   ANALYSIS PIPELINE:
+%     For both 4px and 6px flash grids:
+%       1. Loads voltage and frame data from TDMS log files
+%       2. Parses responses to each flash position using PARSE_FLASH_DATA
+%       3. Classifies responses as excitatory, inhibitory, or neutral
+%       4. Fits 2D Gaussian models to both excitatory and inhibitory lobes
+%       5. Generates visualization figures:
+%          - Timeseries showing voltage during stimulus
+%          - Heatmap of spatial response pattern
+%          - Gaussian fit contours overlaid on RF map
+%
+%   OUTPUT FILES:
+%     Saves to PROJECT_ROOT/results/flash_results/:
+%       rf_results_<date>_<time>_<strain>_<on_off>.mat
+%
+%     Saves to PROJECT_ROOT/figures/flash_stimuli/:
+%       Timeseries_<date>_<time>_<strain>_<on_off>_160ms.pdf
+%       Heatmap_<date>_<time>_<strain>_<on_off>_160ms.pdf
+%
+%   RF RESULTS STRUCTURE:
+%     For 'slow' condition (160ms flashes):
+%       - data_comb: Response values at each grid position
+%       - max_data, min_data: Peak response values
+%       - cmap_id: Response classification (1=exc, 2=inh, 3=neutral)
+%       - var_across_reps, var_within_reps: Reliability metrics
+%       - R_squared: Gaussian fit quality (0-1)
+%       - sigma_x_exc, sigma_y_exc: Excitatory RF extent (pixels)
+%       - sigma_x_inh, sigma_y_inh: Inhibitory RF extent (pixels)
+%       - optExc, optInh: Full Gaussian parameters
+%
+%   GAUSSIAN PARAMETERS (7 values):
+%     [A, x0, y0, sigma_x, sigma_y, theta, B]
+%     A = amplitude, (x0,y0) = center, sigma = extent, theta = rotation, B = baseline
+%
+%   See also PARSE_FLASH_DATA, GAUSSIAN_RF_ESTIMATE, LOAD_PROTOCOL2_DATA
 
 results_folder = fullfile(PROJECT_ROOT, "results", "flash_results");
 if ~isfolder(results_folder)

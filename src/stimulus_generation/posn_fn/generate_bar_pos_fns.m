@@ -1,7 +1,43 @@
 function generate_bar_pos_fns(save_dir, px_crop)
-% For bar patterns - want position function to move from frames 1 - 68.
-% Create functions for the forward and 'flip' direction. 
-% 3 different speeds - 14 dps, 28 dps and 56 dps.
+% GENERATE_BAR_POS_FNS  Create position functions for moving bar stimuli.
+%
+%   GENERATE_BAR_POS_FNS(SAVE_DIR, PX_CROP) generates sawtooth position
+%   functions for moving bar stimuli at multiple speeds and directions.
+%
+%   INPUTS:
+%     save_dir - Directory to save the position function files
+%     px_crop  - Size of the cropped display region in pixels (30 or 45)
+%                Determines frame range and timing parameters
+%
+%   SPEEDS GENERATED:
+%     28 dps (degrees per second) - Standard speed
+%     56 dps - Fast speed
+%     (14 dps available for 45px crop but not currently used)
+%
+%   DIRECTIONS:
+%     For each speed, generates two functions:
+%       - Forward: Frames increase from low to high
+%       - Flip: Frames decrease from high to low (opposite direction)
+%
+%   FRAME RANGES:
+%     px_crop = 45: frames 1-68 (full visible bar movement)
+%     px_crop = 30: frames 11-62 (cropped to visible region)
+%
+%   FUNCTION STRUCTURE:
+%     Each function has two sections:
+%       1. Static (1s): Displays frame 1 (gray background) for baseline
+%       2. Sawtooth: Ramps through frame range at specified frequency
+%
+%   OUTPUT FILES:
+%     For each speed/direction combination:
+%       - <dps>dps_[FLIP_]<dur>s_<low>-<high>_288fr_1-25step_3s_static.pfn
+%       - Corresponding .mat file with parameters
+%
+%   TIMING CALCULATION:
+%     Duration = (frame_range / degrees_per_frame) / dps
+%     Frequency = 1 / duration (for sawtooth generation)
+%
+%   See also GENERATE_BAR_STIMULUS_XY, G4_FUNCTION_GENERATOR
 
 % July 2025 - added 1s of static first frame before each
 % sawtooth.

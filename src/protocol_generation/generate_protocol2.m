@@ -1,4 +1,49 @@
 function generate_protocol2()
+% GENERATE_PROTOCOL2  Main entry point for creating and running Protocol 2.
+%
+%   GENERATE_PROTOCOL2() creates a complete Protocol 2 experiment for
+%   high-resolution receptive field (RF) and direction selectivity (DS)
+%   mapping. This is the second phase of the two-protocol RF mapping system
+%   for Drosophila T4/T5 motion-sensitive neurons using the G4 LED arena.
+%
+%   WORKFLOW:
+%     1. Prompts user for input parameters (peak frame from Protocol 1,
+%        arena side, fly age, strain)
+%     2. Converts peak frame to screen coordinates [x,y] and determines
+%        ON/OFF contrast preference
+%     3. Creates experiment folder with timestamp
+%     4. Generates 4px flash stimuli (196 flashes, 14x14 grid, 50% overlap)
+%     5. Generates 6px flash stimuli (100 flashes, 10x10 grid, 50% overlap)
+%     6. Generates cropped bar patterns centered on [x,y]
+%     7. Creates position functions for flashes and moving bars
+%     8. Assembles currentExp.mat with pattern/function ordering
+%     9. Runs the protocol on the G4 arena
+%    10. Displays inverse peak frame for opposite-contrast experiment
+%
+%   PREREQUISITES:
+%     - Protocol 1 must have been run to identify the peak_frame
+%     - G4 Display Tools must be installed and configured
+%     - Arena must be connected and calibrated
+%
+%   OUTPUT:
+%     Creates experiment folder at:
+%       C:\matlabroot\G4_Protocols\nested_RF_protocol2\YYYY_MM_DD_HH_MM\
+%     containing:
+%       - Patterns/ folder with flash and bar patterns
+%       - Functions/ folder with position functions
+%       - currentExp.mat with experiment configuration
+%
+%   STIMULUS PARAMETERS:
+%     Flash duration: 160ms
+%     Inter-flash interval: 440ms (600ms total per flash)
+%     4px flash area: 30px crop around center
+%     6px flash area: 33px crop around center
+%     Bar area: 30px crop around center
+%     Pixel intensity: [bkg=4, off=0, on=15]
+%
+%   See also GET_INPUT_PARAMETERS, PATT_FRAME_TO_COORD,
+%            GENERATE_FLASH_STIMULUS_XY, GENERATE_BAR_STIMULUS_XY,
+%            CREATE_PROTOCOL2, RUN_PROTOCOL2
 
 % _________________________________________________________________________
     metadata = get_input_parameters();

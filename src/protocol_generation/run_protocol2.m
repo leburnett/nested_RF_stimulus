@@ -1,5 +1,42 @@
 function run_protocol2(exp_folder, pattern_order, func_order, trial_dur, n_reps)
-% Run protocol 2 
+% RUN_PROTOCOL2  Execute Protocol 2 on the G4 LED arena.
+%
+%   RUN_PROTOCOL2(EXP_FOLDER, PATTERN_ORDER, FUNC_ORDER, TRIAL_DUR)
+%   connects to the G4 Panels controller and runs the complete Protocol 2
+%   experiment, presenting all patterns with their position functions and
+%   logging voltage and frame timing data.
+%
+%   INPUTS:
+%     exp_folder    - Full path to experiment directory containing
+%                     currentExp.mat, Patterns/, and Functions/
+%     pattern_order - 1xN array of pattern IDs in presentation order
+%     func_order    - 1xN array of function IDs matching pattern_order
+%     trial_dur     - 1xN array of trial durations in seconds
+%
+%   EXPERIMENT EXECUTION:
+%     - Runs 3 repetitions of all conditions (n_reps = 3)
+%     - Control mode 1 (position function control)
+%     - Logs data to TDMS files in 'Log Files/' subdirectory
+%     - Displays progress to command window
+%     - Presents grey screen at end of experiment
+%     - Converts TDMS files to .mat format after completion
+%
+%   PREREQUISITES:
+%     - G4 Display Tools installed (PanelsController class available)
+%     - userSettings.m configured with correct paths
+%     - Arena connected and powered on
+%     - No existing log files in experiment folder
+%
+%   OUTPUT:
+%     Creates in exp_folder/Log Files/:
+%       - G4_TDMS_Log_*.mat files with voltage and frame timing data
+%
+%   DURATION:
+%     Estimated time is printed to console before experiment starts.
+%     Typical Protocol 2 duration: ~45-60 minutes for 3 repetitions.
+%
+%   See also CREATE_PROTOCOL2, GENERATE_PROTOCOL2, G4_TDMS_FOLDER2STRUCT
+
     %% Experiment metadata from user input:
     % n_reps = 3;
     tic;

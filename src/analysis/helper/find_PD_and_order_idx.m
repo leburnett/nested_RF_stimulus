@@ -1,35 +1,42 @@
 function [d, ord, magnitude, angle_rad, fwhm, cv, thetahat, kappa] = find_PD_and_order_idx(max_v_polar, median_voltage)
-    % Using the 'peak' responses in each direction - find the preferred
-    % direction (PD) for each cell. Use this value to then re-organise the
-    % peak data so that the peak responses is always aligned to pi/2 (up).
-
-    % Inputs
-    % ------
-
-    % max_v_polar : array 
-
-    % median_voltage: float
-
-    % Outputs
-    % -------
-
-    % d : array of size [16, 2]
-
-    % ord : array
-
-    % magnitude : float
-
-    % angle_rad : float
-
-    % fwhm : float
-
-    % cv : float
-
-    % thetahat : float
-
-    % kappa : float
-
-    % ________________________________________________________________________________________
+% FIND_PD_AND_ORDER_IDX  Compute preferred direction and tuning metrics.
+%
+%   [D, ORD, MAGNITUDE, ANGLE_RAD, FWHM, CV, THETAHAT, KAPPA] = ...
+%       FIND_PD_AND_ORDER_IDX(MAX_V_POLAR, MEDIAN_VOLTAGE)
+%   calculates the preferred direction using vector sum and computes
+%   multiple metrics characterizing the directional tuning curve.
+%
+%   INPUTS:
+%     max_v_polar    - 17x1 array of max voltage responses for 16 directions
+%                      (last element duplicates first for circular plotting)
+%     median_voltage - Baseline voltage for subtraction
+%
+%   OUTPUTS:
+%     d         - 16x2 array: [aligned_angles, median-subtracted_responses]
+%                 Data rotated so preferred direction aligns to pi/2
+%     ord       - 16x1 array of indices for reordering data to align PD
+%     magnitude - Normalized vector sum magnitude (0-1, higher=more selective)
+%     angle_rad - Preferred direction in radians (0 to 2*pi)
+%     fwhm      - Full-width half-maximum of tuning curve (degrees)
+%     cv        - Circular variance (0=sharp, 1=broad tuning)
+%     thetahat  - Von Mises mean direction parameter
+%     kappa     - Von Mises concentration parameter (higher=sharper tuning)
+%
+%   VECTOR SUM METHOD:
+%     Each direction contributes a vector with magnitude=response and
+%     angle=direction. The sum of all vectors gives the preferred direction
+%     (angle) and selectivity strength (normalized magnitude).
+%
+%   ALIGNMENT:
+%     The output 'd' is rotated so the preferred direction appears at pi/2.
+%     This allows comparison across cells with different preferred directions.
+%     'ord' provides the index mapping for this rotation.
+%
+%   DEPENDENCIES:
+%     Uses circ_vmpar() from the Circular Statistics Toolbox
+%
+%   See also COMPUTE_FWHM, COMPUTE_CIRCULAR_VAR, COMPUTE_BAR_RESPONSE_METRICS
+% ________________________________________________________________________________________
 
     % Angles in radians to be used.
     angls = linspace(0, 2*pi, 17)';

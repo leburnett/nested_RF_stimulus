@@ -1,4 +1,38 @@
 function selections = get_input_parameters()
+% GET_INPUT_PARAMETERS  Display GUI dialog to collect Protocol 2 metadata.
+%
+%   SELECTIONS = GET_INPUT_PARAMETERS() opens a graphical user interface
+%   that prompts the experimenter to enter metadata required for Protocol 2
+%   generation. The function blocks until the user clicks "Confirm".
+%
+%   OUTPUT:
+%     selections - Structure containing:
+%       .Frame  - Peak frame number from Protocol 1 (numeric)
+%                 This identifies the flash location with strongest response
+%       .Side   - Arena hemisphere ('L' or 'R')
+%                 'L' = left hemisphere recording (stimuli on fly's left)
+%                 'R' = right hemisphere recording (stimuli on fly's right)
+%       .Age    - Fly age in days post-eclosion ('1'-'8' or 'NaN')
+%       .Strain - Fly genotype, one of:
+%                 'ss324_t4t5'    - T4/T5 split-GAL4 line
+%                 'jfrc100_es'    - Empty split control
+%                 'ss00395_TmY3'  - TmY3 split-GAL4 line
+%                 'ss03722_Tm5Y'  - Tm5Y split-GAL4 line
+%                 'ss02701_TmY18' - TmY18 split-GAL4 line
+%                 'ss02594_TmY5a' - TmY5a split-GAL4 line
+%                 '42F06_T4T5'    - T4/T5 GAL4 line
+%                 'test'          - For testing purposes
+%
+%   USAGE:
+%     Called automatically by GENERATE_PROTOCOL2. The experimenter must:
+%       1. Enter the peak_frame number identified from Protocol 1 responses
+%       2. Select the arena side matching the recording hemisphere
+%       3. Enter the fly's age
+%       4. Select the correct genotype
+%       5. Click "Confirm" to proceed
+%
+%   See also GENERATE_PROTOCOL2, PATT_FRAME_TO_COORD
+
 % Input the parameters for the generation of protocol 2:
 
     % Create a figure window for the input dialog

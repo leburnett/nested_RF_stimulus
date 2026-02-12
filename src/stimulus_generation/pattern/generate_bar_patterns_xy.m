@@ -1,7 +1,40 @@
-function generate_bar_patterns_xy(x,y, px_crop, px_intensity, patt_file, patName, save_dir)
-
-% For generating the bar stimuli within a 'px_crop' square pixel area centred
-% on the [x, y] coordinate found after running protocol 1. 
+function generate_bar_patterns_xy(x, y, px_crop, px_intensity, patt_file, patName, save_dir)
+% GENERATE_BAR_PATTERNS_XY  Crop full-field bar pattern to RF location.
+%
+%   GENERATE_BAR_PATTERNS_XY(X, Y, PX_CROP, PX_INTENSITY, PATT_FILE, ...
+%       PATNAME, SAVE_DIR)
+%   takes a pre-made full-field moving bar pattern and creates a cropped
+%   version centered on the receptive field location [x,y].
+%
+%   INPUTS:
+%     x            - Horizontal pixel coordinate (column) of RF center
+%     y            - Vertical pixel coordinate (row) of RF center
+%     px_crop      - Size of square display region in pixels (e.g., 30, 45)
+%     px_intensity - [bkg_color, off_color, on_color] intensity values (0-15)
+%     patt_file    - Full path to source full-field bar pattern .mat file
+%     patName      - Name for the output pattern files
+%     save_dir     - Directory to save cropped pattern files
+%
+%   ALGORITHM:
+%     1. Loads full-field bar pattern (288 frames, full arena size)
+%     2. Calculates display region centered on [x,y] using CENTEREDSQUARE
+%     3. Creates new pattern array with gray background
+%     4. Extracts central portion of each frame from source pattern
+%     5. Places cropped bar at the [x,y] location in new pattern
+%     6. Saves cropped pattern for G4 display
+%
+%   CROPPING LOGIC:
+%     The function extracts a px_crop x px_crop region from the CENTER
+%     of the full-field pattern (around arena center [24, 96]) and
+%     repositions it at the RF location [x,y]. This ensures the bar
+%     movement passes through the neuron's receptive field.
+%
+%   OUTPUT:
+%     Creates in save_dir:
+%       - <patName>.pat - Binary pattern for G4 controller
+%       - <patName>.mat - MATLAB structure with pattern data
+%
+%   See also GENERATE_BAR_STIMULUS_XY, CENTEREDSQUARE, SAVE_PATTERN_G4
 % _______________________________________________________________________
 load(patt_file, 'pattern');
 

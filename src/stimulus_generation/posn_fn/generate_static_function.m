@@ -1,6 +1,29 @@
 function generate_static_function(func_save_dir, dur)
-% Generate a static position function for presenting the grey screen at the
-% beginning of the protocol.
+
+% GENERATE_STATIC_FUNCTION  Create 10s static background function for Protocol 2.
+%
+%   GENERATE_STATIC_FUNCTION(FUNC_SAVE_DIR) generates a position function
+%   that displays frame 1 (gray background) for 10 seconds. Used at the
+%   start of Protocol 2 to provide a baseline period.
+%
+%   INPUT:
+%     func_save_dir - Directory to save the position function files
+%
+%   PURPOSE:
+%     Called by CREATE_PROTOCOL2 to add a static background display at
+%     the beginning of the experiment. This allows the neuron's baseline
+%     activity to stabilize before stimulus presentation.
+%
+%   OUTPUT FILES:
+%     - 10s_static_frame1_24frames.pfn - Binary function file
+%     - 10s_static_frame1_24frames_G4.mat - MATLAB structure
+%
+%   PARAMETERS:
+%     Duration: 10 seconds
+%     Frame value: 1 (background frame)
+%     Grayscale: 4-bit (gs_val = 4)
+%
+%   See also CREATE_PROTOCOL2, GENERATE_STATIC_POS_FN
     
     pfnparam.type = 'pfn'; %number of frames in pattern
     pfnparam.frames = 24; %number of frames in pattern

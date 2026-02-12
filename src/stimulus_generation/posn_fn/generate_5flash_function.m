@@ -1,11 +1,36 @@
 function total_dur = generate_5flash_function(peak_frame, n_flashes, flash_dur, bkg_dur, function_folder)
-
-% peak_frame - frame number from pattern displayed in protocol 1 for which
-% you would like to display the flash. 
-% n_flashes - the number of flashes to be presented.
-% flash_dur - duration of flash in seconds.
-% bkg_dur - Duration of interval between flashes in seconds. 
-% function_folder - where to save the position function.
+% GENERATE_5FLASH_FUNCTION  Create position function for test flash sequence.
+%
+%   TOTAL_DUR = GENERATE_5FLASH_FUNCTION(PEAK_FRAME, N_FLASHES, FLASH_DUR, ...
+%       BKG_DUR, FUNCTION_FOLDER)
+%   generates a simple position function that repeatedly presents a single
+%   flash at the specified frame location. Used for quick testing of RF
+%   location before running the full protocol.
+%
+%   INPUTS:
+%     peak_frame      - Frame number from Protocol 1 pattern to display
+%     n_flashes       - Number of flash repetitions to present
+%     flash_dur       - Duration of each flash in seconds
+%     bkg_dur         - Duration of interval between flashes in seconds
+%     function_folder - Directory to save the position function
+%
+%   OUTPUT:
+%     total_dur - Total duration of the function in seconds
+%
+%   PURPOSE:
+%     Allows quick verification that the identified RF location is correct
+%     by presenting repeated flashes at a single position. Useful for
+%     confirming neural responses before committing to the full Protocol 2.
+%
+%   FUNCTION STRUCTURE:
+%     [bkg_dur] - [flash_dur] - [bkg_dur] - [flash_dur] - ... (repeated n_flashes times)
+%
+%   NOTES:
+%     - Uses SAVE_FUNCTION_G4_TEST which overwrites existing function
+%     - Function ID is always set to 1
+%     - Called by PRESENT_FLASHES for quick RF verification
+%
+%   See also PRESENT_FLASHES, SAVE_FUNCTION_G4_TEST, GENERATE_FLASH_FUNCTION
 
 %% Make func
 

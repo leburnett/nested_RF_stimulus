@@ -1,6 +1,28 @@
 function plot_heatmap_bars(max_v)
-% Create heatmap of the maximum response in the 16 directions for the two
-% speeds that the bar stimuli are presented.
+% PLOT_HEATMAP_BARS  Create heatmap of direction tuning at two speeds.
+%
+%   PLOT_HEATMAP_BARS(MAX_V) generates a heatmap visualization showing
+%   the maximum neural response for each of 16 bar directions at two
+%   different speeds.
+%
+%   INPUT:
+%     max_v - 16x2 array of maximum voltage responses
+%             Column 1: slow (28 dps) bar responses
+%             Column 2: fast (56 dps) bar responses
+%             Rows correspond to 0, 22.5, 45, ... 337.5 degrees
+%
+%   FIGURE:
+%     - Y-axis: Direction in degrees (0, 90, 180, 270 labeled)
+%     - X-axis: Speed in degrees per second (28, 56)
+%     - Color: Maximum voltage (mV), using inferno colormap
+%
+%   PURPOSE:
+%     Provides a quick visual comparison of direction tuning at
+%     different speeds. Can reveal speed-dependent changes in
+%     directional preference or selectivity strength.
+%
+%   See also PLOT_TIMESERIES_POLAR_BARS, PROCESS_BARS_P2, INFERNO
+
 figure; 
 imagesc(max_v); 
 

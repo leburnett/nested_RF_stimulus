@@ -1,23 +1,49 @@
 function [n_frames, fl_rows, fl_cols] = generate_flash_pattern(px_intensity, px_rng, flash_sz_px, overlap, patName, save_dir)
-% Generate pattern of ON / OFF square flashes.
-
-% Add parameters:
-% 'arena_size' = [n_rows, n_cols, n_pix_per_panel] - [3,12,16]
-% 'px_intensity' = [bkg_color, off_color, on_color] - [6, 0, 15]
-% 'px_rng_to_use' = [row_start, row_end, col_start, col_end] - [1, 48, 17, 112]
-% 'flash_sz_px' = size of flash squares in pixels. - 12
-% 'overlap' = overlap of grid of flashes. Between 0 and 1. 
-% 'patName' = name used for saving the pattern = '12px_square_RF_ON_OFF';
-% 'save_dir' = directory to save the pattern - '/Users/burnettl/Documents/Projects/G4_arena/G4-1_Tests'
-
-% Creates a pattern where the first frame is a uniform pattern of intensity
-% 'px_intensity(1)'. Then the subsequent frames contain individual flashes,
-% squares of size 'flash_sz_px' x 'flash_sz_px'. Flash frames are ordered
-% going down column one, then column two etc. So frame 2 would have a flash
-% in position [1,1], then frame 3 in position [2,1] etc. This is useful for
-% using the function 'sub2ind' later when making the position function to
-% access these positions. All OFF flashes are ordered first, then all ON
-% flashes. 
+% GENERATE_FLASH_PATTERN  Create spatial pattern array for flash stimuli.
+%
+%   [N_FRAMES, FL_ROWS, FL_COLS] = GENERATE_FLASH_PATTERN(PX_INTENSITY, ...
+%       PX_RNG, FLASH_SZ_PX, OVERLAP, PATNAME, SAVE_DIR)
+%   generates a G4 pattern file containing a grid of flash stimuli, with
+%   both ON (bright) and OFF (dark) versions.
+%
+%   INPUTS:
+%     px_intensity - [bkg_color, off_color, on_color] intensity values (0-15)
+%                    Example: [4, 0, 15] for medium gray background
+%     px_rng       - [row_start, row_end, col_start, col_end] display region
+%                    Example: [1, 48, 17, 112] for left half of arena
+%     flash_sz_px  - Size of each flash square in pixels (e.g., 4, 6, 12)
+%     overlap      - Fraction of overlap between adjacent flashes (0-1)
+%                    0 = no overlap, 0.5 = 50% overlap
+%     patName      - String name for saving pattern files
+%     save_dir     - Directory path to save pattern files
+%
+%   OUTPUTS:
+%     n_frames - Total number of frames in the pattern
+%                (1 background + n_flashes OFF + n_flashes ON)
+%     fl_rows  - Number of flash rows in the grid
+%     fl_cols  - Number of flash columns in the grid
+%
+%   PATTERN STRUCTURE:
+%     Frame 1:           Uniform background (bkg_color)
+%     Frames 2 to N+1:   OFF flashes (off_color on bkg_color)
+%     Frames N+2 to 2N+1: ON flashes (on_color on bkg_color)
+%
+%   FRAME ORDERING:
+%     Flashes are ordered column-major (down columns first):
+%     Frame 2 = position [1,1], Frame 3 = position [2,1], etc.
+%     This ordering is compatible with sub2ind() for position function
+%     generation.
+%
+%   OUTPUT FILES:
+%     - <patName>.pat - Binary pattern file for G4 controller
+%     - <patName>.mat - MATLAB structure with pattern and parameters
+%
+%   EXAMPLE:
+%     % Create 6px flash grid with no overlap for left arena half
+%     [n, rows, cols] = generate_flash_pattern([4,0,15], [1,48,17,112], ...
+%                                              6, 0, 'test_pattern', './Patterns');
+%
+%   See also GENERATE_STIMULUS, GENERATE_FLASH_FUNCTION, SAVE_PATTERN_G4
 % ______________________________________________________________________
 
     % Arena parameters - [n_rows, n_cols, n_pix_per_panel]

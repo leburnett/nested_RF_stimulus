@@ -1,42 +1,42 @@
 function [max_v, min_v] = plot_timeseries_polar_bars(data, median_voltage, params, save_fig, fig_save_folder)
-    % Central polar plot of maximum voltage for each direction, with timeseries of voltage data for each moving bar stimulus.
-    % Responses to fast bars are in light blue and responses to slow bars in dark blue. 
-
-    % Inputs
-    % ------
-    %       data: cell array [n_conditions * 2, n_reps +1]
-    %           Timeseries voltage data for each condition (rows). The
-    %           first (n_reps) columns are the repetition data and the
-    %           (n_reps +1) column is the mean data across the reps. 
-
-    %       median_voltage: float
-    %           Median voltage across the entire recording.
-
-    %       params: struct
-    %           Contains meta data about the experiment. Used for saving. 
-
-    %       save_fig : bool
-    %           Boolean value for whether to save the figures of not. If
-    %           True, then the figures are saved to `fig_sve_folder`, if
-    %           False then the figures are created but not saved. 
-
-    %       fig_save_folder : str
-    %           Path where to save the figures.           
-
-    % Outputs
-    % -------
-
-    %       max_v: arrray [n_conditions, n_speeds]
-    %           98th percentile value of the mean voltage during each bar condition. Range of data includes the time 
-    %           when bar stimulus is shown + 200ms after the bar stimulus ends. Excludes the interval time before 
-    %           the bar stimulus starts.
-
-    %       min_v: arrray [n_conditions, n_speeds]
-    %           2nd percentile value of the mean voltage during the second half of each bar condition. Range of data 
-    %           includes the time when bar stimulus is shown + 200ms after the bar stimulus ends. Excludes the interval
-    %           time before the bar stimulus starts.   
-
-    % ________________________________________________________________________________________
+% PLOT_TIMESERIES_POLAR_BARS  Create circular figure with polar plot and timeseries.
+%
+%   [MAX_V, MIN_V] = PLOT_TIMESERIES_POLAR_BARS(DATA, MEDIAN_VOLTAGE, ...
+%       PARAMS, SAVE_FIG, FIG_SAVE_FOLDER)
+%   generates a publication-quality figure showing bar stimulus responses
+%   arranged radially with a central polar plot summarizing direction tuning.
+%
+%   INPUTS:
+%     data           - 32x4 cell array from PARSE_BAR_DATA:
+%                      Rows 1-16: slow (28 dps) bar directions
+%                      Rows 17-32: fast (56 dps) bar directions
+%                      Columns 1-3: individual repetitions
+%                      Column 4: mean across repetitions
+%     median_voltage - Baseline voltage for normalization
+%     params         - Structure with: .date, .time, .strain, .on_off
+%     save_fig       - Boolean, true to save figure as PDF
+%     fig_save_folder - Directory for saving figures
+%
+%   OUTPUTS:
+%     max_v - 16x2 array of 98th percentile response per direction/speed
+%             Column 1: slow bars, Column 2: fast bars
+%     min_v - 16x2 array of 2nd percentile response per direction/speed
+%
+%   FIGURE LAYOUT:
+%     - 16 small subplots arranged in a circle, one per direction
+%     - Each subplot shows all 3 reps (gray) and mean (colored)
+%     - Central polar plot shows max response vs direction
+%     - Dark blue = slow (28 dps), light blue = fast (56 dps)
+%
+%   DIRECTION ORDER:
+%     Subplots start at East (0 degrees) and proceed counterclockwise.
+%     Data is reordered from forward/backward pairs to sequential angles.
+%
+%   OUTPUT FILE:
+%     <strain>_<on_off>_<date>_<time>_bar_polar.pdf
+%
+%   See also PARSE_BAR_DATA, PLOT_POLAR_WITH_ARROW, PROCESS_BARS_P2
+% ________________________________________________________________________________________
     
     % Number of subplots
     numPlots = 16;
