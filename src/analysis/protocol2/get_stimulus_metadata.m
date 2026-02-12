@@ -45,6 +45,17 @@ function stim_meta = get_stimulus_metadata(exp_folder)
 %   NOTE: MATLAB row 1 = bottom of LED screen (vertically flipped).
 %         This function accounts for the flip when computing angles.
 %
+%   CYLINDRICAL ARENA CORRECTION:
+%     Bar patterns were generated for a cylindrical LED arena using the G4
+%     Pattern Generator (arena roll rotation). The cylindrical projection
+%     causes bar motion paths to curve in flat pixel space, introducing
+%     ~21° direction errors if centroids are tracked naively. This function
+%     uses PCA orientation (accurate in the small cropped region) and derives
+%     direction as perpendicular to orientation, using centroid displacement
+%     only for forward/backward disambiguation via dot product. Both
+%     orientation and direction are snapped to the nearest valid angle
+%     (multiples of 22.5°).
+%
 %   See also VERIFY_STIMULUS_METADATA, REINDEX_BAR_FLASH_DATA
 
     %% Load experiment info
@@ -256,8 +267,18 @@ end
 function [orient_deg, fwd_dir_deg] = analyze_bar_pattern(Pats)
 % ANALYZE_BAR_PATTERN  Determine orientation and forward direction of a bar pattern.
 %
-%   Uses PCA on non-background pixels to find bar orientation, and
-%   centroid tracking across frames to find direction of motion.
+%   Uses PCA on non-background pixels to find bar orientation, then
+%   derives direction as perpendicular to orientation with forward/backward
+%   ambiguity resolved by centroid displacement dot product.
+%
+%   This approach avoids the ~21° direction error that occurs when tracking
+%   centroids in flat pixel space. The error arises because the bar patterns
+%   were generated on a cylindrical LED arena using the G4 Pattern Generator,
+%   which applies 3D rotations (arena roll) to create different orientations.
+%   The cylindrical projection causes bar motion paths to curve in pixel
+%   space. PCA orientation is accurate (cylindrical distortion is minor for
+%   the bar's long axis in the small cropped region), so we derive direction
+%   from orientation and only use centroids for forward/backward disambiguation.
 
     % Handle compressed patterns (192 x 3 x N → stretch to 48 x 192 x N)
     Pats = stretch_pattern_if_needed(Pats);
@@ -274,18 +295,41 @@ function [orient_deg, fwd_dir_deg] = analyze_bar_pattern(Pats)
     frame_early = max(frame_early, 2);
     frame_late = max(frame_late, frame_early + 5);
 
-    % Find non-background pixels in each frame
+    % Determine orientation via PCA
     [orient_deg, ~] = compute_orientation_from_frame(Pats(:, :, round((frame_early + frame_late) / 2)), bkg, n_rows);
 
-    % Compute centroids for direction
+    % Snap orientation to nearest valid angle (multiples of 22.5 in [0, 180))
+    valid_orientations = 0:22.5:157.5;
+    orient_diffs = abs(mod(orient_deg - valid_orientations + 90, 180) - 90);
+    [~, snap_idx] = min(orient_diffs);
+    orient_deg = valid_orientations(snap_idx);
+
+    % Direction is perpendicular to orientation: two candidates 180° apart
+    candidate1 = mod(orient_deg + 90, 360);
+    candidate2 = mod(orient_deg - 90, 360);
+
+    % Compute centroid displacement for forward/backward disambiguation
     [cy_early, cx_early] = compute_centroid(Pats(:, :, frame_early), bkg, n_rows);
     [cy_late, cx_late] = compute_centroid(Pats(:, :, frame_late), bkg, n_rows);
-
-    % Direction vector (in screen coordinates)
     dx = cx_late - cx_early;
-    dy = cy_late - cy_early; % Already in screen-y (flipped)
+    dy = cy_late - cy_early;
 
-    fwd_dir_deg = mod(atan2d(dy, dx), 360);
+    % Use dot product to determine which candidate aligns with observed motion.
+    % For most orientations, dx (column displacement) dominates and is robust
+    % to cylindrical distortion. For horizontal bars (orient~0°) where dx~0,
+    % dy correctly disambiguates since vertical motion has minimal distortion.
+    proj = dx * cosd(candidate1) + dy * sind(candidate1);
+    if proj >= 0
+        fwd_dir_deg = candidate1;
+    else
+        fwd_dir_deg = candidate2;
+    end
+
+    % Snap direction to nearest valid angle (multiples of 22.5 in [0, 360))
+    valid_directions = 0:22.5:337.5;
+    dir_diffs = abs(mod(fwd_dir_deg - valid_directions + 180, 360) - 180);
+    [~, snap_idx] = min(dir_diffs);
+    fwd_dir_deg = valid_directions(snap_idx);
 end
 
 
@@ -369,9 +413,14 @@ function [orient_deg, orient_rad, frame_to_orient, frame_to_pos] = ...
 
         % Use the middle frame of this orientation group for analysis
         mid_frame = round((frame_start + frame_end) / 2);
-        [od, or] = compute_orientation_from_frame(Pats(:, :, mid_frame), bkg, n_rows);
-        orient_deg(o) = od;
-        orient_rad(o) = or;
+        [od, ~] = compute_orientation_from_frame(Pats(:, :, mid_frame), bkg, n_rows);
+
+        % Snap orientation to nearest valid angle (multiples of 22.5 in [0, 180))
+        valid_orientations = 0:22.5:157.5;
+        orient_diffs = abs(mod(od - valid_orientations + 90, 180) - 90);
+        [~, snap_idx] = min(orient_diffs);
+        orient_deg(o) = valid_orientations(snap_idx);
+        orient_rad(o) = deg2rad(orient_deg(o));
 
         % Map frame numbers to orientation and position indices
         for p = 1:n_positions
