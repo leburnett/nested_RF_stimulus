@@ -386,8 +386,10 @@ function verify_stimulus_metadata(exp_folder)
     n_empty = sum(cellfun(@isempty, mean_slow), 'all');
     fprintf('--- Bar Flash Data Check ---\n');
     fprintf('  Empty cells in mean_slow: %d out of %d\n', n_empty, numel(mean_slow));
-    if n_empty > 1
-        fprintf('  WARNING: More than 1 empty cell (only (1,1) should be empty due to off-by-one).\n');
+    if n_empty > 0
+        fprintf('  WARNING: %d empty cell(s) detected. All 88 cells should be filled.\n', n_empty);
+    else
+        fprintf('  All 88 cells filled.\n');
     end
 
     fprintf('\n=== Verification Complete ===\n');

@@ -195,8 +195,8 @@ function stim_meta = get_stimulus_metadata(exp_folder)
     stim_meta.bar_sweep.is_flip = is_flip;
 
     % Build summary table
-    Row = (1:n_bar_trials)';
-    stim_meta.bar_sweep.summary_table = table(Row, direction_deg, direction_rad, ...
+    R = (1:n_bar_trials)';
+    stim_meta.bar_sweep.summary_table = table(R, direction_deg, direction_rad, ...
         orientation_deg, orientation_rad, speed_dps, speed_label, pattern_file, is_flip);
 
     % Determine plot_order: reorder first 16 rows (slow bars) to sequential angles
@@ -223,7 +223,7 @@ function stim_meta = get_stimulus_metadata(exp_folder)
         stim_meta.bar_flash.frame_to_orientation_idx = frame_to_orient;
         stim_meta.bar_flash.frame_to_position_idx = frame_to_pos;
 
-        % Document the raw cell mapping (off-by-one due to frame 1 = grey)
+        % Document the raw cell mapping (flash index → orientation/position)
         stim_meta.bar_flash.raw_cell_map = build_raw_cell_map(frame_to_orient, frame_to_pos, bf_orient_deg);
     end
 
@@ -388,60 +388,44 @@ end
 function raw_cell_map = build_raw_cell_map(frame_to_orient, frame_to_pos, orient_deg)
 % BUILD_RAW_CELL_MAP  Document what each (row,col) in the stored 11x8 cell represents.
 %
-%   Due to the off-by-one (frame 1 = grey, flash frames start at 2),
-%   data_rep{flash_frame_num} stores data at linear index = flash_frame_num
-%   in an 11x8 cell. This means the mapping is shifted.
+%   After the frame-1 subtraction fix in parse_bar_flash_data, linear index i
+%   in the 11x8 cell corresponds to flash stimulus i (frames 2 to 89 mapped
+%   to indices 1 to 88). frame_to_orient and frame_to_pos are 88x1 arrays
+%   mapping flash index to orientation and position.
 
     n_positions = 11;
     n_orientations = 8;
 
-    raw_cell_map = struct('row', {}, 'col', {}, 'frame_num', {}, ...
-        'actual_orientation_idx', {}, 'actual_position_idx', {}, ...
-        'actual_orientation_deg', {});
+    raw_cell_map = struct('row', {}, 'col', {}, 'linear_idx', {}, ...
+        'flash_index', {}, 'actual_orientation_idx', {}, ...
+        'actual_position_idx', {}, 'actual_orientation_deg', {}, ...
+        'status', {});
 
     for col = 1:n_orientations
         for row = 1:n_positions
             linear_idx = (col - 1) * n_positions + row; % MATLAB column-major
-            entry = struct();
-            entry.row = row;
-            entry.col = col;
-            entry.linear_idx = linear_idx;
 
-            if linear_idx == 1
-                % Frame 1 = grey, never stored
-                entry.frame_num = 1;
-                entry.actual_orientation_idx = NaN;
-                entry.actual_position_idx = NaN;
-                entry.actual_orientation_deg = NaN;
-                entry.status = 'empty (grey frame)';
-            elseif linear_idx <= numel(frame_to_orient) + 1
-                frame_num = linear_idx; % frame number = linear index
-                fi = linear_idx - 1; % index into frame_to_orient (which skips frame 1)
-                entry.frame_num = frame_num;
-                if fi >= 1 && fi <= numel(frame_to_orient)
-                    entry.actual_orientation_idx = frame_to_orient(fi);
-                    entry.actual_position_idx = frame_to_pos(fi);
-                    if frame_to_orient(fi) >= 1 && frame_to_orient(fi) <= numel(orient_deg)
-                        entry.actual_orientation_deg = orient_deg(frame_to_orient(fi));
-                    else
-                        entry.actual_orientation_deg = NaN;
-                    end
-                    entry.status = 'valid';
+            if linear_idx >= 1 && linear_idx <= numel(frame_to_orient)
+                ori_idx = frame_to_orient(linear_idx);
+                pos_idx = frame_to_pos(linear_idx);
+                if ori_idx >= 1 && ori_idx <= numel(orient_deg)
+                    ori_deg = orient_deg(ori_idx);
                 else
-                    entry.actual_orientation_idx = NaN;
-                    entry.actual_position_idx = NaN;
-                    entry.actual_orientation_deg = NaN;
-                    entry.status = 'out of range';
+                    ori_deg = NaN;
                 end
+                status = 'valid';
             else
-                entry.frame_num = linear_idx;
-                entry.actual_orientation_idx = NaN;
-                entry.actual_position_idx = NaN;
-                entry.actual_orientation_deg = NaN;
-                entry.status = 'out of range';
+                ori_idx = NaN;
+                pos_idx = NaN;
+                ori_deg = NaN;
+                status = 'out of range';
             end
 
-            raw_cell_map(row, col) = entry;
+            raw_cell_map(row, col) = struct( ...
+                'row', row, 'col', col, 'linear_idx', linear_idx, ...
+                'flash_index', linear_idx, 'actual_orientation_idx', ori_idx, ...
+                'actual_position_idx', pos_idx, 'actual_orientation_deg', ori_deg, ...
+                'status', status);
         end
     end
 end

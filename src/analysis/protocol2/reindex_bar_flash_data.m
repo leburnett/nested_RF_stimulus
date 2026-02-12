@@ -1,34 +1,35 @@
 function [corrected, orient_labels_deg] = reindex_bar_flash_data(raw_data, stim_meta)
-% REINDEX_BAR_FLASH_DATA  Correct off-by-one indexing in bar flash data.
+% REINDEX_BAR_FLASH_DATA  Reorder bar flash data to match true orientations.
 %
 %   [CORRECTED, ORIENT_LABELS_DEG] = REINDEX_BAR_FLASH_DATA(RAW_DATA, STIM_META)
-%   takes the raw 11x8 cell array from parse_bar_flash_data and returns a
-%   corrected version where columns truly correspond to orientations and
-%   rows to positions.
+%   takes the 11x8 cell array from parse_bar_flash_data and returns a
+%   corrected version where columns correspond to empirically determined
+%   orientations and rows to positions, using the metadata from
+%   get_stimulus_metadata.
 %
 %   INPUTS:
 %     raw_data  - 11x8 cell array (e.g., mean_slow or mean_fast from
-%                 parse_bar_flash_data). Due to frame indexing, the mapping
-%                 from (row,col) to (position, orientation) is shifted.
+%                 parse_bar_flash_data). After the frame-1 subtraction fix,
+%                 linear index i corresponds to flash frame i+1 in the
+%                 pattern, which is the i-th flash stimulus.
 %     stim_meta - Output of GET_STIMULUS_METADATA, containing the
 %                 frame-to-orientation and frame-to-position mappings.
 %
 %   OUTPUTS:
 %     corrected        - 11x8 cell array where column c = orientation c
-%                        and row r = position r, properly aligned.
+%                        and row r = position r, properly aligned using
+%                        the empirical orientation labels.
 %     orient_labels_deg - 8x1 array of orientation angles (degrees) for
 %                         each column in the corrected array.
 %
-%   THE PROBLEM:
-%     In parse_bar_flash_data, data_rep{flash_frame_num} stores data using
-%     the frame number as a linear index into an 11x8 cell. Since frame 1
-%     is the grey background, flash frames start at frame 2. MATLAB's
-%     column-major ordering means:
-%       - Linear index 1 = (row 1, col 1) → empty (grey frame)
-%       - Linear index 2 = (row 2, col 1) → position 1, orientation 1
-%       - Linear index 12 = (row 1, col 2) → position 11, orientation 1
-%       - Linear index 13 = (row 2, col 2) → position 1, orientation 2
-%     This causes a systematic shift in the data layout.
+%   INDEXING:
+%     parse_bar_flash_data stores data_rep{flash_frame_num - 1}, where
+%     flash_frame_num ranges from 2 to 89. So:
+%       - Linear index 1 = flash frame 2 = flash stimulus 1
+%       - Linear index 88 = flash frame 89 = flash stimulus 88
+%     The frame_to_orientation_idx and frame_to_position_idx arrays from
+%     stim_meta map flash index (1-88) to the actual orientation and
+%     position indices.
 %
 %   See also GET_STIMULUS_METADATA, PARSE_BAR_FLASH_DATA
 
@@ -46,20 +47,11 @@ function [corrected, orient_labels_deg] = reindex_bar_flash_data(raw_data, stim_
         for row = 1:num_positions
             linear_idx = (col - 1) * num_positions + row;
 
-            if linear_idx == 1
-                % Frame 1 = grey, this cell is empty
-                continue;
-            end
-
-            % The frame number that was stored at this linear index
-            frame_num = linear_idx;
-
-            % Look up what this frame actually corresponds to
-            fi = frame_num - 1; % Index into frame_to_orient (skips frame 1)
-
-            if fi >= 1 && fi <= numel(frame_to_orient)
-                actual_orient = frame_to_orient(fi);
-                actual_pos = frame_to_pos(fi);
+            % linear_idx corresponds to flash stimulus number (1-88)
+            % which maps to flash frame (linear_idx + 1) in the pattern
+            if linear_idx >= 1 && linear_idx <= numel(frame_to_orient)
+                actual_orient = frame_to_orient(linear_idx);
+                actual_pos = frame_to_pos(linear_idx);
 
                 if actual_orient >= 1 && actual_orient <= num_orientations && ...
                    actual_pos >= 1 && actual_pos <= num_positions
@@ -67,21 +59,6 @@ function [corrected, orient_labels_deg] = reindex_bar_flash_data(raw_data, stim_
                 end
             end
         end
-    end
-
-    % Handle the last flash (position 11, orientation 8) which maps to
-    % frame 89 = linear index 89. This is beyond the 88-element cell array
-    % (11x8=88), so it was stored via the position function mapping frame 1
-    % to frame 89 (wrapping). In practice, this flash may be missing from
-    % the raw data. Check if (row 1, col 1) has data that should be
-    % position 11 of orientation 8.
-    % Note: frame 89 would wrap to linear index 89 which is out of bounds
-    % for an 11x8 cell. The position function replaces frame 1 with 89,
-    % meaning this flash is effectively lost. Flag this.
-    if isempty(corrected{num_positions, num_orientations})
-        warning('reindex_bar_flash_data:missingFlash', ...
-            'Position %d of orientation %d is empty (frame 89 is out of bounds for 11x8 cell).', ...
-            num_positions, num_orientations);
     end
 
 end

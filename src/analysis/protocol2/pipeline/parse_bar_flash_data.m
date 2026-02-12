@@ -87,7 +87,7 @@ function [data_slow, data_fast, mean_slow, mean_fast, debug_info] = parse_bar_fl
         is_bar_flash = (max_frame <= max_pattern_frame) && (transitions >= 40);
 
         epoch_info(end+1) = struct('start', epoch_start, 'stop', epoch_stop, ...
-            'max_frame', max_frame, 'n_transitions', transitions, 'is_bar_flash', is_bar_flash); %#ok<AGROW>
+            'max_frame', max_frame, 'n_transitions', transitions, 'is_bar_flash', is_bar_flash);
     end
 
     % Extract bar flash epochs
@@ -178,10 +178,10 @@ function [data_slow, data_fast, mean_slow, mean_fast, debug_info] = parse_bar_fl
                 data_flash = v_data(clip_start:clip_end);
 
                 % Store using frame number as linear index into (positions x orientations)
-                % Frame 1 = grey background (skip), frames 2-88 = flash stimuli
-                % Frame 89 would be out of bounds for 11x8 cell, so skip it
-                if flash_frame_num >= 2 && flash_frame_num <= num_positions * num_orient
-                    data_rep{flash_frame_num} = data_flash;
+                % Frame 1 = grey background (skip), frames 2-89 = 88 flash stimuli
+                % Subtract 1 so frames 2-89 map to linear indices 1-88
+                if flash_frame_num >= 2 && flash_frame_num <= n_frames_pattern + 1
+                    data_rep{flash_frame_num - 1} = data_flash;
                 end
             end
 
