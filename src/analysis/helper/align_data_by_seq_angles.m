@@ -9,7 +9,7 @@ function data_ordered = align_data_by_seq_angles(data)
     
     plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
 
-    n_speeds = 5;
+    n_speeds = 3;
     n_dir = 16;
 
     data_ordered = cell(n_dir*n_speeds, 4);
