@@ -82,7 +82,7 @@ function analyze_single_experiment(exp_folder, opts)
 
     % Restore working directory after load_protocol2_data (which uses cd)
     orig_dir = pwd;
-    cleanup = onCleanup(@() cd(orig_dir)); %#ok<NASGU>
+    cleanup = onCleanup(@() cd(orig_dir));
 
     [date_str, ~, Log, params, ~] = load_protocol2_data(exp_folder);
 
@@ -190,7 +190,7 @@ function opts = set_default_opts(opts, exp_folder)
         opts.flash_baseline = 1:5000;
     end
     if ~isfield(opts, 'flash_ylim')
-        opts.flash_ylim = [-15 25];
+        opts.flash_ylim = [-15 35];
     end
     if ~isfield(opts, 'pattern_offset')
         opts.pattern_offset = 2;

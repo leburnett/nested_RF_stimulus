@@ -53,7 +53,7 @@ function fig = plot_bar_flash_1x11(flash_data, flash_mean, pos_order, ...
     % Set defaults
     if nargin < 5, opts = struct(); end
     if ~isfield(opts, 'baseline_samples'), opts.baseline_samples = 1:5000; end
-    if ~isfield(opts, 'y_limits'),         opts.y_limits         = [-15 25]; end
+    if ~isfield(opts, 'y_limits'),         opts.y_limits         = [-15 35]; end
     if ~isfield(opts, 'fig_position'),     opts.fig_position     = [50 400 1800 300]; end
 
     n_pos = 11;
@@ -61,6 +61,7 @@ function fig = plot_bar_flash_1x11(flash_data, flash_mean, pos_order, ...
 
     fig = figure('Name', title_str);
     tiledlayout(1, n_pos, 'TileSpacing', 'compact', 'Padding', 'compact');
+    % tiledlayout(1, n_pos, 'TileSpacing', 'compact', 'Padding', 'compact');
 
     for pos_idx = 1:n_pos
         flash_pos = pos_order(pos_idx);
@@ -104,10 +105,14 @@ function fig = plot_bar_flash_1x11(flash_data, flash_mean, pos_order, ...
             title(sprintf('%d', pos_idx));
         end
 
-        box on;
+        box off;
+        ax = gca; ax.LineWidth = 1.2;
+        ax.TickDir = 'out';
+        ax.TickLength = [0.015 0.015];
+        ax.FontSize = 14;
     end
 
-    sgtitle(title_str);
+    sgtitle(title_str, 'FontSize', 16);
     set(fig, 'Position', opts.fig_position);
 
 end

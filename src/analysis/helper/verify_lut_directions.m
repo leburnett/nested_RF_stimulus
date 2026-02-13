@@ -58,31 +58,31 @@ function [lut_directions, lut_orientations, lut_patterns, lut_functions] = ...
     % Compare LUT directions to assumed angles from plot_order
     assumed_angles = linspace(0, 360 - 22.5, n_dir)';
 
-    fprintf('\n=== LUT-Based Direction Verification ===\n');
-    fprintf('%-8s %-8s %-8s %-12s %-12s %-16s %-6s\n', ...
-        'DataRow', 'Pattern', 'Func', 'LUT_Dir', 'LUT_Orient', 'Assumed_Dir', 'Match');
-    fprintf('%s\n', repmat('-', 1, 72));
+    % fprintf('\n=== LUT-Based Direction Verification ===\n');
+    % fprintf('%-8s %-8s %-8s %-12s %-12s %-16s %-6s\n', ...
+    %     'DataRow', 'Pattern', 'Func', 'LUT_Dir', 'LUT_Orient', 'Assumed_Dir', 'Match');
+    % fprintf('%s\n', repmat('-', 1, 72));
 
-    all_match = true;
-    for subplot_idx = 1:n_dir
-        data_row    = plot_order(subplot_idx);
-        assumed_dir = assumed_angles(subplot_idx);
-        actual_dir  = lut_directions(data_row);
-        actual_orient = lut_orientations(data_row);
-        match = abs(actual_dir - assumed_dir) < 0.1;
-        if ~match
-            all_match = false;
-        end
-        fprintf('%-8d %-8d %-8d %-12.1f %-12.1f %-16.1f %-6s\n', ...
-            data_row, lut_patterns(data_row), lut_functions(data_row), ...
-            actual_dir, actual_orient, assumed_dir, string(match));
-    end
+    % % all_match = true;
+    % for subplot_idx = 1:n_dir
+    %     data_row    = plot_order(subplot_idx);
+    %     assumed_dir = assumed_angles(subplot_idx);
+    %     actual_dir  = lut_directions(data_row);
+    %     actual_orient = lut_orientations(data_row);
+    %     match = abs(actual_dir - assumed_dir) < 0.1;
+    %     if ~match
+    %         all_match = false;
+    %     end
+    %     fprintf('%-8d %-8d %-8d %-12.1f %-12.1f %-16.1f %-6s\n', ...
+    %         data_row, lut_patterns(data_row), lut_functions(data_row), ...
+    %         actual_dir, actual_orient, assumed_dir, string(match));
+    % end
 
-    if all_match
-        fprintf('\nAll directions match plot_order assumptions.\n');
-    else
-        fprintf('\nWARNING: Mismatches found! Using LUT directions for plotting.\n');
-    end
+    % if all_match
+    %     fprintf('\nAll directions match plot_order assumptions.\n');
+    % else
+    %     fprintf('\nWARNING: Mismatches found! Using LUT directions for plotting.\n');
+    % end
 
     % Check for duplicate directions
     unique_dirs = unique(lut_directions);
