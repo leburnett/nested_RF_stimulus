@@ -312,6 +312,19 @@ function analyze_single_experiment(exp_folder)
     pd_flash_data = data_slow_bf(:, bar_flash_col, :);
     pd_flash_mean = mean_slow_bf(:, bar_flash_col);
 
+    % Orthogonal orientation: 4 columns away (wraps around 8 orientations)
+    ortho_flash_col = mod(bar_flash_col - 1 + 4, 8) + 1;
+    ortho_flash_data = data_slow_bf(:, ortho_flash_col, :);
+    ortho_flash_mean = mean_slow_bf(:, ortho_flash_col);
+
+    % Look up orthogonal orientation angle
+    ortho_exp_pat = ortho_flash_col + 2;
+    ortho_mask = Tbl.pattern == ortho_exp_pat & Tbl.function == 3;
+    ortho_orientation = Tbl.orientation(ortho_mask);
+
+    fprintf('Orthogonal bar flash column:  %d (orientation: %.1f°)\n', ...
+        ortho_flash_col, ortho_orientation);
+
     %% Step 8: Determine spatial ordering (ND→PD, left to right)
 
     is_forward = mod(pd_function, 2) == 1;
@@ -431,7 +444,10 @@ function analyze_single_experiment(exp_folder)
         strrep(date_str,'_','-'), strrep(metadata.Strain,'_',' ')));
     set(gcf, 'Position', [45 128 1675 902]);
 
-    %% Step 10: 1×11 bar flash subplot along PD-ND axis
+    %% Step 10: 1×11 bar flash subplot along PD-ND axis (baseline-subtracted)
+
+    % Baseline period: first 5000 samples (~500ms before flash onset)
+    baseline_samples = 1:5000;
 
     fig_flash = figure('Name', 'Bar Flash PD-ND Axis');
     tiledlayout(1, 11, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -444,18 +460,20 @@ function analyze_single_experiment(exp_folder)
         for r = 1:3
             ts = pd_flash_data{flash_pos, 1, r};
             if ~isempty(ts)
-                plot(1:numel(ts), ts, 'Color', [0.75 0.75 0.75], 'LineWidth', 0.5);
+                bl = mean(ts(baseline_samples));
+                plot(1:numel(ts), ts - bl, 'Color', [0.75 0.75 0.75], 'LineWidth', 0.5);
             end
         end
 
         ts_mean = pd_flash_mean{flash_pos};
         if ~isempty(ts_mean)
-            plot(1:numel(ts_mean), ts_mean, 'k', 'LineWidth', 1.5);
+            bl_mean = mean(ts_mean(baseline_samples));
+            plot(1:numel(ts_mean), ts_mean - bl_mean, 'k', 'LineWidth', 1.5);
         end
 
-        ylim([-80 -10]);
+        ylim([-15 25]);
         if pos_idx == 1
-            ylabel('mV');
+            ylabel('\DeltamV');
         else
             set(gca, 'YTickLabel', []);
         end
@@ -475,10 +493,61 @@ function analyze_single_experiment(exp_folder)
         box on;
     end
 
-    sgtitle(sprintf('Bar Flash PD-ND Axis — Dir:%.0f° Orient:%.0f° — %s — %s', ...
+    sgtitle(sprintf('Bar Flash PD-ND — Dir:%.0f° Orient:%.0f° — %s — %s', ...
         pd_direction, pd_orientation, strrep(date_str,'_','-'), strrep(metadata.Strain,'_',' ')));
 
     set(gcf, 'Position', [50 400 1800 300]);
+
+    %% Step 11: 1×11 bar flash subplot — orthogonal orientation (baseline-subtracted)
+
+    fig_flash_ortho = figure('Name', 'Bar Flash Orthogonal Axis');
+    tiledlayout(1, 11, 'TileSpacing', 'compact', 'Padding', 'compact');
+
+    for pos_idx = 1:11
+        flash_pos = pos_order(pos_idx);
+        nexttile;
+        hold on;
+
+        for r = 1:3
+            ts = ortho_flash_data{flash_pos, 1, r};
+            if ~isempty(ts)
+                bl = mean(ts(baseline_samples));
+                plot(1:numel(ts), ts - bl, 'Color', [0.75 0.75 0.75], 'LineWidth', 0.5);
+            end
+        end
+
+        ts_mean = ortho_flash_mean{flash_pos};
+        if ~isempty(ts_mean)
+            bl_mean = mean(ts_mean(baseline_samples));
+            plot(1:numel(ts_mean), ts_mean - bl_mean, 'k', 'LineWidth', 1.5);
+        end
+
+        ylim([-15 25]);
+        if pos_idx == 1
+            ylabel('\DeltamV');
+        else
+            set(gca, 'YTickLabel', []);
+        end
+
+        set(gca, 'XTick', []);
+
+        if pos_idx == 1
+            title('ND');
+        elseif pos_idx == 6
+            title('Center');
+        elseif pos_idx == 11
+            title('PD');
+        else
+            title(sprintf('%d', pos_idx));
+        end
+
+        box on;
+    end
+
+    sgtitle(sprintf('Bar Flash Orthogonal — Orient:%.0f° — %s — %s', ...
+        ortho_orientation, strrep(date_str,'_','-'), strrep(metadata.Strain,'_',' ')));
+
+    set(gcf, 'Position', [50 100 1800 300]);
 
     %% Save figures as PDFs
     save_dir = fullfile(exp_folder, 'analysis_output');
@@ -493,6 +562,8 @@ function analyze_single_experiment(exp_folder)
     exportgraphics(fig_all_flash, fullfile(save_dir, 'bar_flash_all_orientations.pdf'), ...
         'ContentType', 'image', 'Resolution', 300);
     exportgraphics(fig_flash, fullfile(save_dir, 'bar_flash_PD_ND_axis.pdf'), ...
+        'ContentType', 'image', 'Resolution', 300);
+    exportgraphics(fig_flash_ortho, fullfile(save_dir, 'bar_flash_orthogonal_axis.pdf'), ...
         'ContentType', 'image', 'Resolution', 300);
     fprintf('\nFigures saved to: %s\n', save_dir);
 
