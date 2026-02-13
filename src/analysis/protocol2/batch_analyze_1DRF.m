@@ -3,7 +3,8 @@ function results = batch_analyze_1DRF(data_root, opts)
 %
 %   RESULTS = BATCH_ANALYZE_1DRF(DATA_ROOT) processes every experiment
 %   folder in DATA_ROOT, classifies cells as ON/OFF and control/ttl, then
-%   generates population-averaged plots with mean +/- SEM.
+%   generates population plots with median +/- MAD (default) or mean +/-
+%   SEM (configurable via opts.stat_method).
 %
 %   RESULTS = BATCH_ANALYZE_1DRF(DATA_ROOT, OPTS) uses the options
 %   structure to override default parameters.
@@ -21,6 +22,7 @@ function results = batch_analyze_1DRF(data_root, opts)
 %                                    (default: <data_root>/population_results)
 %                   .flash_baseline - Sample indices for bar flash baseline
 %                                     (default: 1:5000)
+%                   .stat_method   - 'median_mad' (default) or 'mean_sem'
 %
 %   OUTPUT:
 %     results - Structure array (one element per cell) with fields:
@@ -43,9 +45,10 @@ function results = batch_analyze_1DRF(data_root, opts)
 %
 %   FIGURES GENERATED:
 %     For each of ON and OFF cells (6 figures total):
-%       1. PD-aligned polar tuning curve (control=black, ttl=red, +/- SEM)
-%       2. 1x11 PD-ND bar flash (control=black, ttl=red, +/- SEM)
-%       3. 1x11 orthogonal bar flash (control=black, ttl=red, +/- SEM)
+%       1. PD-aligned polar tuning curve (control=black, ttl=red, +/- spread)
+%       2. 1x11 PD-ND bar flash (control=black, ttl=red, +/- spread)
+%       3. 1x11 orthogonal bar flash (control=black, ttl=red, +/- spread)
+%     Spread is MAD (default) or SEM, set via opts.stat_method.
 %
 %   ANALYSIS PIPELINE:
 %     1. Discover experiment folders in data_root
@@ -151,14 +154,18 @@ function results = batch_analyze_1DRF(data_root, opts)
         aligned_ctrl = {results(ctrl_mask).max_v_aligned};
         aligned_ttl  = {results(ttl_mask).max_v_aligned};
 
+        polar_opts.stat_method = opts.stat_method;
         polar_title = sprintf('%s Cells — PD-Aligned Polar Tuning', on_off_label);
-        fig_polar = plot_polar_population(aligned_ctrl, aligned_ttl, polar_title);
+        fig_polar = plot_polar_population(aligned_ctrl, aligned_ttl, ...
+            polar_title, polar_opts);
 
         % --- PD-ND bar flash traces ---
         pd_traces_ctrl = {results(ctrl_mask).pd_flash_bl};
         pd_traces_ttl  = {results(ttl_mask).pd_flash_bl};
 
-        flash_opts.y_limits = opts.flash_ylim;
+        flash_opts.y_limits    = opts.flash_ylim;
+        flash_opts.plot_type   = 'pd_nd';
+        flash_opts.stat_method = opts.stat_method;
         pd_flash_title = sprintf('%s Cells — PD-ND Bar Flash', on_off_label);
         fig_pd = plot_flash_1x11_population(...
             pd_traces_ctrl, pd_traces_ttl, pd_flash_title, flash_opts);
@@ -168,6 +175,7 @@ function results = batch_analyze_1DRF(data_root, opts)
         ortho_traces_ttl  = {results(ttl_mask).ortho_flash_bl};
 
         flash_opts.fig_position = [50 100 1800 300];
+        flash_opts.plot_type    = 'orthogonal';
         ortho_flash_title = sprintf('%s Cells — Orthogonal Bar Flash', on_off_label);
         fig_ortho = plot_flash_1x11_population(...
             ortho_traces_ctrl, ortho_traces_ttl, ortho_flash_title, flash_opts);
@@ -175,7 +183,7 @@ function results = batch_analyze_1DRF(data_root, opts)
         % Save figures
         if opts.save_figs
             save_population_figures(opts.save_dir, on_off_label, ...
-                fig_polar, fig_pd, fig_ortho);
+                opts.stat_method, fig_polar, fig_pd, fig_ortho);
         end
     end
 
@@ -191,7 +199,7 @@ function r = process_single_cell(exp_folder, Tbl, opts)
 
     % Save/restore working directory (load_protocol2_data uses cd)
     orig_dir = pwd;
-    cleanup = onCleanup(@() cd(orig_dir)); %#ok<NASGU>
+    cleanup = onCleanup(@() cd(orig_dir));
 
     % Load data
     [date_str, ~, Log, ~, ~] = load_protocol2_data(exp_folder);
@@ -343,14 +351,19 @@ function opts = set_batch_defaults(opts, data_root)
     if ~isfield(opts, 'save_dir')
         opts.save_dir = fullfile(data_root, 'population_results');
     end
+    if ~isfield(opts, 'stat_method')
+        opts.stat_method = 'median_mad'; %  'mean_sem'
+    end
 
 end
 
 
 %% ========================= Figure Saving ==============================
 
-function save_population_figures(save_dir, on_off_label, fig_polar, fig_pd, fig_ortho)
+function save_population_figures(save_dir, on_off_label, stat_method, ...
+    fig_polar, fig_pd, fig_ortho)
 % SAVE_POPULATION_FIGURES  Export population figures as 300 dpi PDFs.
+%   Filenames include the stat_method (e.g. 'median_mad' or 'mean_sem').
 
     if ~isfolder(save_dir)
         mkdir(save_dir);
@@ -360,13 +373,13 @@ function save_population_figures(save_dir, on_off_label, fig_polar, fig_pd, fig_
     prefix = lower(char(on_off_label));
 
     exportgraphics(fig_polar, ...
-        fullfile(save_dir, sprintf('%s_polar_population.pdf', prefix)), ...
+        fullfile(save_dir, sprintf('%s_polar_population_%s.pdf', prefix, stat_method)), ...
         export_opts{:});
     exportgraphics(fig_pd, ...
-        fullfile(save_dir, sprintf('%s_pd_nd_flash_population.pdf', prefix)), ...
+        fullfile(save_dir, sprintf('%s_pd_nd_flash_population_%s.pdf', prefix, stat_method)), ...
         export_opts{:});
     exportgraphics(fig_ortho, ...
-        fullfile(save_dir, sprintf('%s_ortho_flash_population.pdf', prefix)), ...
+        fullfile(save_dir, sprintf('%s_ortho_flash_population_%s.pdf', prefix, stat_method)), ...
         export_opts{:});
 
     fprintf('  %s figures saved to: %s\n', on_off_label, save_dir);

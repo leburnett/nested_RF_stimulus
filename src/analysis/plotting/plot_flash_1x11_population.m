@@ -1,9 +1,9 @@
 function fig = plot_flash_1x11_population(traces_ctrl, traces_ttl, title_str, opts)
-% PLOT_FLASH_1X11_POPULATION  Population-averaged 1x11 bar flash plot with SEM.
+% PLOT_FLASH_1X11_POPULATION  Population 1x11 bar flash plot with shaded spread.
 %
 %   FIG = PLOT_FLASH_1X11_POPULATION(TRACES_CTRL, TRACES_TTL, TITLE_STR)
-%   creates a 1x11 tiled layout showing the population mean bar flash
-%   response at each spatial position, with SEM as a shaded band. Control
+%   creates a 1x11 tiled layout showing the population center bar flash
+%   response at each spatial position, with a shaded spread band. Control
 %   and ttl groups are overlaid on the same axes.
 %
 %   FIG = PLOT_FLASH_1X11_POPULATION(..., OPTS) uses the options structure
@@ -20,14 +20,21 @@ function fig = plot_flash_1x11_population(traces_ctrl, traces_ttl, title_str, op
 %                     .y_limits     - [ymin ymax] in mV (default: [-15 35])
 %                     .fig_position - [x y w h] in pixels
 %                                     (default: [50 400 1800 300])
+%                     .plot_type    - 'pd_nd' or 'orthogonal'
+%                                     (default: 'pd_nd'). Controls whether
+%                                     tiles 1/11 are labelled PD/ND.
+%                     .stat_method  - 'median_mad' (default) or 'mean_sem'
 %
 %   OUTPUT:
 %     fig - Figure handle
 %
 %   FIGURE LAYOUT:
-%     1x11 tiled layout. Each tile shows the mean trace for control (black)
-%     and ttl (red) with SEM shading (gray and light red respectively).
-%     Tile 1 is labelled 'ND', tile 6 'Center', and tile 11 'PD'.
+%     1x11 tiled layout. Each tile shows the center trace for control
+%     (black) and ttl (red) with shaded spread (gray and light red
+%     respectively). The shaded band represents MAD (default) or SEM
+%     depending on stat_method. For 'pd_nd' plots, tile 1 is labelled
+%     'ND', tile 6 'Center', and tile 11 'PD'. For 'orthogonal' plots,
+%     tile 1 is '1', tile 6 'Center', and tile 11 '11'.
 %
 %   See also PLOT_BAR_FLASH_1X11, BATCH_ANALYZE_1DRF, ANALYZE_SINGLE_EXPERIMENT
 % ________________________________________________________________________
@@ -36,6 +43,8 @@ function fig = plot_flash_1x11_population(traces_ctrl, traces_ttl, title_str, op
     if nargin < 4, opts = struct(); end
     if ~isfield(opts, 'y_limits'),     opts.y_limits     = [-15 35]; end
     if ~isfield(opts, 'fig_position'), opts.fig_position = [50 400 1800 300]; end
+    if ~isfield(opts, 'plot_type'),    opts.plot_type    = 'pd_nd'; end
+    if ~isfield(opts, 'stat_method'),  opts.stat_method  = 'median_mad'; end
 
     n_pos = 11;
 
@@ -44,7 +53,7 @@ function fig = plot_flash_1x11_population(traces_ctrl, traces_ttl, title_str, op
     col_ctrl_fill = [0.80 0.80 0.80];   % light gray
     col_ttl_line  = [1 0 0];            % red
     col_ttl_fill  = [1 0.70 0.70];      % light red
-    alpha_val     = 0.30;
+    alpha_val     = 0.40;
 
     fig = figure('Name', title_str);
     tiledlayout(1, n_pos, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -54,20 +63,20 @@ function fig = plot_flash_1x11_population(traces_ctrl, traces_ttl, title_str, op
         hold on;
 
         % Extract traces for this position from all cells, compute stats
-        [mean_ctrl, sem_ctrl, n_ctrl] = compute_trace_stats(traces_ctrl, pos_idx);
-        [mean_ttl,  sem_ttl,  n_ttl]  = compute_trace_stats(traces_ttl, pos_idx);
+        [ctr_ctrl, spr_ctrl, n_ctrl] = compute_trace_stats(traces_ctrl, pos_idx, opts.stat_method);
+        [ctr_ttl,  spr_ttl,  n_ttl]  = compute_trace_stats(traces_ttl, pos_idx, opts.stat_method);
 
-        % Plot control: SEM shading then mean line
-        if ~isempty(mean_ctrl)
-            x = 1:numel(mean_ctrl);
-            plot_shaded_trace(x, mean_ctrl, sem_ctrl, ...
+        % Plot control: shaded spread then center line
+        if ~isempty(ctr_ctrl)
+            x = 1:numel(ctr_ctrl);
+            plot_shaded_trace(x, ctr_ctrl, spr_ctrl, ...
                 col_ctrl_line, col_ctrl_fill, alpha_val, 1.5);
         end
 
-        % Plot ttl: SEM shading then mean line
-        if ~isempty(mean_ttl)
-            x = 1:numel(mean_ttl);
-            plot_shaded_trace(x, mean_ttl, sem_ttl, ...
+        % Plot ttl: shaded spread then center line
+        if ~isempty(ctr_ttl)
+            x = 1:numel(ctr_ttl);
+            plot_shaded_trace(x, ctr_ttl, spr_ttl, ...
                 col_ttl_line, col_ttl_fill, alpha_val, 1.5);
         end
 
@@ -81,15 +90,24 @@ function fig = plot_flash_1x11_population(traces_ctrl, traces_ttl, title_str, op
             set(gca, 'YTickLabel', []);
         end
 
-        % Position labels
-        if pos_idx == 1
-            title('ND');
-        elseif pos_idx == 6
-            title('Center');
-        elseif pos_idx == 11
-            title('PD');
+        % Position labels — show PD/ND only for pd_nd plots
+        if strcmpi(opts.plot_type, 'pd_nd')
+            if pos_idx == 1
+                title('ND');
+            elseif pos_idx == 6
+                title('Center');
+            elseif pos_idx == 11
+                title('PD');
+            else
+                title(sprintf('%d', pos_idx));
+            end
         else
-            title(sprintf('%d', pos_idx));
+            % Orthogonal plot: no PD/ND labels
+            if pos_idx == 6
+                title('Center');
+            else
+                title(sprintf('%d', pos_idx));
+            end
         end
 
         box off;
@@ -103,11 +121,11 @@ function fig = plot_flash_1x11_population(traces_ctrl, traces_ttl, title_str, op
         if pos_idx == 1
             h = [];
             labs = {};
-            if ~isempty(mean_ctrl)
+            if ~isempty(ctr_ctrl)
                 h(end+1) = plot(NaN, NaN, '-', 'Color', col_ctrl_line, 'LineWidth', 1.5);
                 labs{end+1} = sprintf('control (n=%d)', n_ctrl);
             end
-            if ~isempty(mean_ttl)
+            if ~isempty(ctr_ttl)
                 h(end+1) = plot(NaN, NaN, '-', 'Color', col_ttl_line, 'LineWidth', 1.5);
                 labs{end+1} = sprintf('ttl (n=%d)', n_ttl);
             end
@@ -125,12 +143,13 @@ end
 
 %% ========================= Local Functions ============================
 
-function [mean_trace, sem_trace, n] = compute_trace_stats(traces_cell, pos_idx)
-% COMPUTE_TRACE_STATS  Stack traces at one position across cells, compute mean/SEM.
+function [center_trace, spread_trace, n] = compute_trace_stats(traces_cell, pos_idx, stat_method)
+% COMPUTE_TRACE_STATS  Stack traces at one position across cells, compute center/spread.
+%   stat_method: 'median_mad' (default) or 'mean_sem'.
 
-    mean_trace = [];
-    sem_trace  = [];
-    n          = 0;
+    center_trace = [];
+    spread_trace = [];
+    n            = 0;
 
     if isempty(traces_cell)
         return;
@@ -161,29 +180,35 @@ function [mean_trace, sem_trace, n] = compute_trace_stats(traces_cell, pos_idx)
         return;
     end
 
-    n          = size(all_traces, 1);
-    mean_trace = mean(all_traces, 1, 'omitnan');
-    sd         = std(all_traces, 0, 1, 'omitnan');
-    sem_trace  = sd ./ sqrt(n);
+    n = size(all_traces, 1);
+
+    if strcmpi(stat_method, 'mean_sem')
+        center_trace = mean(all_traces, 1, 'omitnan');
+        sd           = std(all_traces, 0, 1, 'omitnan');
+        spread_trace = sd ./ sqrt(n);
+    else  % 'median_mad'
+        center_trace = median(all_traces, 1, 'omitnan');
+        spread_trace = mad(all_traces, 1, 1);  % median absolute deviation (flag=1)
+    end
 
 end
 
 
-function plot_shaded_trace(x, mean_vals, sem_vals, line_col, fill_col, alpha_val, lw)
-% PLOT_SHADED_TRACE  Plot mean line with SEM shading on current axes.
+function plot_shaded_trace(x, center_vals, spread_vals, line_col, fill_col, alpha_val, lw)
+% PLOT_SHADED_TRACE  Plot center line with shaded spread band on current axes.
 
     x = x(:)';
-    m = mean_vals(:)';
-    s = sem_vals(:)';
+    m = center_vals(:)';
+    s = spread_vals(:)';
 
     upper = m + s;
     lower = m - s;
 
-    % Shaded SEM band
+    % Shaded spread band
     fill([x, fliplr(x)], [upper, fliplr(lower)], fill_col, ...
         'FaceAlpha', alpha_val, 'EdgeColor', 'none');
 
-    % Mean line on top
+    % Center line on top
     plot(x, m, '-', 'Color', line_col, 'LineWidth', lw);
 
 end
