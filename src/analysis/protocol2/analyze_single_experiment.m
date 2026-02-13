@@ -3,8 +3,7 @@ function analyze_single_experiment(exp_folder)
 %
 %   ANALYZE_SINGLE_EXPERIMENT(EXP_FOLDER) loads data from a single Protocol 2
 %   experiment, creates a slow-speed (28 dps) bar sweep polar timeseries plot
-%   with LUT-based direction verification, then creates a 1x11 bar flash
-%   subplot along the PD-ND axis.
+%   with LUT-based direction verification, then creates bar flash plots.
 %
 %   INPUT:
 %     exp_folder - Full path to experiment directory
@@ -12,10 +11,12 @@ function analyze_single_experiment(exp_folder)
 %
 %   OUTPUTS:
 %     Figure 1: LUT verification — bar orientation/direction visual check
-%     Figure 2: Slow bar sweep polar timeseries (using LUT-derived directions)
-%     Figure 3: 1x11 bar flash subplots along PD-ND axis
+%     Figure 2: Slow bar sweep polar timeseries with vector sum arrow
+%     Figure 3: Full 8x11 bar flash heatmap (all orientations)
+%     Figure 4: 1x11 bar flash subplots along PD-ND axis
 %
-%   See also LOAD_PROTOCOL2_DATA, PARSE_BAR_DATA, PARSE_BAR_FLASH_DATA
+%   See also LOAD_PROTOCOL2_DATA, PARSE_BAR_DATA, PARSE_BAR_FLASH_DATA,
+%            VECTOR_SUM_POLAR, ADD_ARROW_TO_POLARPLOT
 
     %% Step 1: Data Loading
 
@@ -44,7 +45,6 @@ function analyze_single_experiment(exp_folder)
     %% Step 2: Parse bar sweep data
 
     bar_data = parse_bar_data(f_data, v_data);
-    % bar_data: Nx4 cell. Rows 1-16 = slow (28 dps). Cols 1-3 = reps, col 4 = mean.
 
     %% Step 3: LUT-Based Verification
 
@@ -72,7 +72,7 @@ function analyze_single_experiment(exp_folder)
 
     % What does plot_order assume?
     plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
-    assumed_angles = linspace(0, 360 - 22.5, 16)'; % 0, 22.5, 45, ..., 337.5
+    assumed_angles = linspace(0, 360 - 22.5, 16)';
 
     % Build comparison table
     fprintf('\n=== LUT-Based Direction Verification ===\n');
@@ -101,11 +101,24 @@ function analyze_single_experiment(exp_folder)
         fprintf('\nWARNING: Mismatches found! Using LUT directions for plotting.\n');
     end
 
-    %% Step 3b: Visual verification figure — orientation + direction arrows
-    % Two side-by-side circular layouts:
-    %   Left: subplots positioned by current plot_order (assumed angles)
-    %   Right: subplots positioned by LUT directions (actual angles)
+    % Check for duplicate directions in the LUT
+    unique_dirs = unique(lut_directions);
+    if numel(unique_dirs) < n_dir
+        fprintf('\nWARNING: LUT contains duplicate directions!\n');
+        for d_idx = 1:numel(unique_dirs)
+            rows_at_dir = find(lut_directions == unique_dirs(d_idx));
+            if numel(rows_at_dir) > 1
+                fprintf('  Direction %.1f° appears in data rows: %s\n', ...
+                    unique_dirs(d_idx), mat2str(rows_at_dir'));
+            end
+        end
+        missing = setdiff(assumed_angles, lut_directions);
+        if ~isempty(missing)
+            fprintf('  Missing directions: %s\n', mat2str(missing'));
+        end
+    end
 
+    %% Step 3b: Visual verification figure
     fig_verify = figure('Name', 'LUT Verification: Bar Orientation & Direction');
     set(fig_verify, 'Position', [50 50 1600 800]);
 
@@ -113,32 +126,30 @@ function analyze_single_experiment(exp_folder)
     theta_plot = linspace(0, 2*pi, numPlots+1);
     theta_plot = theta_plot(1:end-1);
 
-    radius = 0.32;
+    verify_radius = 0.32;
     sw = 0.08; sh = 0.08;
 
     for panel = 1:2
         if panel == 1
-            centerX = 0.25;  % Left panel: plot_order assumed positions
+            cX = 0.25;
             panel_title = 'Current plot\_order (assumed angles)';
         else
-            centerX = 0.75;  % Right panel: LUT-based positions
+            cX = 0.75;
             panel_title = 'LUT directions (actual angles)';
         end
-        centerY = 0.5;
+        cY = 0.5;
 
         for subplot_idx = 1:numPlots
             data_row = plot_order(subplot_idx);
 
             if panel == 1
-                % Position at assumed angle (plot_order convention)
                 angle_rad = theta_plot(subplot_idx);
             else
-                % Position at actual LUT direction
                 angle_rad = deg2rad(lut_directions(data_row));
             end
 
-            x_pos = centerX + radius * cos(angle_rad);
-            y_pos = centerY + radius * sin(angle_rad);
+            x_pos = cX + verify_radius * cos(angle_rad);
+            y_pos = cY + verify_radius * sin(angle_rad);
 
             ax = axes('Position', [x_pos - sw/2, y_pos - sh/2, sw, sh]);
             hold on;
@@ -146,14 +157,12 @@ function analyze_single_experiment(exp_folder)
             orient_deg = lut_orientations(data_row);
             dir_deg = lut_directions(data_row);
 
-            % Draw bar orientation as a thick line segment
             orient_rad = deg2rad(orient_deg);
             bar_len = 0.35;
             bx = bar_len * cos(orient_rad);
             by = bar_len * sin(orient_rad);
             plot([-bx, bx], [-by, by], 'k-', 'LineWidth', 3);
 
-            % Draw direction arrow
             dir_rad = deg2rad(dir_deg);
             arr_len = 0.3;
             ax_arr = arr_len * cos(dir_rad);
@@ -163,19 +172,16 @@ function analyze_single_experiment(exp_folder)
             xlim([-0.5 0.5]); ylim([-0.5 0.5]);
             axis equal off;
 
-            % Label with data row and actual direction
             text(0, -0.45, sprintf('R%d D:%.0f°', data_row, dir_deg), ...
                 'HorizontalAlignment', 'center', 'FontSize', 5);
         end
 
-        % Panel title
-        annotation('textbox', [centerX-0.15, 0.88, 0.3, 0.05], ...
+        annotation('textbox', [cX-0.15, 0.88, 0.3, 0.05], ...
             'String', panel_title, ...
             'HorizontalAlignment', 'center', 'EdgeColor', 'none', ...
             'FontSize', 10, 'FontWeight', 'bold');
 
-        % Center legend
-        annotation('textbox', [centerX-0.1, 0.43, 0.2, 0.08], ...
+        annotation('textbox', [cX-0.1, 0.43, 0.2, 0.08], ...
             'String', {'Black = bar orientation', 'Red arrow = motion direction'}, ...
             'HorizontalAlignment', 'center', 'EdgeColor', 'none', 'FontSize', 7);
     end
@@ -185,29 +191,29 @@ function analyze_single_experiment(exp_folder)
 
     %% Step 4: Slow-speed bar sweep polar timeseries plot
 
-    % Use LUT directions (not assumed angles) for subplot positioning
     fig_polar = figure('Name', 'Slow Bar Sweep Polar Timeseries (28 dps)');
 
-    % Reset layout parameters for this figure
     centerX = 0.5;
     centerY = 0.5;
     radius = 0.35;
 
-    % Compute max_v using LUT-verified direction positions
     max_v_slow = zeros(numPlots, 1);
+    col = [0.2 0.4 0.7];
 
-    col = [0.2 0.4 0.7]; % Dark blue for slow bars
+    % LUT directions for each subplot position (in order of plot_order)
+    lut_dirs_ordered = lut_directions(plot_order);  % 16x1, degrees
+    lut_dirs_ordered_rad = deg2rad(lut_dirs_ordered);
 
     for subplot_idx = 1:numPlots
         data_row = plot_order(subplot_idx);
 
-        % Position subplot at LUT direction angle
-        actual_dir_rad = deg2rad(lut_directions(data_row));
-        x_pos = centerX + radius * cos(actual_dir_rad);
-        y_pos = centerY + radius * sin(actual_dir_rad);
+        % Position subplot at the LUT direction for this data row
+        angle_rad = lut_dirs_ordered_rad(subplot_idx);
+        x_pos = centerX + radius * cos(angle_rad);
+        y_pos = centerY + radius * sin(angle_rad);
 
-        sw = 0.15; sh = 0.15;
-        ax = axes('Position', [x_pos - sw/2, y_pos - sh/2, sw, sh]);
+        subW = 0.15; subH = 0.15;
+        ax = axes('Position', [x_pos - subW/2, y_pos - subH/2, subW, subH]);
         hold on;
 
         n_reps = size(bar_data, 2) - 1;
@@ -238,78 +244,194 @@ function analyze_single_experiment(exp_folder)
         max_v_slow(subplot_idx) = abs(diff([prctile(d_stim, 98), mean_before]));
     end
 
-    % Add central polar plot
+    % Central polar plot — use LUT directions as the theta values
     centralSize = (2 * radius) * 0.65;
     centralPosition = [centerX - centralSize/2, centerY - centralSize/2, centralSize, centralSize];
-    angls_polar = deg2rad(lut_directions(plot_order));
-    angls_polar = [angls_polar; angls_polar(1)]; % close the loop
-    max_v_polar = [max_v_slow; max_v_slow(1)];
+
+    % Sort by direction for smooth curve
+    dir_and_val = sortrows([lut_dirs_ordered_rad, max_v_slow], 1);
+    polar_theta = [dir_and_val(:,1); dir_and_val(1,1)];  % close loop
+    polar_rho = [dir_and_val(:,2); dir_and_val(1,2)];
 
     axCentral = polaraxes('Position', centralPosition);
     hold on;
-    polarplot(angls_polar, max_v_polar, 'Color', col, 'LineWidth', 2);
+    polarplot(polar_theta, polar_rho, 'Color', col, 'LineWidth', 2, ...
+        'Marker', 'o', 'MarkerSize', 5, 'MarkerFaceColor', 'w');
+
+    % Vector sum arrow using existing functions
+    rho_for_vecsum = max_v_slow';  % 1×16
+    theta_for_vecsum = lut_dirs_ordered_rad';  % 1×16
+    [~, resultant_angle] = vector_sum_polar(rho_for_vecsum, theta_for_vecsum);
+
+    arrow_magnitude = max(polar_rho) * 0.9;
+    add_arrow_to_polarplot(arrow_magnitude, resultant_angle, [0.3 0.3 0.3]);
+
+    axCentral.LineWidth = 1.2;
+    axCentral.ThetaTick = 0:22.5:337.5;
+    axCentral.ThetaTickLabel = {};
 
     set(gcf, 'Position', [303 78 961 969]);
     sgtitle(sprintf('28 dps — %s — %s — %s', ...
         strrep(date_str,'_','-'), strrep(metadata.Strain,'_',' '), params.on_off));
 
-    %% Step 5: Find Preferred Direction (PD)
+    %% Step 5: Find PD via vector sum — closest LUT direction
 
-    [~, pd_subplot_idx] = max(max_v_slow);
+    fprintf('\n=== Preferred Direction (PD via vector sum) ===\n');
+    fprintf('Vector sum angle: %.1f°\n', rad2deg(resultant_angle));
+
+    % Find the closest LUT direction to the vector sum angle
+    angle_diffs = abs(lut_dirs_ordered_rad - resultant_angle);
+    % Handle wraparound
+    angle_diffs = min(angle_diffs, 2*pi - angle_diffs);
+    [~, pd_subplot_idx] = min(angle_diffs);
     pd_data_row = plot_order(pd_subplot_idx);
     pd_direction = lut_directions(pd_data_row);
     pd_orientation = lut_orientations(pd_data_row);
     pd_pattern = lut_patterns(pd_data_row);
     pd_function = lut_functions(pd_data_row);
 
-    fprintf('\n=== Preferred Direction (PD) ===\n');
-    fprintf('PD direction:   %.1f°\n', pd_direction);
-    fprintf('Bar orientation: %.1f°\n', pd_orientation);
-    fprintf('Pattern:        %d\n', pd_pattern);
-    fprintf('Function:       %d\n', pd_function);
-    fprintf('Data row:       %d\n', pd_data_row);
+    fprintf('Closest LUT direction: %.1f°\n', pd_direction);
+    fprintf('Bar orientation:       %.1f°\n', pd_orientation);
+    fprintf('Pattern:               %d\n', pd_pattern);
+    fprintf('Function:              %d\n', pd_function);
+    fprintf('Data row:              %d\n', pd_data_row);
 
     %% Step 6: Map PD orientation to bar flash column
 
     % Experiment patterns 3-10 → full-field patterns 1-8
-    % Bar flash column in parse_bar_flash_data output = full-field pattern index
-    pd_ff_pattern = pd_pattern - 2;  % full-field pattern index (1-8)
-    bar_flash_col = pd_ff_pattern;   % column in data_slow (11×8×3)
+    pd_ff_pattern = pd_pattern - 2;
+    bar_flash_col = pd_ff_pattern;
 
     fprintf('Full-field pattern index: %d\n', pd_ff_pattern);
     fprintf('Bar flash column:         %d\n', bar_flash_col);
 
-    %% Step 7: Parse bar flash data and extract PD-ND axis
+    %% Step 7: Parse bar flash data
 
     [data_slow_bf, ~, mean_slow_bf, ~] = parse_bar_flash_data(f_data, v_data);
 
-    % data_slow_bf: 11×8×3 cell (positions × orientations × reps)
-    % Extract the column for PD orientation: 11 positions × 3 reps
-    pd_flash_data = data_slow_bf(:, bar_flash_col, :);  % 11×1×3
-    pd_flash_mean = mean_slow_bf(:, bar_flash_col);      % 11×1
+    pd_flash_data = data_slow_bf(:, bar_flash_col, :);
+    pd_flash_mean = mean_slow_bf(:, bar_flash_col);
 
     %% Step 8: Determine spatial ordering (ND→PD, left to right)
 
-    % For forward functions (3, 5, 7): lower frame = earlier in sweep
-    %   Lower position index in bar flash = earlier frame = bar approaching from one side
-    %   For forward sweep, position 1 = ND side, position 11 = PD side → order 1:11
-    % For reverse/flip functions (4, 6, 8): the sweep direction is flipped
-    %   Position 1 in the bar flash pattern still references the same physical frame from the
-    %   original (non-flipped) pattern. But the flip function reverses the playback direction.
-    %   So position 1 = what was the end of the forward sweep = PD side in the flipped case
-    %   → order 11:-1:1 to get ND→PD
-
-    is_forward = mod(pd_function, 2) == 1;  % odd functions = forward
+    is_forward = mod(pd_function, 2) == 1;
     if is_forward
-        pos_order = 1:11;  % ND→PD for forward sweep
+        pos_order = 1:11;
     else
-        pos_order = 11:-1:1;  % reverse to get ND→PD for flipped sweep
+        pos_order = 11:-1:1;
     end
 
     fprintf('PD function %d is %s → position order: %s\n', ...
         pd_function, ternary(is_forward, 'forward', 'reverse'), mat2str(pos_order));
 
-    %% Step 9: Create 1×11 bar flash subplot
+    %% Step 9: Full 8×11 bar flash plot (all orientations)
+
+    orient_labels = cell(8, 1);
+    for k = 1:8
+        exp_pat = k + 2;
+        mask = Tbl.pattern == exp_pat & Tbl.function == 3;
+        orient_labels{k} = sprintf('Orient: %.0f°', Tbl.orientation(mask));
+    end
+
+    % Find max across all mean data for consistent y-limits
+    max_overall = -Inf;
+    for i = 1:88
+        d = mean_slow_bf{i};
+        if ~isempty(d)
+            max_d = prctile(d(ceil(numel(d)*0.5):ceil(numel(d)*0.75)), 98);
+            if max_d > max_overall
+                max_overall = max_d;
+            end
+        end
+    end
+
+    % Compute normalised heatmap background values
+    max_vals = zeros(11, 8);
+    for orient_idx = 1:8
+        for pos_idx = 1:11
+            d = mean_slow_bf{pos_idx, orient_idx};
+            if ~isempty(d)
+                n_points = numel(d);
+                max_vals(pos_idx, orient_idx) = prctile(d(ceil(n_points*0.5):ceil(n_points*0.75)), 98);
+            end
+        end
+    end
+    max_vals_med = max_vals - median_v;
+    max_vals_med(max_vals_med < 0) = 0;
+    if max(max_vals_med(:)) > 0
+        normalizedArray = 1 - max_vals_med / max(max_vals_med(:));
+    else
+        normalizedArray = ones(size(max_vals_med));
+    end
+
+    fig_all_flash = figure('Name', 'Bar Flashes — All Orientations (80ms)');
+    tiledlayout(8, 11, 'TileSpacing', 'compact', 'Padding', 'compact');
+
+    for orient_idx = 1:8
+        for pos_idx_raw = 1:11
+            % For the PD row, use pos_order; for all others, use 1:11
+            if orient_idx == bar_flash_col
+                pos_idx = pos_order(pos_idx_raw);
+            else
+                pos_idx = pos_idx_raw;
+            end
+
+            nexttile;
+            hold on;
+
+            d = mean_slow_bf{pos_idx, orient_idx};
+            if ~isempty(d)
+                rectangle('Position', [0, -70, numel(d), 40], ...
+                    'FaceColor', [1, normalizedArray(pos_idx, orient_idx), normalizedArray(pos_idx, orient_idx)]*0.9);
+            end
+
+            for r = 1:3
+                ts = data_slow_bf{pos_idx, orient_idx, r};
+                if ~isempty(ts)
+                    plot(1:numel(ts), ts, 'Color', [0.75 0.75 0.75], 'LineWidth', 0.7);
+                end
+            end
+
+            if ~isempty(d)
+                if orient_idx == bar_flash_col
+                    plot(1:numel(d), d, 'Color', [0.8 0 0], 'LineWidth', 1.2);
+                else
+                    plot(1:numel(d), d, 'k', 'LineWidth', 1);
+                end
+            end
+
+            ylim([-70 max_overall*0.9]);
+            if ~isempty(d)
+                xlim([0 numel(d)]);
+            end
+            set(gca, 'XTick', [], 'YTick', []);
+
+            if pos_idx_raw == 1
+                if orient_idx == bar_flash_col
+                    ylabel(sprintf('%s *PD*', orient_labels{orient_idx}), ...
+                        'FontSize', 7, 'FontWeight', 'bold', 'Color', [0.8 0 0]);
+                else
+                    ylabel(orient_labels{orient_idx}, 'FontSize', 7);
+                end
+            end
+
+            if orient_idx == 1
+                title(sprintf('Pos %d', pos_idx_raw), 'FontSize', 6);
+            end
+
+            if orient_idx == bar_flash_col
+                set(gca, 'XColor', [0.8 0 0], 'YColor', [0.8 0 0], 'LineWidth', 1.5);
+                box on;
+            end
+        end
+    end
+
+    sgtitle(sprintf('Bar Flashes 80ms — PD: Dir %.0f° Orient %.0f° (row %d) — %s — %s', ...
+        pd_direction, pd_orientation, bar_flash_col, ...
+        strrep(date_str,'_','-'), strrep(metadata.Strain,'_',' ')));
+    set(gcf, 'Position', [45 128 1675 902]);
+
+    %% Step 10: 1×11 bar flash subplot along PD-ND axis
 
     fig_flash = figure('Name', 'Bar Flash PD-ND Axis');
     tiledlayout(1, 11, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -319,7 +441,6 @@ function analyze_single_experiment(exp_folder)
         nexttile;
         hold on;
 
-        % Plot 3 repetitions in light grey
         for r = 1:3
             ts = pd_flash_data{flash_pos, 1, r};
             if ~isempty(ts)
@@ -327,13 +448,11 @@ function analyze_single_experiment(exp_folder)
             end
         end
 
-        % Plot mean in thick black
         ts_mean = pd_flash_mean{flash_pos};
         if ~isempty(ts_mean)
             plot(1:numel(ts_mean), ts_mean, 'k', 'LineWidth', 1.5);
         end
 
-        % Formatting
         ylim([-80 -10]);
         if pos_idx == 1
             ylabel('mV');
@@ -370,6 +489,8 @@ function analyze_single_experiment(exp_folder)
     exportgraphics(fig_verify, fullfile(save_dir, 'lut_verification.pdf'), ...
         'ContentType', 'image', 'Resolution', 300);
     exportgraphics(fig_polar, fullfile(save_dir, 'slow_bar_sweep_polar.pdf'), ...
+        'ContentType', 'image', 'Resolution', 300);
+    exportgraphics(fig_all_flash, fullfile(save_dir, 'bar_flash_all_orientations.pdf'), ...
         'ContentType', 'image', 'Resolution', 300);
     exportgraphics(fig_flash, fullfile(save_dir, 'bar_flash_PD_ND_axis.pdf'), ...
         'ContentType', 'image', 'Resolution', 300);
