@@ -1,0 +1,374 @@
+function results = batch_analyze_1DRF(data_root, opts)
+% BATCH_ANALYZE_1DRF  Process all 1DRF experiments and generate population plots.
+%
+%   RESULTS = BATCH_ANALYZE_1DRF(DATA_ROOT) processes every experiment
+%   folder in DATA_ROOT, classifies cells as ON/OFF and control/ttl, then
+%   generates population-averaged plots with mean +/- SEM.
+%
+%   RESULTS = BATCH_ANALYZE_1DRF(DATA_ROOT, OPTS) uses the options
+%   structure to override default parameters.
+%
+%   INPUTS:
+%     data_root - Path to the 1DRF data directory containing experiment
+%                 folders (e.g. '/path/to/protocol2/data/1DRF')
+%     opts      - (Optional) structure. Inherits all fields from
+%                 analyze_single_experiment opts, plus:
+%                   .on_threshold  - Frame value threshold for ON vs OFF
+%                                    classification (default: 129)
+%                   .save_figs     - Save population figures as PDF
+%                                    (default: true)
+%                   .save_dir      - Output directory for population PDFs
+%                                    (default: <data_root>/population_results)
+%                   .flash_baseline - Sample indices for bar flash baseline
+%                                     (default: 1:5000)
+%
+%   OUTPUT:
+%     results - Structure array (one element per cell) with fields:
+%       .folder            - Experiment folder name
+%       .date_str          - Experiment date
+%       .strain            - Strain name from metadata
+%       .frame             - Frame number from metadata
+%       .is_on             - Logical, true if ON cell (Frame > on_threshold)
+%       .is_ttl            - Logical, true if Strain contains 'ttl'
+%       .group             - String: 'on_control', 'on_ttl', 'off_control',
+%                            or 'off_ttl'
+%       .max_v_aligned     - 16x2 PD-aligned [angles, responses] from
+%                            find_PD_and_order_idx
+%       .pd_direction      - Preferred direction in degrees
+%       .pd_orientation    - Bar orientation at PD in degrees
+%       .pd_flash_bl       - 11xN baseline-subtracted mean flash traces
+%                            along PD-ND axis
+%       .ortho_flash_bl    - 11xN baseline-subtracted mean flash traces
+%                            along orthogonal axis
+%
+%   FIGURES GENERATED:
+%     For each of ON and OFF cells (6 figures total):
+%       1. PD-aligned polar tuning curve (control=black, ttl=red, +/- SEM)
+%       2. 1x11 PD-ND bar flash (control=black, ttl=red, +/- SEM)
+%       3. 1x11 orthogonal bar flash (control=black, ttl=red, +/- SEM)
+%
+%   ANALYSIS PIPELINE:
+%     1. Discover experiment folders in data_root
+%     2. For each experiment:
+%        a. Load data and parse bar sweeps/flashes
+%        b. Compute bar sweep responses, find PD, align to pi/2
+%        c. Extract baseline-subtracted bar flash traces
+%        d. Classify cell as ON/OFF and control/ttl
+%     3. Group cells and generate population-averaged plots
+%
+%   EXAMPLE:
+%     results = batch_analyze_1DRF('/path/to/protocol2/data/1DRF');
+%
+%   See also ANALYZE_SINGLE_EXPERIMENT, FIND_PD_AND_ORDER_IDX,
+%            PLOT_POLAR_POPULATION, PLOT_FLASH_1X11_POPULATION,
+%            VERIFY_LUT_DIRECTIONS, COMPUTE_BAR_SWEEP_RESPONSES,
+%            FIND_PD_FROM_LUT
+% ________________________________________________________________________
+
+    %% Set defaults
+    if nargin < 2, opts = struct(); end
+    opts = set_batch_defaults(opts, data_root);
+
+    %% Step 1: Load LUT (shared across experiments)
+    S_lut = load(opts.lut_path, 'Tbl');
+    Tbl = S_lut.Tbl;
+
+    %% Step 2: Discover experiment folders
+    d = dir(data_root);
+    d = d([d.isdir]);
+    d = d(~startsWith({d.name}, '.'));
+
+    % Filter to folders that contain currentExp.mat
+    valid = false(numel(d), 1);
+    for i = 1:numel(d)
+        valid(i) = isfile(fullfile(data_root, d(i).name, 'currentExp.mat'));
+    end
+    d = d(valid);
+    n_exp = numel(d);
+
+    fprintf('Found %d experiment folders in %s\n', n_exp, data_root);
+
+    %% Step 3: Process each experiment
+    results = struct([]);
+
+    for exp_idx = 1:n_exp
+        folder = d(exp_idx).name;
+        exp_folder = fullfile(data_root, folder);
+        fprintf('\n[%d/%d] Processing %s...\n', exp_idx, n_exp, folder);
+
+        try
+            r = process_single_cell(exp_folder, Tbl, opts);
+            r.folder = folder;
+
+            if isempty(results)
+                results = r;
+            else
+                results(end + 1) = r; %#ok<AGROW>
+            end
+
+            fprintf('  -> %s | PD: %.0f° | %s\n', ...
+                r.group, r.pd_direction, r.strain);
+
+        catch ME
+            fprintf('  ERROR: %s\n', ME.message);
+            continue;
+        end
+    end
+
+    fprintf('\n=== Processing Complete ===\n');
+    fprintf('Total cells: %d\n', numel(results));
+
+    % Count per group
+    groups = {results.group};
+    for g = ["on_control", "on_ttl", "off_control", "off_ttl"]
+        fprintf('  %s: %d\n', g, sum(strcmp(groups, g)));
+    end
+
+    %% Step 4: Save results
+    if opts.save_figs
+        if ~isfolder(opts.save_dir)
+            mkdir(opts.save_dir);
+        end
+        save_path = fullfile(opts.save_dir, 'batch_results.mat');
+        save(save_path, 'results');
+        fprintf('\nResults saved to: %s\n', save_path);
+    end
+
+    %% Step 5: Generate population plots
+    fprintf('\nGenerating population plots...\n');
+
+    for on_off_label = ["ON", "OFF"]
+        if on_off_label == "ON"
+            mask = [results.is_on];
+        else
+            mask = ~[results.is_on];
+        end
+
+        ctrl_mask = mask & ~[results.is_ttl];
+        ttl_mask  = mask & [results.is_ttl];
+
+        % --- Polar tuning curves ---
+        aligned_ctrl = {results(ctrl_mask).max_v_aligned};
+        aligned_ttl  = {results(ttl_mask).max_v_aligned};
+
+        polar_title = sprintf('%s Cells — PD-Aligned Polar Tuning', on_off_label);
+        fig_polar = plot_polar_population(aligned_ctrl, aligned_ttl, polar_title);
+
+        % --- PD-ND bar flash traces ---
+        pd_traces_ctrl = {results(ctrl_mask).pd_flash_bl};
+        pd_traces_ttl  = {results(ttl_mask).pd_flash_bl};
+
+        flash_opts.y_limits = opts.flash_ylim;
+        pd_flash_title = sprintf('%s Cells — PD-ND Bar Flash', on_off_label);
+        fig_pd = plot_flash_1x11_population(...
+            pd_traces_ctrl, pd_traces_ttl, pd_flash_title, flash_opts);
+
+        % --- Orthogonal bar flash traces ---
+        ortho_traces_ctrl = {results(ctrl_mask).ortho_flash_bl};
+        ortho_traces_ttl  = {results(ttl_mask).ortho_flash_bl};
+
+        flash_opts.fig_position = [50 100 1800 300];
+        ortho_flash_title = sprintf('%s Cells — Orthogonal Bar Flash', on_off_label);
+        fig_ortho = plot_flash_1x11_population(...
+            ortho_traces_ctrl, ortho_traces_ttl, ortho_flash_title, flash_opts);
+
+        % Save figures
+        if opts.save_figs
+            save_population_figures(opts.save_dir, on_off_label, ...
+                fig_polar, fig_pd, fig_ortho);
+        end
+    end
+
+    fprintf('\nDone.\n');
+
+end
+
+
+%% ========================= Core Processing ============================
+
+function r = process_single_cell(exp_folder, Tbl, opts)
+% PROCESS_SINGLE_CELL  Run the full per-cell pipeline and return results.
+
+    % Save/restore working directory (load_protocol2_data uses cd)
+    orig_dir = pwd;
+    cleanup = onCleanup(@() cd(orig_dir)); %#ok<NASGU>
+
+    % Load data
+    [date_str, ~, Log, ~, ~] = load_protocol2_data(exp_folder);
+
+    f_data   = Log.ADC.Volts(1, :);
+    v_data   = Log.ADC.Volts(2, :) * 10;
+    median_v = median(v_data);
+
+    ce = load(fullfile(exp_folder, 'currentExp.mat'), ...
+        'pattern_order', 'func_order', 'metadata');
+    metadata = ce.metadata;
+
+    % Classify cell
+    r.date_str = date_str;
+    r.strain   = metadata.Strain;
+    r.frame    = metadata.Frame;
+    r.is_on    = metadata.Frame > opts.on_threshold;
+    r.is_ttl   = contains(metadata.Strain, 'ttl');
+
+    if r.is_on && ~r.is_ttl
+        r.group = 'on_control';
+    elseif r.is_on && r.is_ttl
+        r.group = 'on_ttl';
+    elseif ~r.is_on && ~r.is_ttl
+        r.group = 'off_control';
+    else
+        r.group = 'off_ttl';
+    end
+
+    % Parse bar sweep data and verify LUT
+    bar_data = parse_bar_data(f_data, v_data);
+
+    [lut_directions, lut_orientations, lut_patterns, lut_functions] = ...
+        verify_lut_directions(Tbl, ce.pattern_order, ce.func_order, opts.plot_order);
+
+    % Compute bar sweep responses
+    sweep_opts.baseline_range = opts.baseline_range;
+    sweep_opts.stim_trim_end  = opts.stim_trim_end;
+    sweep_opts.percentile     = opts.percentile;
+    max_v = compute_bar_sweep_responses(bar_data, opts.plot_order, sweep_opts);
+
+    % PD-align the tuning curve for population averaging
+    % find_PD_and_order_idx expects data sorted by angle (0, 22.5, ..., 337.5)
+    lut_dirs_ordered = lut_directions(opts.plot_order);
+    [~, sort_idx] = sort(lut_dirs_ordered);
+    max_v_sorted = max_v(sort_idx);
+    max_v_polar = [max_v_sorted; max_v_sorted(1)];  % 17x1 for circular
+
+    % median_voltage = 0 because max_v is already baseline-relative
+    [d_aligned, ~, ~, ~, ~, ~, ~, ~] = find_PD_and_order_idx(max_v_polar, 0);
+    r.max_v_aligned = d_aligned;
+
+    % Find PD and map to bar flash columns
+    pd_info = find_pd_from_lut(max_v, lut_directions, lut_orientations, ...
+        lut_patterns, lut_functions, opts.plot_order, Tbl, opts.pattern_offset);
+
+    r.pd_direction  = pd_info.pd_direction;
+    r.pd_orientation = pd_info.pd_orientation;
+
+    % Parse bar flash data
+    [data_slow_bf, ~, mean_slow_bf, ~] = parse_bar_flash_data(f_data, v_data);
+
+    % Extract baseline-subtracted mean flash traces (11 x N_timepoints)
+    bl_samples = opts.flash_baseline;
+
+    r.pd_flash_bl    = extract_flash_traces(mean_slow_bf, ...
+        pd_info.bar_flash_col, pd_info.pos_order, bl_samples);
+    r.ortho_flash_bl = extract_flash_traces(mean_slow_bf, ...
+        pd_info.ortho_flash_col, pd_info.pos_order, bl_samples);
+
+end
+
+
+function traces = extract_flash_traces(mean_slow_bf, flash_col, pos_order, bl_samples)
+% EXTRACT_FLASH_TRACES  Get baseline-subtracted mean traces for one orientation.
+%
+%   Returns an 11 x N matrix (positions x timepoints), ordered ND to PD.
+%   All traces are truncated to the minimum length across positions to
+%   handle minor length variations between flash stimuli.
+
+    n_pos = 11;
+
+    % First pass: find minimum trace length across all positions
+    min_pts = Inf;
+    for i = 1:n_pos
+        ts = mean_slow_bf{i, flash_col};
+        if ~isempty(ts)
+            min_pts = min(min_pts, numel(ts));
+        end
+    end
+
+    if isinf(min_pts)
+        traces = [];
+        return;
+    end
+
+    traces = NaN(n_pos, min_pts);
+
+    for pos_idx = 1:n_pos
+        flash_pos = pos_order(pos_idx);
+        ts = mean_slow_bf{flash_pos, flash_col};
+        if ~isempty(ts)
+            ts_trunc = ts(1:min_pts);
+            bl = mean(ts_trunc(bl_samples(bl_samples <= min_pts)));
+            traces(pos_idx, :) = ts_trunc(:)' - bl;
+        end
+    end
+
+end
+
+
+%% ========================= Default Options ============================
+
+function opts = set_batch_defaults(opts, data_root)
+% SET_BATCH_DEFAULTS  Fill in default values for batch analysis options.
+
+    % LUT path: same directory as this script
+    if ~isfield(opts, 'lut_path')
+        script_dir = fileparts(mfilename('fullpath'));
+        opts.lut_path = fullfile(script_dir, 'bar_lut.mat');
+    end
+    if ~isfield(opts, 'plot_order')
+        opts.plot_order = [1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16];
+    end
+    if ~isfield(opts, 'baseline_range')
+        opts.baseline_range = [1000 9000];
+    end
+    if ~isfield(opts, 'stim_trim_end')
+        opts.stim_trim_end = 7000;
+    end
+    if ~isfield(opts, 'percentile')
+        opts.percentile = 98;
+    end
+    if ~isfield(opts, 'flash_baseline')
+        opts.flash_baseline = 1:5000;
+    end
+    if ~isfield(opts, 'flash_ylim')
+        opts.flash_ylim = [-15 35];
+    end
+    if ~isfield(opts, 'pattern_offset')
+        opts.pattern_offset = 2;
+    end
+    if ~isfield(opts, 'on_threshold')
+        opts.on_threshold = 129;
+    end
+    if ~isfield(opts, 'save_figs')
+        opts.save_figs = true;
+    end
+    if ~isfield(opts, 'save_dir')
+        opts.save_dir = fullfile(data_root, 'population_results');
+    end
+
+end
+
+
+%% ========================= Figure Saving ==============================
+
+function save_population_figures(save_dir, on_off_label, fig_polar, fig_pd, fig_ortho)
+% SAVE_POPULATION_FIGURES  Export population figures as 300 dpi PDFs.
+
+    if ~isfolder(save_dir)
+        mkdir(save_dir);
+    end
+
+    export_opts = {'ContentType', 'image', 'Resolution', 300};
+    prefix = lower(char(on_off_label));
+
+    exportgraphics(fig_polar, ...
+        fullfile(save_dir, sprintf('%s_polar_population.pdf', prefix)), ...
+        export_opts{:});
+    exportgraphics(fig_pd, ...
+        fullfile(save_dir, sprintf('%s_pd_nd_flash_population.pdf', prefix)), ...
+        export_opts{:});
+    exportgraphics(fig_ortho, ...
+        fullfile(save_dir, sprintf('%s_ortho_flash_population.pdf', prefix)), ...
+        export_opts{:});
+
+    fprintf('  %s figures saved to: %s\n', on_off_label, save_dir);
+
+end
