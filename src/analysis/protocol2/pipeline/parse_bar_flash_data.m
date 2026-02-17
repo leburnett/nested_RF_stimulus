@@ -1,25 +1,66 @@
-function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_data, v_data)
-    
-    % The voltage and frame data are sampled at 10,000Hz. Therefore, each
-    % value corresponds to (1/10000)s, 0.0001s or 100us.
-    
-     % The order of the stimuli (within one repetition)
-    % - 10s grey screen 
-    % - 4 pixel flashes
-    % - 6 pixel flashes
-    % - 3s grey screen
-    % - bar sweeps - 28 dps
-    % - 3s grey screen
-    % - bar sweeps - 56 dps
-    % - 3s grey screen
-    % - bar sweeps - 168 dps
-    % - 3s grey screen
-    % - bar flashes - 80 ms (~28 dps)
-    % - 3s grey screen
-    % - bar flashes - 14 ms (~ 168dps)
-    
-     %% 1 - Find the beginning of each repetition. This will follow a 10s
-    % grey screen interval. (This seems long winded, but it's a lot faster 
+function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_data, v_data, prop_int)
+% PARSE_BAR_FLASH_DATA  Extract bar flash responses from Protocol 2 data.
+%
+%   [DATA_SLOW, DATA_FAST, MEAN_SLOW, MEAN_FAST] = ...
+%       PARSE_BAR_FLASH_DATA(F_DATA, V_DATA, PROP_INT)
+%   parses the raw frame and voltage data to extract individual bar flash
+%   responses at two speeds (slow = 80ms flash, fast = 14ms flash), across
+%   3 repetitions, 8 orientations, and 11 bar positions per orientation.
+%
+%   INPUTS:
+%     f_data   - 1xM double
+%                Frame position data sampled at 10 kHz. Values are frame
+%                indices; zero indicates grey screen / no stimulus.
+%     v_data   - 1xM double
+%                Voltage data sampled at 10 kHz (already scaled to mV).
+%     prop_int - double (0 to 1)
+%                Proportion of the inter-flash interval to include in each
+%                extracted timeseries. E.g. 0.75 keeps 75% of the gap
+%                before and after each flash. For slow flashes the full
+%                gap is 10000 samples (1s); for fast, 5000 samples (0.5s).
+%
+%   OUTPUTS:
+%     data_slow - 11x8x3 cell array
+%                 Bar flash voltage timeseries for the slow (80ms) condition.
+%                 Dimensions: positions x orientations x repetitions.
+%                 Each cell contains a 1xT double voltage timeseries.
+%     data_fast - 11x8x3 cell array
+%                 Same format as data_slow for the fast (14ms) condition.
+%     mean_slow - 11x8 cell array
+%                 Mean timeseries across the 3 reps for the slow condition.
+%                 Each cell contains a Tx1 double voltage vector (NaN-padded
+%                 if reps differ in length).
+%     mean_fast - 11x8 cell array
+%                 Same format as mean_slow for the fast condition.
+%
+%   STIMULUS ORDER (within one repetition of the full protocol):
+%     1.  10s grey screen
+%     2.  4 pixel flashes
+%     3.  6 pixel flashes
+%     4.  3s grey screen
+%     5.  Bar sweeps - 28 dps
+%     6.  3s grey screen
+%     7.  Bar sweeps - 56 dps
+%     8.  3s grey screen
+%     9.  Bar sweeps - 168 dps
+%     10. 3s grey screen
+%     11. Bar flashes - 80 ms (slow, ~28 dps equivalent)
+%     12. 3s grey screen
+%     13. Bar flashes - 14 ms (fast, ~168 dps equivalent)
+%
+%   INDEXING:
+%     Repetition boundaries are found by detecting zero-value gaps >= 30000
+%     samples (3s) in the frame data (idx_3). The slow bar flash block
+%     falls between idx_3(5:6), idx_3(11:12), idx_3(17:18) for reps 1-3.
+%     The fast block uses idx_3(6:7), idx_3(12:13), idx_3(18:19).
+%     Individual flashes within each block are identified by transitions
+%     in the frame data (frame > 0), and each flash is indexed into the
+%     output cell array by its maximum frame number during the flash.
+%
+%   See also PROCESS_BAR_FLASHES_P2, PLOT_BAR_FLASH_DATA, PARSE_BAR_DATA
+
+    %% 1 - Find the beginning of each repetition. This will follow a 10s
+    % grey screen interval. (This seems long winded, but it's a lot faster
     % than using "strcomp")
     
     num_reps = 3;
@@ -34,7 +75,7 @@ function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_d
     len = end_idx - start_idx + 1;
     idx_3 = start_idx(len >= 30000);
 
-    % Plot all of the 3s gaps
+    % % Plot all of the 3s gaps
     % figure;
     % plot(f_data);
     % for i = 1:numel(idx_3)
@@ -54,12 +95,12 @@ function [data_slow, data_fast, mean_slow, mean_fast] = parse_bar_flash_data(f_d
             rep1_rng = idx_3(5:6);
             rep2_rng = idx_3(11:12);
             rep3_rng = idx_3(17:18);
-            gap_between_flashes = 5000; % Gap between flashes is 1s (10000) but only clip half that for the timeseries.
+            gap_between_flashes = 10000*prop_int; % Gap between flashes is 1s (10000) but only clip half that for the timeseries.
         elseif sp == 2 % fast
             rep1_rng = idx_3(6:7);
             rep2_rng = idx_3(12:13);
             rep3_rng = idx_3(18:19);
-            gap_between_flashes = 2500;
+            gap_between_flashes = 5000*prop_int;
         end 
 
         % Find the timeseries per bar flash position for the first rep. 

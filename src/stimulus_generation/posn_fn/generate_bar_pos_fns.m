@@ -2,60 +2,62 @@ function generate_bar_pos_fns(save_dir, px_crop)
 % GENERATE_BAR_POS_FNS  Create position functions for moving bar stimuli.
 %
 %   GENERATE_BAR_POS_FNS(SAVE_DIR, PX_CROP) generates sawtooth position
-%   functions for moving bar stimuli at multiple speeds and directions.
+%   functions for moving bar stimuli at 3 speeds (28, 56, 168 dps) in both
+%   forward and flip (reverse) directions.
 %
 %   INPUTS:
-%     save_dir - Directory to save the position function files
-%     px_crop  - Size of the cropped display region in pixels (30 or 45)
-%                Determines frame range and timing parameters
+%     save_dir - char | string
+%                Directory to save the .pfn and .mat function files.
+%     px_crop  - double (30 or 45)
+%                Size of the cropped display region in pixels. Determines
+%                the frame range and timing parameters for the sawtooth.
 %
 %   SPEEDS GENERATED:
-%     28 dps (degrees per second) - Standard speed
-%     56 dps - Fast speed
-%     (14 dps available for 45px crop but not currently used)
+%     28 dps  - slow speed
+%     56 dps  - medium speed
+%     168 dps - fast speed
 %
 %   DIRECTIONS:
-%     For each speed, generates two functions:
-%       - Forward: Frames increase from low to high
-%       - Flip: Frames decrease from high to low (opposite direction)
+%     For each speed, two functions are generated:
+%       Forward : frames ramp from low to high
+%       Flip    : frames ramp from high to low (opposite direction)
 %
 %   FRAME RANGES:
-%     px_crop = 45: frames 1-68 (full visible bar movement)
-%     px_crop = 30: frames 11-62 (cropped to visible region)
+%     px_crop = 45 : frames 1-68  (full visible bar movement)
+%     px_crop = 30 : frames 11-62 (cropped to visible region)
 %
 %   FUNCTION STRUCTURE:
-%     Each function has two sections:
-%       1. Static (1s): Displays frame 1 (gray background) for baseline
-%       2. Sawtooth: Ramps through frame range at specified frequency
-%
-%   OUTPUT FILES:
-%     For each speed/direction combination:
-%       - <dps>dps_[FLIP_]<dur>s_<low>-<high>_288fr_1-25step_3s_static.pfn
-%       - Corresponding .mat file with parameters
+%     Each position function has two sections:
+%       1. Static (1s) : displays frame 1 (grey background) for baseline
+%       2. Sawtooth    : ramps through frame range at the specified frequency
 %
 %   TIMING CALCULATION:
 %     Duration = (frame_range / degrees_per_frame) / dps
-%     Frequency = 1 / duration (for sawtooth generation)
+%     Frequency = 1 / duration (for sawtooth waveform generation)
 %
-%   See also GENERATE_BAR_STIMULUS_XY, G4_FUNCTION_GENERATOR
+%   OUTPUT FILES (6 total = 3 speeds x 2 directions):
+%     For each speed/direction combination:
+%       <dps>dps_[FLIP_]<dur>s_<low>-<high>_288fr_1-25step_3s_static.pfn
+%       Corresponding .mat file with pfnparam structure
+%
+%   See also GENERATE_BAR_STIMULUS_XY, G4_FUNCTION_GENERATOR, CREATE_PROTOCOL2
 
-% July 2025 - added 1s of static first frame before each
-% sawtooth.
+% July 2025 - added 1s of static first frame before each sawtooth.
 
-    for dps = [28, 56, 168, 250, 500]
+    for dps = [28, 56, 168]
     
         if px_crop == 45 
 
             if dps == 14
-                dur_sweep = 6.08;
+                dur = 6.08;
                 dur_str = '6-08';
                 freq = 0.16471;
             elseif dps == 28
-                dur_sweep = 3.04;
+                dur = 3.04;
                 dur_str = '3-04';
                 freq = 0.32941;
             elseif dps == 56 
-                dur_sweep = 1.52;
+                dur = 1.52;
                 dur_str = '1-52';
                 freq = 0.65882;
             end
@@ -66,35 +68,17 @@ function generate_bar_pos_fns(save_dir, px_crop)
         elseif px_crop == 30
 
             if dps == 28
-                dur_static = 1;
-                dur_sweep = 2.328;
+                dur = 2.328;
                 dur_str = '2-328';
                 freq = 0.43077;
             elseif dps == 56 
-                dur_static = 1;
-                dur_sweep = 1.175;
+                dur = 1.175;
                 dur_str = '1-175';
                 freq = 0.86154;
-            elseif dps == 112
-                dur_static = 0.75;
-                dur_sweep = 0.6;
-                dur_str = '0-6';
-                freq = 1.7231;
             elseif dps == 168
-                dur_static = 0.75;
-                dur_sweep = 0.40;
+                dur = 0.40;
                 dur_str = '0-40';
                 freq = 2.5846;
-           elseif dps == 250
-                dur_static = 0.5;
-                dur_sweep = 0.266;
-                dur_str = '0-266';
-                freq = 3.8462;
-            elseif dps == 500
-                dur_static = 0.5;
-                dur_sweep = 0.135;
-                dur_str = '0-135';
-                freq = 7.6923;
             end
 
             fr_low = 11;
@@ -114,7 +98,7 @@ function generate_bar_pos_fns(save_dir, px_crop)
             pfnparam.frames = 288; %number of frames in pattern
             pfnparam.gs_val = 4; %brightness bits in pattern
             pfnparam.section = {'static' 'sawtooth'}; %static, sawtooth, traingle, sine, cosine, or square
-            pfnparam.dur = [dur_static dur_sweep]; %section duration (in s)
+            pfnparam.dur = [1 dur]; %section duration (in s)
             pfnparam.val = [1 1]; %function value for static sections
             pfnparam.high = [62 fr_high]; %high end of function range {for non-static sections}
             pfnparam.low = [1 fr_low ]; %low end of function range {for non-static sections}

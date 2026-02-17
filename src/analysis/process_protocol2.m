@@ -17,7 +17,7 @@ function process_protocol2()
 %   WORKFLOW:
 %     1. Loads metadata (Frame, Age, Strain, Side) from currentExp.mat
 %     2. Processes bar responses via PROCESS_BARS_P2:
-%        - Extracts responses to 16 bar directions at 2 speeds
+%        - Extracts responses to 16 bar directions at 3 speeds (28, 56, 168 dps)
 %        - Computes direction selectivity index (DSI)
 %        - Calculates preferred direction via vector sum
 %        - Generates polar plots and heatmaps
@@ -26,6 +26,9 @@ function process_protocol2()
 %        - Fits 2D Gaussian model to receptive field
 %        - Separates excitatory and inhibitory components
 %        - Generates heatmaps and RF contour plots
+%     4. Processes bar flash responses via PROCESS_BAR_FLASHES_P2:
+%        - Extracts responses to bar flashes at 2 speeds (80ms and 14ms)
+%        - 8 orientations x 11 positions per orientation
 %
 %   OUTPUT:
 %     Creates in PROJECT_ROOT/results/:
@@ -39,7 +42,7 @@ function process_protocol2()
 
 exp_folder = cd;
 
-PROJECT_ROOT = "C:\matlabroot\G4_Protocols\nested_RF_protocol2";
+PROJECT_ROOT = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2";
 
 % Load metadata - contains 'Frame', 'Age', 'Strain' and 'Side'. Side is the
 % side of the arena upon which protocol 1 was run. 
