@@ -1,9 +1,35 @@
 function plotGroupedBox(T, columnName)
-    % plotGroupedBox: Create boxplots grouped by Strain and Type.
-    % T: input table
-    % columnName: string specifying the column to plot (numeric data)
-    %
-    % Expected columns: 'Strain' and 'Type'
+% PLOTGROUPEDBOX  Create boxplots with overlaid data points, grouped by Strain and Type.
+%
+%   PLOTGROUPEDBOX(T, COLUMNNAME) generates a box-and-whisker plot of the
+%   specified numeric column, with one box per unique Strain x Type group.
+%   Individual data points are overlaid as black circles.
+%
+%   INPUTS:
+%     T          - table
+%                  Must contain columns:
+%                    .Strain - char | string | categorical, fly genotype
+%                    .Type   - char | string | categorical, stimulus type
+%                              (e.g. 'on' or 'off')
+%                    .(columnName) - numeric data to plot (can be numeric,
+%                                   cell array of scalars, or string)
+%     columnName - char | string
+%                  Name of the numeric column in T to plot on the y-axis.
+%
+%   COLOUR SCHEME:
+%     42F06_T4T5_control + on  : light grey  [0.8 0.8 0.8]
+%     42F06_T4T5_control + off : dark grey   [0.4 0.4 0.4]
+%     42F06_T4T5_ttl + on      : light green [0.6 0.9 0.6]
+%     42F06_T4T5_ttl + off     : dark green  [0.2 0.5 0.2]
+%
+%   FIGURE:
+%     Creates a new figure (450x575 px) with publication-style formatting
+%     (outward ticks, 14pt font, no box).
+%
+%   EXAMPLE:
+%     plotGroupedBox(results_table, 'DSI_slow');
+%
+%   See also RUNGROUPEDSTATS, ADDORTHOMETRICS, PLOTPOLARBYGROUP
 
     % ---------- Coerce Strain & Type to categorical safely ----------
     T.Strain = coerceToCategorical(T, 'Strain');

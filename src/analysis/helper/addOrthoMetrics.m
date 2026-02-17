@@ -1,23 +1,38 @@
 function T = addOrthoMetrics(T)
-% addOrthoMetrics: Adds v_ortho_slow, v_ortho_v_max_slow, and angGroup.
+% ADDORTHOMETRICS  Add orthogonal response metrics and angle grouping to results table.
 %
-%   v_ortho_slow       = mean([v_ortho1_slow, v_ortho2_slow], 2, 'omitnan')
-%   v_ortho_v_max_slow = v_ortho_slow ./ v_max_slow
+%   T = ADDORTHOMETRICS(T) computes derived metrics from bar sweep
+%   direction selectivity data and appends them as new columns to the
+%   input table.
 %
-%   angGroup is assigned by resultant_angle (radians) into 4 groups:
-%     Group 1: [5.8905, 2π) U [0, 1.1781)
-%     Group 2: [1.1781, 2.7489)
-%     Group 3: [2.7489, 4.3197)
-%     Group 4: [4.3197, 5.8905)
+%   INPUT:
+%     T - table
+%         Must contain the following columns (numeric, cell, or string):
+%           .v_ortho1_slow    - response in orthogonal direction 1 (slow)
+%           .v_ortho2_slow    - response in orthogonal direction 2 (slow)
+%           .v_max_slow       - maximum (preferred direction) response (slow)
+%           .v_null_slow      - null direction response (slow)
+%           .resultant_angle  - preferred direction angle in radians
 %
-% Edge handling (inclusive lower bounds):
-%   theta == 5.8905 -> 1
-%   theta == 1.1781 -> 2
-%   theta == 2.7489 -> 3
-%   theta == 4.3197 -> 4
+%   OUTPUT:
+%     T - table (modified in-place with 4 new columns):
+%         .v_ortho_slow       - double, mean of orthogonal responses:
+%                               mean([v_ortho1_slow, v_ortho2_slow], 'omitnan')
+%         .v_ortho_v_max_slow - double, orthogonal-to-max ratio:
+%                               v_ortho_slow ./ v_max_slow
+%         .v_null_v_max_slow  - double, null-to-max ratio:
+%                               v_null_slow ./ v_max_slow
+%         .angGroup           - double (1-4), angular quadrant grouping based
+%                               on resultant_angle wrapped to [0, 2*pi):
+%                                 1: [5.105, 2*pi) U [0, 0.393)   (~E/W axis)
+%                                 2: [0.393, 1.963)                (~NE/SW)
+%                                 3: [1.963, 3.534)                (~N/S axis)
+%                                 4: [3.534, 5.105)                (~NW/SE)
 %
-% Usage:
-%   T = addOrthoMetrics(T);
+%   EXAMPLE:
+%     T = addOrthoMetrics(T);
+%
+%   See also COMPUTE_BAR_RESPONSE_METRICS, PLOTGROUPEDBOX, RUNGROUPEDSTATS
 
     % --- Coerce numeric inputs (supports numeric, cell, numeric strings) ---
     v1   = coerceToNumericVector(T.v_ortho1_slow, "v_ortho1_slow");

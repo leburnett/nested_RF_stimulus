@@ -1,10 +1,48 @@
 function generate_bar_pos_fns(save_dir, px_crop)
-% For bar patterns - want position function to move from frames 1 - 68.
-% Create functions for the forward and 'flip' direction. 
-% 3 different speeds - 14 dps, 28 dps and 56 dps.
+% GENERATE_BAR_POS_FNS  Create position functions for moving bar stimuli.
+%
+%   GENERATE_BAR_POS_FNS(SAVE_DIR, PX_CROP) generates sawtooth position
+%   functions for moving bar stimuli at 3 speeds (28, 56, 168 dps) in both
+%   forward and flip (reverse) directions.
+%
+%   INPUTS:
+%     save_dir - char | string
+%                Directory to save the .pfn and .mat function files.
+%     px_crop  - double (30 or 45)
+%                Size of the cropped display region in pixels. Determines
+%                the frame range and timing parameters for the sawtooth.
+%
+%   SPEEDS GENERATED:
+%     28 dps  - slow speed
+%     56 dps  - medium speed
+%     168 dps - fast speed
+%
+%   DIRECTIONS:
+%     For each speed, two functions are generated:
+%       Forward : frames ramp from low to high
+%       Flip    : frames ramp from high to low (opposite direction)
+%
+%   FRAME RANGES:
+%     px_crop = 45 : frames 1-68  (full visible bar movement)
+%     px_crop = 30 : frames 11-62 (cropped to visible region)
+%
+%   FUNCTION STRUCTURE:
+%     Each position function has two sections:
+%       1. Static (1s) : displays frame 1 (grey background) for baseline
+%       2. Sawtooth    : ramps through frame range at the specified frequency
+%
+%   TIMING CALCULATION:
+%     Duration = (frame_range / degrees_per_frame) / dps
+%     Frequency = 1 / duration (for sawtooth waveform generation)
+%
+%   OUTPUT FILES (6 total = 3 speeds x 2 directions):
+%     For each speed/direction combination:
+%       <dps>dps_[FLIP_]<dur>s_<low>-<high>_288fr_1-25step_3s_static.pfn
+%       Corresponding .mat file with pfnparam structure
+%
+%   See also GENERATE_BAR_STIMULUS_XY, G4_FUNCTION_GENERATOR, CREATE_PROTOCOL2
 
-% July 2025 - added 1s of static first frame before each
-% sawtooth.
+% July 2025 - added 1s of static first frame before each sawtooth.
 
     for dps = [28, 56, 168]
     

@@ -1,23 +1,43 @@
 function [meanData_out, data_out, respMap, maxCol] = shiftMaxColumnTo5(meanData, data)
-% shiftMaxColumnTo5
-%   Inputs:
-%     meanData : [11 x 8] cell array (each cell is a numeric vector)
-%     data     : [11 x 8 x 3] cell array (same layout; 3 reps in dim 3)
+% SHIFTMAXCOLUMNTO5  Circularly shift bar flash data so preferred direction is at column 5.
 %
-%   Outputs:
-%     meanData_out : meanData with columns circularly shifted so that the
-%                    column containing the global maximum response is at col 5
-%     data_out     : data shifted identically along dimension 2
-%     respMap      : [11 x 8] double, per-cell response using the 98th percentile
-%     maxCol       : original column index (1..8) where the global max occurred
+%   [MEANDATA_OUT, DATA_OUT, RESPMAP, MAXCOL] = SHIFTMAXCOLUMNTO5(MEANDATA, DATA)
+%   identifies the orientation column (1-8) containing the strongest bar
+%   flash response, then circularly shifts all columns so that this
+%   preferred direction lands at column 5. This aligns the data for
+%   consistent cross-experiment comparison and plotting.
 %
-%   Response per timeseries d (vector of length n):
-%     resp = prctile(d( ceil(0.4*n) : ceil(0.8*n) ), 98)
+%   INPUTS:
+%     meanData - 11x8 cell array
+%                Mean bar flash timeseries (positions x orientations).
+%                Each cell contains a numeric vector of voltage values (mV).
+%     data     - 11x8x3 cell array
+%                Individual rep timeseries (positions x orientations x reps).
+%                Same layout as meanData with a 3rd dimension for reps.
 %
-%   Notes:
-%     * If a cell is empty or too short to form a range (start >= stop),
-%       falls back to prctile(d, 98) or NaN if empty.
-%     * Columns are circularly shifted (rotated), preserving relative layout.
+%   OUTPUTS:
+%     meanData_out - 11x8 cell array
+%                    meanData with columns circularly shifted so the column
+%                    with the global maximum response is at column 5.
+%     data_out     - 11x8x3 cell array
+%                    data shifted identically along dimension 2.
+%     respMap      - 11x8 double
+%                    Response magnitude map. Each entry is the 98th
+%                    percentile of the timeseries in the window from 40%
+%                    to 80% of the signal length:
+%                      resp = prctile(d(ceil(0.4*n):ceil(0.8*n)), 98)
+%     maxCol       - double (1-8)
+%                    Original column index where the global max occurred
+%                    (before shifting). NaN if all responses are NaN.
+%
+%   NOTES:
+%     - If a cell is empty, its response is set to NaN.
+%     - If the 40%-80% window collapses (very short signals), falls back
+%       to prctile(d, 98) over the full signal.
+%     - Columns wrap around: shifting preserves the relative circular order
+%       of the 8 orientations.
+%
+%   See also PLOT_BAR_FLASH_DATA, PARSE_BAR_FLASH_DATA
 
     % Basic checks
     assert(iscell(meanData) && isequal(size(meanData), [11, 8]), ...

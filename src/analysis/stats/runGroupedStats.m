@@ -1,6 +1,51 @@
 function results = runGroupedStats(T, columnName)
-% runGroupedStats: Tests assumptions and compares 4 groups (Strain x Type)
-% Chooses one-way ANOVA or Kruskal–Wallis based on normality + equal variances.
+% RUNGROUPEDSTATS  Test assumptions and compare Strain x Type groups statistically.
+%
+%   RESULTS = RUNGROUPEDSTATS(T, COLUMNNAME) performs a grouped comparison
+%   of the specified numeric column across all unique Strain x Type groups.
+%   It tests normality (Lilliefors) and equal variances (Levene), then
+%   automatically selects one-way ANOVA (if parametric assumptions are met)
+%   or Kruskal-Wallis (otherwise), followed by post-hoc pairwise tests.
+%
+%   INPUTS:
+%     T          - table
+%                  Must contain columns:
+%                    .Strain       - char | string | categorical, genotype
+%                    .Type         - char | string | categorical, 'on'/'off'
+%                    .(columnName) - numeric data to compare
+%     columnName - char | string
+%                  Name of the numeric column in T to analyse.
+%
+%   OUTPUT:
+%     results - struct with fields:
+%       .groupsTable  - table, group names and sample sizes (n)
+%       .groupNames   - string array, unique group labels ("Strain-Type")
+%       .normality    - table, per-group Lilliefors test results:
+%                         Group, n, h (reject?), p, call (interpretation)
+%       .leveneP      - double, p-value from Levene's test for equal variances
+%       .chosenTest   - char, 'ANOVA' | 'KruskalWallis' | 'None'
+%       .omnibusP     - double, p-value of the omnibus test
+%       .anovaTbl     - cell (if ANOVA chosen), ANOVA table
+%       .kwTbl        - cell (if KW chosen), Kruskal-Wallis table
+%       .posthocTable - table, pairwise comparisons with columns:
+%                         GroupA, GroupB, LowerCI, Estimate, UpperCI, pValue
+%                       (Tukey-Kramer for ANOVA, Dunn-Sidak for KW)
+%
+%   TEST SELECTION LOGIC:
+%     ANOVA is used when ALL of the following are met:
+%       - All groups have n >= 5
+%       - All groups pass Lilliefors normality test (p >= 0.05)
+%       - Levene's test for equal variances passes (p >= 0.05)
+%     Otherwise, Kruskal-Wallis is used.
+%
+%   CONSOLE OUTPUT:
+%     Prints a summary of group sizes, normality tests, variance test,
+%     chosen omnibus test with p-value, and the post-hoc comparison table.
+%
+%   EXAMPLE:
+%     results = runGroupedStats(results_table, 'DSI_slow');
+%
+%   See also PLOTGROUPEDBOX, PLOTPOLARBYGROUP, ADDORTHOMETRICS
 
     arguments
         T table

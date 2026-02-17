@@ -1,4 +1,56 @@
 function [pattern_order, func_order, trial_dur] = create_protocol2(exp_folder, metadata)
+% CREATE_PROTOCOL2  Assemble currentExp.mat from patterns and functions.
+%
+%   [PATTERN_ORDER, FUNC_ORDER, TRIAL_DUR] = CREATE_PROTOCOL2(EXP_FOLDER, METADATA)
+%   reads all pattern and position function files from the experiment folder,
+%   organizes them into the correct presentation order for the 1DRF protocol,
+%   and saves the experiment configuration to currentExp.mat.
+%
+%   INPUTS:
+%     exp_folder - char | string
+%                  Full path to the experiment directory containing
+%                  'Patterns/' and 'Functions/' subdirectories.
+%     metadata   - struct
+%                  Structure from GET_INPUT_PARAMETERS containing:
+%                    .Frame  (numeric) - peak frame from Protocol 1
+%                    .Side   (char)    - 'L' or 'R'
+%                    .Age    (char)    - fly age in days
+%                    .Strain (char)    - fly genotype string
+%
+%   OUTPUTS:
+%     pattern_order - 1xN double
+%                     Pattern presentation order indices. Structure:
+%                       [grey, 4px_flash, 6px_flash, grey,
+%                        bar_patt x2 (fwd+flip) x n_bar_patt at 28 dps, grey,
+%                        bar_patt x2 (fwd+flip) x n_bar_patt at 56 dps, grey,
+%                        bar_patt x2 (fwd+flip) x n_bar_patt at 168 dps, grey,
+%                        bar_flash_slow, grey, bar_flash_fast]
+%     func_order    - 1xN double
+%                     Position function indices matched to pattern_order.
+%     trial_dur     - 1xN double
+%                     Duration of each trial in seconds.
+%
+%   PATTERN ASSIGNMENT:
+%     Patterns 1-2  : flash patterns (4px, 6px)
+%     Patterns 3..N-1 : bar sweep patterns (8 orientations)
+%     Pattern N     : bar flash pattern
+%
+%   FUNCTION ASSIGNMENT:
+%     Functions 1-2   : flash position functions
+%     Functions 3-4   : 28 dps bar fwd/flip
+%     Functions 5-6   : 56 dps bar fwd/flip
+%     Functions 7-8   : 168 dps bar fwd/flip
+%     Functions 9-11  : bar flash slow (3 reps)
+%     Function 12     : bar flash fast
+%     Function N-1    : 10s static (initial grey baseline)
+%     Function N      : 3s static (inter-block gap)
+%
+%   SAVED FILE:
+%     currentExp.mat - contains currentExp struct with pattern/function
+%                      metadata, plus pattern_order, func_order, trial_dur,
+%                      and metadata arrays.
+%
+%   See also GENERATE_PROTOCOL2, RUN_PROTOCOL2, GENERATE_STATIC_FUNCTION
 
 %% check for correct folders
 pattern_folder = fullfile(exp_folder, 'Patterns');

@@ -1,22 +1,36 @@
 function plotPolarByGroup(T, metric_type)
-% plotPolarByGroup: Polar scatter of resultant_angle (rad) vs magnitude,
-% colored by Strain × Type.
+% PLOTPOLARBYGROUP  Polar scatter of preferred direction vs a chosen metric, coloured by group.
 %
-% Groups & colors:
-%   Strain=="42F06_T4T5_control", Type=="on"  -> light gray
-%   Strain=="42F06_T4T5_control", Type=="off" -> black
-%   Strain=="42F06_T4T5_ttl",     Type=="on"  -> light pink
-%   Strain=="42F06_T4T5_ttl",     Type=="off" -> dark magenta
+%   PLOTPOLARBYGROUP(T, METRIC_TYPE) creates a polar scatter plot where
+%   each cell is positioned at its preferred direction (resultant_angle)
+%   with radial distance given by the specified metric column. Points are
+%   colour-coded by Strain x Type group.
 %
-% Input:
-%   T : table with columns:
-%       - Strain (string/char/cellstr/categorical)
-%       - Type   (string/char/cellstr/categorical)
-%       - resultant_angle (radians; numeric or cell with numeric/strings)
-%       - magnitude       (numeric or cell with numeric/strings)
+%   INPUTS:
+%     T           - table
+%                   Must contain the following columns:
+%                     .Strain          - char | string | categorical, genotype
+%                     .Type            - char | string | categorical, 'on'/'off'
+%                     .resultant_angle - double (radians), preferred direction
+%                     .(metric_type)   - double, radial metric to plot
+%     metric_type - string
+%                   Name of the numeric column in T to use as the radial
+%                   coordinate. E.g. 'magnitude', 'DSI_slow', 'v_max_slow'.
 %
-% Example:
-%   plotPolarByGroup(T);
+%   COLOUR SCHEME:
+%     42F06_T4T5_control + on  : light grey   [0.80 0.80 0.80]
+%     42F06_T4T5_control + off : black        [0.00 0.00 0.00]
+%     42F06_T4T5_ttl + on      : light pink   [1.00 0.75 0.85]
+%     42F06_T4T5_ttl + off     : dark magenta [0.60 0.00 0.60]
+%
+%   FIGURE:
+%     Creates a new polar axes figure with 22.5-degree theta ticks, grid
+%     on, and legend placed outside the plot area.
+%
+%   EXAMPLE:
+%     plotPolarByGroup(results_table, 'DSI_slow');
+%
+%   See also PLOTGROUPEDBOX, RUNGROUPEDSTATS, ADDORTHOMETRICS
 
     arguments
         T table
