@@ -38,15 +38,26 @@ function process_protocol2()
 %       - bar_stimuli/*.pdf with polar plots and timeseries
 %       - flash_stimuli/*.pdf with RF heatmaps and Gaussian fits
 %
-%   See also PROCESS_BARS_P2, PROCESS_FLASH_P2, LOAD_PROTOCOL2_DATA
+%   See also PROCESS_BARS_P2, PROCESS_FLASH_P2, LOAD_PROTOCOL2_DATA,
+%            QUALITY_CHECK_RECORDING
 
 exp_folder = cd;
 
 PROJECT_ROOT = "/Users/burnettl/Documents/Projects/nested_RF_stimulus/protocol2";
 
 % Load metadata - contains 'Frame', 'Age', 'Strain' and 'Side'. Side is the
-% side of the arena upon which protocol 1 was run. 
+% side of the arena upon which protocol 1 was run.
 load('currentExp.mat', 'metadata');
+
+% Recording quality check — generates figure and updates currentExp.mat
+quality = quality_check_recording(exp_folder);
+load('currentExp.mat', 'metadata');  % Reload with quality fields
+
+% Uncomment to skip analysis for flagged recordings:
+% if quality.FLAG
+%     fprintf('Recording FLAGGED — skipping analysis for %s\n', exp_folder);
+%     cd(exp_folder); return;
+% end
 
 resultant_angle = process_bars_p2(exp_folder, metadata, PROJECT_ROOT);
 
