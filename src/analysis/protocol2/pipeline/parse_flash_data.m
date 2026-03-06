@@ -1,8 +1,9 @@
-function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT)
+function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_data, min_data] = parse_flash_data(f_data, v_data, on_off, slow_fast, px_size, PROJECT_ROOT, filter_idx)
 % PARSE_FLASH_DATA  Extract and analyze flash stimulus responses from recording.
 %
 %   [DATA_COMB, CMAP_ID, VAR_ACROSS, VAR_WITHIN, DIFF_MEAN, MAX_DATA, MIN_DATA]
 %       = PARSE_FLASH_DATA(F_DATA, V_DATA, ON_OFF, SLOW_FAST, PX_SIZE, PROJECT_ROOT)
+%       = PARSE_FLASH_DATA(..., FILTER_IDX)
 %   identifies flash stimulus timing, extracts responses, and computes
 %   spatial response maps for receptive field analysis.
 %
@@ -13,6 +14,8 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
 %     slow_fast    - 'slow' for standard timing (currently only 'slow' used)
 %     px_size      - Flash size in pixels (4 or 6)
 %     PROJECT_ROOT - Base path for saving quality check figures
+%     filter_idx   - (optional) If true (default), apply Autumn idx filtering
+%                    for OFF cells. Set false for Summer 2025 data.
 %
 %   OUTPUTS:
 %     data_comb      - NxN matrix of response values at each grid position
@@ -43,6 +46,10 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
 %   See also PROCESS_FLASH_P2, GAUSSIAN_RF_ESTIMATE, LOAD_PROTOCOL2_DATA
 % ________________________________________________________________________
 
+    if nargin < 7
+        filter_idx = true;  % backward compatible: existing callers get Autumn behavior
+    end
+
     diff_f_data = diff(f_data);
     median_v = median(v_data);
     v2_data = v_data - median_v;
@@ -72,8 +79,10 @@ function [data_comb, cmap_id, var_across_reps, var_within_reps, diff_mean, max_d
         % Both 4px and 6px flashes start with frame 1. 
         % 'idx' is an array of the timepoints when the 4px flashes start
         % and the 6px flashes start. 'idx' should be an array of size [1,6]
-        idx = find(diff_f_data == 1 & f_data(2:end) == 1); % First flash. 
-        idx = idx([1,2,5,6, 9, 10]);
+        idx = find(diff_f_data == 1 & f_data(2:end) == 1); % First flash.
+        if filter_idx
+            idx = idx([1,2,5,6, 9, 10]);  % Autumn: filter to 6 rep-boundary transitions
+        end
 
         % For finding the end of the 6 pixel flashes
         drop_at_end = -100; % ON flashes. the last 6 pixel flash is frame 200.

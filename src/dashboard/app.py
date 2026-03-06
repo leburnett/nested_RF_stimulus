@@ -117,7 +117,7 @@ metadata_tab = dbc.Tab(
 )
 
 # ------------------------------------------------------------------
-# Tab 2: Per Cell
+# Tab 2: Per Cell — Compact overview layout
 # ------------------------------------------------------------------
 per_cell_tab = dbc.Tab(
     label="Per Cell",
@@ -125,23 +125,102 @@ per_cell_tab = dbc.Tab(
     children=[
         html.Div(
             [
-                html.H5(id="cell-title", className="mb-2"),
-                html.Div(id="cell-notes", className="text-muted mb-3"),
+                html.H5(id="cell-title", className="mb-1"),
+                html.Div(id="cell-notes", className="text-muted mb-3",
+                         style={"fontSize": "0.9rem"}),
 
-                # --- Grid Plots (Protocol 1) ---
-                html.H6("Grid Plots (Protocol 1)", className="mt-3 mb-2"),
-                html.Hr(style={"marginTop": "0", "marginBottom": "12px"}),
+                # --- Metrics Table (top of page) ---
+                html.Div(id="metrics-table-container", className="mb-3"),
+
+                # --- Bar Analysis (3 cols) ---
+                html.H6("Bar Sweep Analysis", className="mt-3 mb-2"),
+                html.Hr(style={"marginTop": "0", "marginBottom": "8px"}),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Div(id="img-bar-polar-container",
+                                     className="text-center"),
+                            xs=12, md=4, className="mb-2",
+                        ),
+                        dbc.Col(
+                            html.Div(id="img-polar-arrow-container",
+                                     className="text-center"),
+                            xs=12, md=4, className="mb-2",
+                        ),
+                        dbc.Col(
+                            html.Div(id="img-gaussian-rf-container",
+                                     className="text-center"),
+                            xs=12, md=4, className="mb-2",
+                        ),
+                    ],
+                ),
+
+                # --- Flash RF 4px (2 cols) ---
+                html.H6("Flash RF — 4 px", className="mt-3 mb-2"),
+                html.Hr(style={"marginTop": "0", "marginBottom": "8px"}),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Div(id="img-flash-rf-4px-container",
+                                     className="text-center"),
+                            xs=12, md=6, className="mb-2",
+                        ),
+                        dbc.Col(
+                            html.Div(id="img-flash-heatmap-4px-container",
+                                     className="text-center"),
+                            xs=12, md=6, className="mb-2",
+                        ),
+                    ],
+                ),
+
+                # --- Flash RF 6px (2 cols) ---
+                html.H6("Flash RF — 6 px", className="mt-3 mb-2"),
+                html.Hr(style={"marginTop": "0", "marginBottom": "8px"}),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Div(id="img-flash-rf-6px-container",
+                                     className="text-center"),
+                            xs=12, md=6, className="mb-2",
+                        ),
+                        dbc.Col(
+                            html.Div(id="img-flash-heatmap-6px-container",
+                                     className="text-center"),
+                            xs=12, md=6, className="mb-2",
+                        ),
+                    ],
+                ),
+
+                # --- Bar Flash (2 cols) ---
+                html.H6("Bar Flash", className="mt-3 mb-2"),
+                html.Hr(style={"marginTop": "0", "marginBottom": "8px"}),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Div(id="img-bar-flash-slow-container",
+                                     className="text-center"),
+                            xs=12, md=6, className="mb-2",
+                        ),
+                        dbc.Col(
+                            html.Div(id="img-bar-flash-fast-container",
+                                     className="text-center"),
+                            xs=12, md=6, className="mb-2",
+                        ),
+                    ],
+                ),
+
+                # --- Grid Plots (Protocol 1) at bottom ---
+                html.H6("Grid Plots (Protocol 1)", className="mt-4 mb-2"),
+                html.Hr(style={"marginTop": "0", "marginBottom": "8px"}),
                 dbc.Row(
                     [
                         dbc.Col(
                             html.Div(id="img-gridplot-1-container"),
-                            width=6,
-                            className="mb-3",
+                            width=6, className="mb-2",
                         ),
                         dbc.Col(
                             html.Div(id="img-gridplot-2-container"),
-                            width=6,
-                            className="mb-3",
+                            width=6, className="mb-2",
                         ),
                     ],
                 ),
@@ -149,47 +228,13 @@ per_cell_tab = dbc.Tab(
                     [
                         dbc.Col(
                             html.Div(id="img-gridplot-3-container"),
-                            width=6,
-                            className="mb-3",
+                            width=6, className="mb-2",
                         ),
                         dbc.Col(
                             html.Div(id="img-gridplot-4-container"),
-                            width=6,
-                            className="mb-3",
+                            width=6, className="mb-2",
                         ),
                     ],
-                ),
-
-                # --- Bar Sweep Polar ---
-                html.H6("Bar Sweep Polar", className="mt-4 mb-2"),
-                html.Hr(style={"marginTop": "0", "marginBottom": "12px"}),
-                html.Div(
-                    id="img-bar-polar-container",
-                    className="text-center mb-3",
-                ),
-
-                # --- Square Flash RF Timeseries ---
-                html.H6("Square Flash RF Timeseries", className="mt-4 mb-2"),
-                html.Hr(style={"marginTop": "0", "marginBottom": "12px"}),
-                html.Div(
-                    id="img-flash-rf-container",
-                    className="text-center mb-3",
-                ),
-
-                # --- Flash RF Heatmap ---
-                html.H6("Flash RF Heatmap", className="mt-4 mb-2"),
-                html.Hr(style={"marginTop": "0", "marginBottom": "12px"}),
-                html.Div(
-                    id="img-flash-rf-heatmap-container",
-                    className="text-center mb-3",
-                ),
-
-                # --- Bar Flash Timeseries ---
-                html.H6("Bar Flash Timeseries", className="mt-4 mb-2"),
-                html.Hr(style={"marginTop": "0", "marginBottom": "12px"}),
-                html.Div(
-                    id="img-bar-flash-container",
-                    className="text-center mb-3",
                 ),
             ],
             className="p-3",

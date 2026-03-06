@@ -168,7 +168,7 @@ axis square;
 
 f2 = gcf;
 f2.Position = [712, 576, 560, 420];
-close
+% Caller is responsible for closing f2 (removed `close` to allow PNG export)
 
 % Display the results from both the excitatory and inhibitory lobes
 disp('Excitatory lobe:')

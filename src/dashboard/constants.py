@@ -27,9 +27,14 @@ IMAGE_TYPES = {
     "gridplot_3": "Grid Plot 3",
     "gridplot_4": "Grid Plot 4",
     "bar_polar": "Bar Sweep Polar",
-    "flash_rf": "Square Flash RF Timeseries",
-    "flash_rf_heatmap": "Flash RF Heatmap",
-    "bar_flash": "Bar Flash Timeseries",
+    "polar_arrow": "Polar with Arrow",
+    "flash_rf_4px": "Flash RF Timeseries (4px)",
+    "flash_heatmap_4px": "Flash RF Heatmap (4px)",
+    "flash_rf_6px": "Flash RF Timeseries (6px)",
+    "flash_heatmap_6px": "Flash RF Heatmap (6px)",
+    "gaussian_rf": "Gaussian RF Contours",
+    "bar_flash_slow": "Bar Flash (80ms)",
+    "bar_flash_fast": "Bar Flash (14ms)",
 }
 
 # Number of gridplot sub-figures per cell

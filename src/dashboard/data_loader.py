@@ -146,10 +146,23 @@ class DataStore:
 
         df = pd.DataFrame(cells)
 
-        # Ensure expected columns exist (handles old cell_index.json)
-        for col in ["has_gridplot_1", "has_bar_polar", "has_flash_rf", "has_flash_rf_heatmap", "has_bar_flash"]:
+        # Ensure expected columns exist (handles old/new cell_index.json)
+        _image_cols = [
+            "has_gridplot_1", "has_bar_polar", "has_polar_arrow",
+            "has_flash_rf_4px", "has_flash_heatmap_4px",
+            "has_flash_rf_6px", "has_flash_heatmap_6px",
+            "has_gaussian_rf",
+            "has_bar_flash_slow", "has_bar_flash_fast",
+            # Legacy names (old cell_index.json compatibility)
+            "has_flash_rf", "has_flash_rf_heatmap", "has_bar_flash",
+        ]
+        for col in _image_cols:
             if col not in df.columns:
                 df[col] = False
+
+        # Use new column names if available, fall back to legacy
+        flash_col = "has_flash_rf_6px" if "has_flash_rf_6px" in df.columns and df["has_flash_rf_6px"].any() else "has_flash_rf"
+        bar_flash_col = "has_bar_flash_slow" if "has_bar_flash_slow" in df.columns and df["has_bar_flash_slow"].any() else "has_bar_flash"
 
         summary = (
             df.groupby("strain")
@@ -172,11 +185,15 @@ class DataStore:
                     lambda x: x.sum(),
                 ),
                 with_flash_rf=(
-                    "has_flash_rf",
+                    flash_col,
+                    lambda x: x.sum(),
+                ),
+                with_gaussian=(
+                    "has_gaussian_rf",
                     lambda x: x.sum(),
                 ),
                 with_bar_flash=(
-                    "has_bar_flash",
+                    bar_flash_col,
                     lambda x: x.sum(),
                 ),
                 date_range=(
@@ -194,6 +211,7 @@ class DataStore:
             "With GridPlot",
             "With Sweep",
             "With Flash RF",
+            "With Gaussian",
             "With Bar Flash",
             "Date Range",
         ]

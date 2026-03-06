@@ -6,22 +6,166 @@ from collections import defaultdict
 
 from dash import Input, Output, State, callback_context, html, no_update
 import dash_bootstrap_components as dbc
+from dash import dash_table
 
 from dashboard.data_loader import DataStore
 
 # Placeholder shown when an image is not available
 _NOT_AVAILABLE = html.Div(
     "Not available",
-    className="text-muted text-center py-5",
-    style={"fontSize": "1.1rem"},
+    className="text-muted text-center py-3",
+    style={"fontSize": "0.95rem"},
 )
 
-# Image type ↔ gallery tab mapping
+# Image type ↔ gallery tab mapping (updated to new image keys)
 _GALLERY_TABS = {
-    "tab-flash": "flash_rf",
+    "tab-flash": "flash_rf_6px",
     "tab-bar-sweep": "bar_polar",
-    "tab-bar-flash": "bar_flash",
+    "tab-bar-flash": "bar_flash_slow",
 }
+
+
+def _build_metrics_table(cell: dict) -> list:
+    """Build a compact metrics card from the cell's 'metrics' dict.
+
+    Returns a list of Dash components (dbc.Card with inner tables).
+    If no metrics are available, returns a placeholder message.
+    """
+    metrics = cell.get("metrics", {})
+    if not metrics:
+        return html.Div(
+            "No metrics available for this cell.",
+            className="text-muted text-center py-2",
+            style={"fontSize": "0.9rem"},
+        )
+
+    sections = []
+
+    # --- Row 1: Metadata ---
+    meta_items = []
+    for key, label in [
+        ("strain", "Strain"),
+        ("frame", "Frame"),
+        ("side", "Side"),
+        ("age", "Age"),
+        ("preferred_contrast", "Contrast"),
+        ("resultant_angle_deg", "Pref. Dir (°)"),
+    ]:
+        val = metrics.get(key, cell.get(key, ""))
+        if val != "" and val is not None:
+            if isinstance(val, float):
+                val = f"{val:.1f}"
+            meta_items.append(html.Span(
+                [html.Strong(f"{label}: "), str(val)],
+                className="me-3",
+                style={"fontSize": "0.85rem"},
+            ))
+    if meta_items:
+        sections.append(html.Div(meta_items, className="mb-2"))
+
+    # --- Row 2: Bar sweep metrics table (slow / fast / vfast) ---
+    bar_speeds = []
+    for speed_key, speed_label in [
+        ("bar_slow", "Slow"), ("bar_fast", "Fast"), ("bar_vfast", "V.Fast"),
+    ]:
+        speed = metrics.get(speed_key)
+        if speed and isinstance(speed, dict):
+            bar_speeds.append({
+                "Speed": speed_label,
+                "Mag.": _fmt(speed.get("magnitude")),
+                "DSI (vec)": _fmt(speed.get("DSI_vector")),
+                "DSI (pd/nd)": _fmt(speed.get("DSI_pdnd")),
+                "FWHM (°)": _fmt(speed.get("fwhm"), decimals=0),
+                "CV": _fmt(speed.get("cv")),
+            })
+    if bar_speeds:
+        sections.append(html.Div([
+            html.Strong("Bar Sweep", style={"fontSize": "0.8rem"}),
+            dash_table.DataTable(
+                columns=[{"name": c, "id": c} for c in bar_speeds[0].keys()],
+                data=bar_speeds,
+                style_header={
+                    "fontWeight": "bold",
+                    "backgroundColor": "#f8f9fa",
+                    "fontSize": "0.78rem",
+                    "padding": "4px 6px",
+                    "border": "1px solid #dee2e6",
+                },
+                style_cell={
+                    "fontSize": "0.78rem",
+                    "padding": "3px 6px",
+                    "textAlign": "center",
+                    "border": "1px solid #dee2e6",
+                    "fontFamily": "inherit",
+                },
+                style_table={"marginBottom": "8px"},
+            ),
+        ], className="mb-2"))
+
+    # --- Row 3: RF fit metrics table (4px / 6px) ---
+    rf_rows = []
+    for rf_key, rf_label in [("rf_4px", "4 px"), ("rf_6px", "6 px")]:
+        rf = metrics.get(rf_key)
+        if rf and isinstance(rf, dict):
+            rf_rows.append({
+                "Size": rf_label,
+                "R² (exc)": _fmt(rf.get("R_squared"), 3),
+                "R² (inh)": _fmt(rf.get("R_squaredi"), 3),
+                "σx (exc)": _fmt(rf.get("sigma_x_exc")),
+                "σy (exc)": _fmt(rf.get("sigma_y_exc")),
+                "σx (inh)": _fmt(rf.get("sigma_x_inh")),
+                "σy (inh)": _fmt(rf.get("sigma_y_inh")),
+            })
+    if rf_rows:
+        sections.append(html.Div([
+            html.Strong("RF Gaussian Fit", style={"fontSize": "0.8rem"}),
+            dash_table.DataTable(
+                columns=[{"name": c, "id": c} for c in rf_rows[0].keys()],
+                data=rf_rows,
+                style_header={
+                    "fontWeight": "bold",
+                    "backgroundColor": "#f8f9fa",
+                    "fontSize": "0.78rem",
+                    "padding": "4px 6px",
+                    "border": "1px solid #dee2e6",
+                },
+                style_cell={
+                    "fontSize": "0.78rem",
+                    "padding": "3px 6px",
+                    "textAlign": "center",
+                    "border": "1px solid #dee2e6",
+                    "fontFamily": "inherit",
+                },
+                style_table={"marginBottom": "4px"},
+            ),
+        ]))
+
+    if not sections:
+        return html.Div(
+            "No metrics available for this cell.",
+            className="text-muted text-center py-2",
+            style={"fontSize": "0.9rem"},
+        )
+
+    return dbc.Card(
+        dbc.CardBody(sections, style={"padding": "10px 14px"}),
+        className="mb-3",
+    )
+
+
+def _fmt(value, decimals: int = 2) -> str:
+    """Format a numeric value for table display, handling None/NaN."""
+    if value is None:
+        return "—"
+    try:
+        v = float(value)
+        if v != v:  # NaN check
+            return "—"
+        if decimals == 0:
+            return f"{v:.0f}"
+        return f"{v:.{decimals}f}"
+    except (TypeError, ValueError):
+        return str(value)
 
 
 def register_callbacks(app, data_store: DataStore) -> None:
@@ -127,31 +271,38 @@ def register_callbacks(app, data_store: DataStore) -> None:
         return columns, data
 
     # ==================================================================
-    # 5. Per Cell images (returns Dash components, not URL strings)
+    # 5. Per Cell — compact overview (16 outputs)
     # ==================================================================
     @app.callback(
         [
-            Output("cell-title", "children"),
-            Output("cell-notes", "children"),
-            Output("img-gridplot-1-container", "children"),
-            Output("img-gridplot-2-container", "children"),
-            Output("img-gridplot-3-container", "children"),
-            Output("img-gridplot-4-container", "children"),
-            Output("img-bar-polar-container", "children"),
-            Output("img-flash-rf-container", "children"),
-            Output("img-flash-rf-heatmap-container", "children"),
-            Output("img-bar-flash-container", "children"),
+            Output("cell-title", "children"),                       # 0
+            Output("cell-notes", "children"),                       # 1
+            Output("metrics-table-container", "children"),          # 2
+            Output("img-gridplot-1-container", "children"),         # 3
+            Output("img-gridplot-2-container", "children"),         # 4
+            Output("img-gridplot-3-container", "children"),         # 5
+            Output("img-gridplot-4-container", "children"),         # 6
+            Output("img-bar-polar-container", "children"),          # 7
+            Output("img-polar-arrow-container", "children"),        # 8
+            Output("img-flash-rf-4px-container", "children"),       # 9
+            Output("img-flash-heatmap-4px-container", "children"),  # 10
+            Output("img-flash-rf-6px-container", "children"),       # 11
+            Output("img-flash-heatmap-6px-container", "children"),  # 12
+            Output("img-gaussian-rf-container", "children"),        # 13
+            Output("img-bar-flash-slow-container", "children"),     # 14
+            Output("img-bar-flash-fast-container", "children"),     # 15
         ],
         Input("cell-dropdown", "value"),
         Input("main-tabs", "active_tab"),
     )
     def update_per_cell_images(cell_id, active_tab):
+        n_outputs = 16
         if active_tab != "tab-per-cell" or not cell_id:
-            return (no_update,) * 10
+            return (no_update,) * n_outputs
 
         cell = data_store.get_cell_by_id(cell_id)
         if cell is None:
-            return ("Cell not found", "", *([_NOT_AVAILABLE] * 8))
+            return ("Cell not found", "", _NOT_AVAILABLE, *([_NOT_AVAILABLE] * 13))
 
         title = cell.get("display_label", cell_id)
 
@@ -164,6 +315,9 @@ def register_callbacks(app, data_store: DataStore) -> None:
         if ne:
             notes_parts.append(ne)
         notes = " | ".join(notes_parts) if notes_parts else ""
+
+        # Metrics table
+        metrics_card = _build_metrics_table(cell)
 
         def _img_or_na(image_type, max_width="100%"):
             """Return an html.Img component or 'Not available' placeholder."""
@@ -181,16 +335,25 @@ def register_callbacks(app, data_store: DataStore) -> None:
         gp3 = _img_or_na("gridplot_3")
         gp4 = _img_or_na("gridplot_4")
 
-        # Other images (centered, 80% width)
-        bar_polar = _img_or_na("bar_polar", "80%")
-        flash_rf = _img_or_na("flash_rf", "80%")
-        flash_rf_heatmap = _img_or_na("flash_rf_heatmap", "80%")
-        bar_flash = _img_or_na("bar_flash", "80%")
+        # Analysis plots (compact layout)
+        bar_polar = _img_or_na("bar_polar")
+        polar_arrow = _img_or_na("polar_arrow")
+        gaussian_rf = _img_or_na("gaussian_rf")
+        flash_rf_4px = _img_or_na("flash_rf_4px")
+        flash_heatmap_4px = _img_or_na("flash_heatmap_4px")
+        flash_rf_6px = _img_or_na("flash_rf_6px")
+        flash_heatmap_6px = _img_or_na("flash_heatmap_6px")
+        bar_flash_slow = _img_or_na("bar_flash_slow")
+        bar_flash_fast = _img_or_na("bar_flash_fast")
 
         return (
-            title, notes,
+            title, notes, metrics_card,
             gp1, gp2, gp3, gp4,
-            bar_polar, flash_rf, flash_rf_heatmap, bar_flash,
+            bar_polar, polar_arrow,
+            flash_rf_4px, flash_heatmap_4px,
+            flash_rf_6px, flash_heatmap_6px,
+            gaussian_rf,
+            bar_flash_slow, bar_flash_fast,
         )
 
     # ==================================================================
@@ -362,9 +525,9 @@ def _register_gallery_callbacks(
 
             # For Square Flashes tab, also show heatmap below timeseries
             body_children = [img]
-            if _img_type == "flash_rf":
-                hm_thumb = data_store.get_image_url(cell, "flash_rf_heatmap", thumb=True)
-                hm_full = data_store.get_image_url(cell, "flash_rf_heatmap", thumb=False)
+            if _img_type == "flash_rf_6px":
+                hm_thumb = data_store.get_image_url(cell, "flash_heatmap_6px", thumb=True)
+                hm_full = data_store.get_image_url(cell, "flash_heatmap_6px", thumb=False)
                 if hm_thumb:
                     body_children.append(
                         html.Hr(style={"margin": "8px 0"}),
