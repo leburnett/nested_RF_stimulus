@@ -1,0 +1,18 @@
+[project]
+authors = ["leburnett <leburnett3@gmail.com>"]
+channels = ["conda-forge"]
+description = "Nested RF Stimulus Ephys Dashboard"
+name = "nested-rf-dashboard"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+dashboard = { cmd = "python -m dashboard", cwd = ".." }
+
+[dependencies]
+python = ">=3.13.3,<3.14"
+dash = ">=2.18.0,<3"
+dash-bootstrap-components = ">=1.6.0,<2"
+plotly = ">=6.1.2,<7"
+pandas = ">=2.2.3,<3"
+openpyxl = ">=3.1.0,<4"
