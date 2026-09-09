@@ -31,8 +31,8 @@ Outputs land in `<data_root>/manuscript_figures/`:
 - `fig_main_ABCDEF_v3_<timestamp>.pdf` / `.png`
 - `fig_supp_ABCDEF_v3_<timestamp>.pdf` / `.png`
 
-`data_root = /Users/reiserm/Documents/ttl_1DRF` (a default; can be overridden via
-the `opts.data_root` argument of the underlying functions).
+`data_root` defaults to the value of `DATA_ROOT` set in the two wrapper scripts (see
+§2), and can be overridden via the `opts.data_root` argument of the underlying functions.
 
 ---
 
@@ -45,7 +45,7 @@ that you point at via the `DATA_ROOT` variable in
 `scripts/generate_manuscript_fig_main.m` and `_supp.m`:
 
 ```matlab
-DATA_ROOT = '/Users/reiserm/Documents/ttl_1DRF';   % <-- edit for your setup
+DATA_ROOT = '<path to your local copy of the ttl_1DRF tree>';   % <-- edit for your setup
 ```
 
 The pipeline expects the following layout under `DATA_ROOT`:
