@@ -18,17 +18,36 @@ function fig = generate_manuscript_fig_ds(speed_dps, opts)
 %
 %   FIG = GENERATE_MANUSCRIPT_FIG_DS(SPEED_DPS, OPTS) accepts an options
 %   struct with fields:
-%       .data_root   - data_root (default '/Users/reiserm/Documents/ttl_1DRF')
-%       .skip_export - true to suppress PDF/PNG export (default false)
-%       .stamp_path  - if non-empty, save pre-plot variables to this
-%                      .mat file and return without plotting.
+%       .data_root         - data_root (default '/Users/reiserm/Documents/ttl_1DRF')
+%       .skip_export       - true to suppress PDF/PNG export (default false)
+%       .stamp_path        - if non-empty, save pre-plot variables to this
+%                            .mat file and return without plotting.
+%       .preview_ring_only - true to render only Panels A & B (ring+polar)
+%                            and save with a _preview_ring suffix. Used as
+%                            a fast iteration loop for the polar+ring panel.
+%       .rotate_pd_left    - true to rotate the polar+ring CCW by 90° so
+%                            PD points LEFT (matches the EF flash figure's
+%                            PD-on-left orientation). Output filename gets
+%                            a _rot90 suffix.
 %
 %   See also GENERATE_MANUSCRIPT_FIG_EF, GENERATE_MANUSCRIPT_FIG.
 
 if nargin < 2, opts = struct(); end
-if ~isfield(opts, 'data_root'),   opts.data_root   = '/Users/reiserm/Documents/ttl_1DRF'; end
-if ~isfield(opts, 'skip_export'), opts.skip_export = false; end
-if ~isfield(opts, 'stamp_path'),  opts.stamp_path  = ''; end
+if ~isfield(opts, 'data_root'),         opts.data_root         = '/Users/reiserm/Documents/ttl_1DRF'; end
+if ~isfield(opts, 'skip_export'),       opts.skip_export       = false; end
+if ~isfield(opts, 'stamp_path'),        opts.stamp_path        = ''; end
+if ~isfield(opts, 'preview_ring_only'), opts.preview_ring_only = false; end
+if ~isfield(opts, 'rotate_pd_left'),    opts.rotate_pd_left    = false; end
+
+% --- Ensure repo src/ is on the MATLAB path -------------------------------
+% load_protocol2_data, parse_bar_data, etc. live in src/analysis/... If a
+% fresh session has only scripts/ on the path, voltage extraction (Panel D)
+% silently fails. Add src/ relative to this file's own location.
+this_dir = fileparts(mfilename('fullpath'));   % .../scripts
+src_dir  = fullfile(fileparts(this_dir), 'src');
+if exist(src_dir, 'dir') && isempty(which('load_protocol2_data'))
+    addpath(genpath(src_dir));
+end
 
 data_root = opts.data_root;
 out_dir   = fullfile(data_root, 'manuscript_figures');
@@ -571,9 +590,9 @@ FIG_AR = FIG_W_CM / FIG_H_CM;  % width / height
 RING = struct( ...
     'radius_x',    0.126, ...     % ring radius in normalized x-coords (~20% up from 0.105)
     'radius_y',    0.126 * FIG_AR, ... % corrected for aspect ratio → true circle
-    'subW',        0.048, ...     % subplot width  (~20% up from 0.040)
+    'subW',        0.0433, ...    % subplot width  (10% narrower than 0.048 for more inter-trace whitespace)
     'subH',        0.090, ...     % subplot height (~20% up from 0.075)
-    'polar_scale', 0.65, ...      % polar plot fills more of the ring interior
+    'polar_scale', 0.70, ...      % polar plot fills more of the ring interior
     'font_label',  5);
 
 t_ms = ((1:display_len_ds) - ref_sample_ds) * DS_FACTOR * 0.1;
@@ -615,13 +634,18 @@ if SHOW_POLAR_DIAG
     fprintf('T5 tutl  polar_mean max: %.1f mV\n', max(groups_final(4).polar_mean));
 end
 
+% Rotation offset for the polar+ring layout (0 = PD up; pi/2 = PD left)
+ROT_OFFSET = 0;
+if opts.rotate_pd_left, ROT_OFFSET = pi/2; end
+
 % --- Panel A: T4 (ON) ring-of-traces ---
 panelA_center = [0.17, 0.47];
 draw_ring_panel(fig, panelA_center, RING, ...
     groups_final(1), groups_final(2), ...   % ON ctrl, ON tutl-
     pd_aligned_angles, all_cells, ...
     t_ms, display_len_ds, shared_ylim, DS_FACTOR, on_stats, ...
-    [0 0 0], [1 0 0], RING_XLIM, RING_TRACE_LW, RING_SCALEBAR_T, true, POLAR_RPAD_FACTOR);
+    [0 0 0], [1 0 0], RING_XLIM, RING_TRACE_LW, RING_SCALEBAR_T, true, POLAR_RPAD_FACTOR, ...
+    ROT_OFFSET);
 
 % --- Panel B: T5 (OFF) ring-of-traces ---
 panelB_center = [0.48, 0.47];
@@ -629,60 +653,63 @@ draw_ring_panel(fig, panelB_center, RING, ...
     groups_final(3), groups_final(4), ...   % OFF ctrl, OFF tutl-
     pd_aligned_angles, all_cells, ...
     t_ms, display_len_ds, shared_ylim, DS_FACTOR, off_stats, ...
-    [0.4 0.4 0.4], [0.8 0.2 0.2], RING_XLIM, RING_TRACE_LW, [], false, POLAR_RPAD_FACTOR);
+    [0.4 0.4 0.4], [0.8 0.2 0.2], RING_XLIM, RING_TRACE_LW, [], false, POLAR_RPAD_FACTOR, ...
+    ROT_OFFSET);
 
-% --- Right-side panels: C (top row) and D (bottom row) ---
-% Each row has 2 panels side by side spanning the right-side area.
-R_LEFT = 0.71;   % left edge of right-side area (shifted right for narrower panels)
-R_W    = 0.11;   % width per panel (narrower)
-R_GAP  = 0.03;   % gap between the two panels in a row
+if ~opts.preview_ring_only
+    % --- Right-side panels: C (top row) and D (bottom row) ---
+    % Each row has 2 panels side by side spanning the right-side area.
+    R_LEFT = 0.71;   % left edge of right-side area (shifted right for narrower panels)
+    R_W    = 0.11;   % width per panel (narrower)
+    R_GAP  = 0.03;   % gap between the two panels in a row
 
-% --- Panel C (top row): DSI + Aspect Ratio ---
-C_Y = 0.56;  C_H = 0.28;
+    % --- Panel C (top row): DSI + Aspect Ratio ---
+    C_Y = 0.56;  C_H = 0.28;
 
-ax_dsi = axes(fig, 'Position', [R_LEFT, C_Y, R_W, C_H]);
-draw_boxplot_panel(ax_dsi, combined, 'dsi_pdnd', {'DS index', '(PD-ND)/(PD+ND)'}, ...
-    [0 0.85], [0 0.25 0.5 0.75]);
+    ax_dsi = axes(fig, 'Position', [R_LEFT, C_Y, R_W, C_H]);
+    draw_boxplot_panel(ax_dsi, combined, 'dsi_pdnd', {'DS index', '(PD-ND)/(PD+ND)'}, ...
+        [0 0.85], [0 0.25 0.5 0.75]);
 
-ax_ar = axes(fig, 'Position', [R_LEFT + R_W + R_GAP, C_Y, R_W, C_H]);
-draw_ar_panel(ax_ar, combined);
+    ax_ar = axes(fig, 'Position', [R_LEFT + R_W + R_GAP, C_Y, R_W, C_H]);
+    draw_ar_panel(ax_ar, combined);
 
-% --- Panel D (bottom row): Pre-stim + During-sweep voltage ---
-D_Y = 0.12;  D_H = 0.28;
+    % --- Panel D (bottom row): Pre-stim + During-sweep voltage ---
+    D_Y = 0.12;  D_H = 0.28;
 
-% Compute shared voltage y-limits
-v_all = [voltage_pre; voltage_stim];
-v_lo = floor(min(v_all(~isnan(v_all)))) - 1;
-v_hi = ceil(max(v_all(~isnan(v_all)))) + 2;
-v_ticks = v_lo:2:v_hi;
+    % Compute shared voltage y-limits
+    v_all = [voltage_pre; voltage_stim];
+    v_lo = floor(min(v_all(~isnan(v_all)))) - 1;
+    v_hi = ceil(max(v_all(~isnan(v_all)))) + 2;
+    v_ticks = v_lo:2:v_hi;
 
-ax_vpre = axes(fig, 'Position', [R_LEFT, D_Y, R_W, D_H]);
-draw_boxplot_panel(ax_vpre, voltage_combined, 'voltage_pre', 'V_m (mV)', ...
-    [v_lo v_hi], v_ticks);
-title(ax_vpre, 'Pre-stim', 'FontSize', 7, 'FontWeight', 'normal');
+    ax_vpre = axes(fig, 'Position', [R_LEFT, D_Y, R_W, D_H]);
+    draw_boxplot_panel(ax_vpre, voltage_combined, 'voltage_pre', 'V_m (mV)', ...
+        [v_lo v_hi], v_ticks);
+    title(ax_vpre, 'Pre-stim', 'FontSize', 7, 'FontWeight', 'normal');
 
-ax_vstim = axes(fig, 'Position', [R_LEFT + R_W + R_GAP, D_Y, R_W, D_H]);
-draw_boxplot_panel(ax_vstim, voltage_combined, 'voltage_stim', 'V_m (mV)', ...
-    [v_lo v_hi], v_ticks);
-title(ax_vstim, 'During sweep', 'FontSize', 7, 'FontWeight', 'normal');
+    ax_vstim = axes(fig, 'Position', [R_LEFT + R_W + R_GAP, D_Y, R_W, D_H]);
+    draw_boxplot_panel(ax_vstim, voltage_combined, 'voltage_stim', 'V_m (mV)', ...
+        [v_lo v_hi], v_ticks);
+    title(ax_vstim, 'During sweep', 'FontSize', 7, 'FontWeight', 'normal');
 
-% --- Panel labels ---
-annotation(fig, 'textbox', [0.00, 0.90, 0.05, 0.08], ...
-    'String', PANEL_LETTER_T4_RING, 'FontSize', 12, 'FontWeight', 'bold', ...
-    'FontName', 'Helvetica', 'EdgeColor', 'none', ...
-    'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-annotation(fig, 'textbox', [0.31, 0.90, 0.05, 0.08], ...
-    'String', PANEL_LETTER_T5_RING, 'FontSize', 12, 'FontWeight', 'bold', ...
-    'FontName', 'Helvetica', 'EdgeColor', 'none', ...
-    'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-annotation(fig, 'textbox', [R_LEFT - 0.06, C_Y + C_H + 0.06, 0.05, 0.08], ...
-    'String', PANEL_LETTER_BOX, 'FontSize', 12, 'FontWeight', 'bold', ...
-    'FontName', 'Helvetica', 'EdgeColor', 'none', ...
-    'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-annotation(fig, 'textbox', [R_LEFT - 0.06, D_Y + D_H + 0.06, 0.05, 0.08], ...
-    'String', PANEL_LETTER_VM, 'FontSize', 12, 'FontWeight', 'bold', ...
-    'FontName', 'Helvetica', 'EdgeColor', 'none', ...
-    'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    % --- Panel labels ---
+    annotation(fig, 'textbox', [0.00, 0.90, 0.05, 0.08], ...
+        'String', PANEL_LETTER_T4_RING, 'FontSize', 12, 'FontWeight', 'bold', ...
+        'FontName', 'Helvetica', 'EdgeColor', 'none', ...
+        'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    annotation(fig, 'textbox', [0.31, 0.90, 0.05, 0.08], ...
+        'String', PANEL_LETTER_T5_RING, 'FontSize', 12, 'FontWeight', 'bold', ...
+        'FontName', 'Helvetica', 'EdgeColor', 'none', ...
+        'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    annotation(fig, 'textbox', [R_LEFT - 0.06, C_Y + C_H + 0.06, 0.05, 0.08], ...
+        'String', PANEL_LETTER_BOX, 'FontSize', 12, 'FontWeight', 'bold', ...
+        'FontName', 'Helvetica', 'EdgeColor', 'none', ...
+        'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    annotation(fig, 'textbox', [R_LEFT - 0.06, D_Y + D_H + 0.06, 0.05, 0.08], ...
+        'String', PANEL_LETTER_VM, 'FontSize', 12, 'FontWeight', 'bold', ...
+        'FontName', 'Helvetica', 'EdgeColor', 'none', ...
+        'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+end
 
 % --- Cell-type labels above ring panels ---
 annotation(fig, 'textbox', [0.04, 0.92, 0.26, 0.06], ...
@@ -705,8 +732,8 @@ print_direction_stats_table(on_stats_table);
 fprintf('\n=== Per-direction Wilcoxon rank-sum: T5 (OFF) ctrl vs tutl- ===\n');
 print_direction_stats_table(off_stats_table);
 
-% Save stats table to file (only when actually exporting)
-if ~opts.skip_export
+% Save stats table to file (only when actually exporting; skip in preview mode)
+if ~opts.skip_export && ~opts.preview_ring_only
     stats_file = fullfile(out_dir, sprintf('fig_ds_direction_stats_%ddps.txt', SPEED_DPS));
     fid = fopen(stats_file, 'w');
     if fid ~= -1
@@ -732,8 +759,15 @@ if ~SUBTRACT_BASELINE
 else
     abs_tag = '';
 end
-pdf_file = fullfile(out_dir, sprintf('fig_ds_panels_ABCD_%s%s_v3_%s.pdf', cache_tag, abs_tag, ts));
-png_file = fullfile(out_dir, sprintf('fig_ds_panels_ABCD_%s%s_v3_%s.png', cache_tag, abs_tag, ts));
+rot_tag = '';
+if opts.rotate_pd_left, rot_tag = '_rot90'; end
+if opts.preview_ring_only
+    file_stem = sprintf('fig_ds_preview_ring_%s%s_v3%s_%s', cache_tag, abs_tag, rot_tag, ts);
+else
+    file_stem = sprintf('fig_ds_panels_ABCD_%s%s_v3%s_%s', cache_tag, abs_tag, rot_tag, ts);
+end
+pdf_file = fullfile(out_dir, [file_stem '.pdf']);
+png_file = fullfile(out_dir, [file_stem '.png']);
 
 if ~opts.skip_export
     exportgraphics(fig, pdf_file, 'ContentType', 'vector');
@@ -749,10 +783,14 @@ end  % main function
 
 function draw_ring_panel(fig, center, ring, g_ctrl, g_ttl, ...
     pd_aligned_angles, all_cells, t_ms, display_len_ds, y_lim, DS_FACTOR, dir_stats, ...
-    ctrl_color, ttl_color, x_range, trace_lw, scalebar_t, show_pd_lines, rpad_factor)
+    ctrl_color, ttl_color, x_range, trace_lw, scalebar_t, show_pd_lines, rpad_factor, ...
+    rot_offset)
 % DRAW_RING_PANEL  Draw a ring-of-traces panel at the specified figure position.
 %   show_pd_lines (optional): if true, draw PD/OD/ND reference lines to ctrl data values.
 %   rpad_factor   (optional): polar overlay padding factor (1.10 main / 1.15 supp).
+%   rot_offset    (optional): radian rotation applied to ring positions and
+%                             to all axFill data overlays. Default 0 (PD up).
+%                             Use pi/2 for PD-left orientation.
 
     if nargin < 12, dir_stats = []; end
     if nargin < 13 || isempty(ctrl_color), ctrl_color = [0 0 0]; end
@@ -762,12 +800,15 @@ function draw_ring_panel(fig, center, ring, g_ctrl, g_ttl, ...
     if nargin < 17 || isempty(scalebar_t), scalebar_t = 1000; end
     if nargin < 18 || isempty(show_pd_lines), show_pd_lines = false; end
     if nargin < 19 || isempty(rpad_factor), rpad_factor = 1.10; end
+    if nargin < 20 || isempty(rot_offset), rot_offset = 0; end
 
     % --- 16 radial timeseries subplots ---
     ax_scalebar = [];  % for scale bar (8 o'clock position = di 15)
+    ax_ring = gobjects(1, 16);  % store handles so we can place asterisks later
     for di = 1:16
         angle_deg = pd_aligned_angles(di);
-        angle_rad = deg2rad(180 - angle_deg);
+        % Ring screen angle = polar angle + rot_offset (rot=0: PD up; rot=pi/2: PD left)
+        angle_rad = deg2rad(angle_deg) + rot_offset;
 
         x_pos = center(1) + ring.radius_x * cos(angle_rad);
         y_pos = center(2) + ring.radius_y * sin(angle_rad);
@@ -791,6 +832,7 @@ function draw_ring_panel(fig, center, ring, g_ctrl, g_ttl, ...
 
         axis(ax, 'off');
 
+        ax_ring(di) = ax;
         if di == 15, ax_scalebar = ax; end  % 8 o'clock position (315 deg)
     end
 
@@ -812,36 +854,32 @@ function draw_ring_panel(fig, center, ring, g_ctrl, g_ttl, ...
         'ctrl_line_color', ctrl_color, 'ctrl_fill_color', ctrl_fill, ...
         'ttl_line_color', ttl_color, 'ttl_fill_color', ttl_fill, ...
         'dir_stats', dir_stats, ...
-        'rpad_factor', rpad_factor);
+        'rpad_factor', rpad_factor, ...
+        'rot_offset', rot_offset);
     [axPolar, axFill] = plot_polar_with_patch(polar_pos, theta, ...
         g_ctrl.polar_mean, g_ctrl.polar_sem, ...
         g_ttl.polar_mean, g_ttl.polar_sem, polar_opts);
 
-    % --- Outward arrows at upper-right corner of each ring trace ---
-    fig_sz = get(fig, 'PaperSize');  % [W, H] in cm
-    W = fig_sz(1); H = fig_sz(2);
-    arr_cm = 0.36;  % desired arrow length in cm
-    for di = 1:16
-        angle_deg = pd_aligned_angles(di);
-        angle_rad = deg2rad(180 - angle_deg);
-        x_pos = center(1) + ring.radius_x * cos(angle_rad);
-        y_pos = center(2) + ring.radius_y * sin(angle_rad);
-        tail_x = x_pos + ring.subW/2 - 0.003;
-        tail_y = y_pos + ring.subH/2 - 0.003;
-        % Direction in cm: cos/sin give unit direction in physical space
-        dx_cm = cos(angle_rad);
-        dy_cm = sin(angle_rad);
-        phys_len = sqrt(dx_cm^2 + dy_cm^2);  % = 1
-        % Convert desired cm displacement to normalized figure coords
-        head_x = tail_x + (arr_cm * dx_cm / phys_len) / W;
-        head_y = tail_y + (arr_cm * dy_cm / phys_len) / H;
-        head_x = max(0.01, min(0.99, head_x));
-        head_y = max(0.01, min(0.99, head_y));
-        tail_x = max(0.01, min(0.99, tail_x));
-        tail_y = max(0.01, min(0.99, tail_y));
-        annotation(fig, 'arrow', [tail_x, head_x], [tail_y, head_y], ...
-            'Color', [0 0 0], 'HeadWidth', 6, 'HeadLength', 4, ...
-            'HeadStyle', 'plain', 'LineWidth', 1.5);
+    % --- Significance asterisks inside each ring trace ---
+    % Placed at the right-hand boundary of each subplot, ~2 mV above the
+    % -65 mV baseline. This clearly attributes each asterisk to its trace.
+    if ~isempty(dir_stats) && numel(dir_stats) == 16
+        for di = 1:16
+            p_raw = dir_stats(di).p_raw;
+            if isnan(p_raw) || p_raw >= 0.05, continue; end
+            if p_raw < 0.001
+                ast_str = '***';
+            elseif p_raw < 0.01
+                ast_str = '**';
+            else
+                ast_str = '*';
+            end
+            xl = xlim(ax_ring(di));
+            text(ax_ring(di), xl(2), -65 + 2, ast_str, ...
+                'FontSize', 7, 'FontWeight', 'bold', 'FontName', 'Helvetica', ...
+                'Color', 'k', 'HorizontalAlignment', 'right', ...
+                'VerticalAlignment', 'bottom', 'Clipping', 'off');
+        end
     end
 
     % --- PD / OD / ND reference lines on polar plot (T4 only) ---
@@ -857,17 +895,39 @@ function draw_ring_panel(fig, center, ring, g_ctrl, g_ttl, ...
         r_nd = ctrl_mean(nd_idx);
         ref_lw = axPolar.LineWidth * 2;  % thicker than axis lines
         hold(axFill, 'on');
-        % PD: up (y = +r), OD: right (x = +r), ND: down (y = -r)
-        plot(axFill, [0 0],     [0 r_pd], 'k-', 'LineWidth', ref_lw);
-        plot(axFill, [0 r_od],  [0 0],    'k-', 'LineWidth', ref_lw);
-        plot(axFill, [0 0],     [0 -r_nd],'k-', 'LineWidth', ref_lw);
-        % Labels near tips
-        text(axFill, 0,          r_pd*1.1,  'PD', 'FontSize', 5, 'FontWeight', 'bold', ...
-            'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
-        text(axFill, r_od*1.1,   0,         'OD', 'FontSize', 5, 'FontWeight', 'bold', ...
-            'HorizontalAlignment', 'left',   'VerticalAlignment', 'middle');
-        text(axFill, 0,          -r_nd*1.1, 'ND', 'FontSize', 5, 'FontWeight', 'bold', ...
-            'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
+        % Rotation helper (CCW by rot_offset) applied so PD/OD/ND lines
+        % follow the rotated coordinate system.
+        ca = cos(rot_offset); sa = sin(rot_offset);
+        rot2d = @(x, y) deal(x*ca - y*sa, x*sa + y*ca);
+        % PD: up at rot=0 (y = +r); OD: right; ND: down
+        [px1, py1] = rot2d(0, r_pd);
+        [ox1, oy1] = rot2d(r_od, 0);
+        [nx1, ny1] = rot2d(0, -r_nd);
+        plot(axFill, [0 px1], [0 py1], 'k-', 'LineWidth', ref_lw);
+        plot(axFill, [0 ox1], [0 oy1], 'k-', 'LineWidth', ref_lw);
+        plot(axFill, [0 nx1], [0 ny1], 'k-', 'LineWidth', ref_lw);
+        % Labels near tips — choose Horizontal/VerticalAlignment to match the
+        % rotated direction (so text sits outside the tip).
+        [pdt_x, pdt_y] = rot2d(0,        r_pd*1.1);
+        [odt_x, odt_y] = rot2d(r_od*1.1, 0);
+        [ndt_x, ndt_y] = rot2d(0,       -r_nd*1.1);
+        if rot_offset == 0
+            % PD up, OD right, ND down (original)
+            text(axFill, pdt_x, pdt_y, 'PD', 'FontSize', 5, 'FontWeight', 'bold', ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+            text(axFill, odt_x, odt_y, 'OD', 'FontSize', 5, 'FontWeight', 'bold', ...
+                'HorizontalAlignment', 'left',   'VerticalAlignment', 'middle');
+            text(axFill, ndt_x, ndt_y, 'ND', 'FontSize', 5, 'FontWeight', 'bold', ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
+        else
+            % rot=pi/2: PD left (text to the LEFT of tip), OD up (above tip), ND right
+            text(axFill, pdt_x, pdt_y, 'PD', 'FontSize', 5, 'FontWeight', 'bold', ...
+                'HorizontalAlignment', 'right',  'VerticalAlignment', 'middle');
+            text(axFill, odt_x, odt_y, 'OD', 'FontSize', 5, 'FontWeight', 'bold', ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+            text(axFill, ndt_x, ndt_y, 'ND', 'FontSize', 5, 'FontWeight', 'bold', ...
+                'HorizontalAlignment', 'left',   'VerticalAlignment', 'middle');
+        end
     end
 
     % --- Legend: upper-left of ring area ---
@@ -939,7 +999,7 @@ function draw_boxplot_panel(ax, results, field, y_label, y_limits, y_ticks)
         idx = all_grp_idx == g;
         vals = all_vals(idx);
         x = g + 0.25 * (rand(size(vals)) - 0.5);
-        scatter(ax, x, vals, 20, colors(g, :), 'filled', 'MarkerFaceAlpha', 0.5);
+        scatter(ax, x, vals, 12, colors(g, :), 'filled', 'MarkerFaceAlpha', 0.5);
     end
 
     % Axis formatting
@@ -1063,12 +1123,38 @@ function draw_ar_panel(ax, results)
             'BoxWidth', 0.5, 'LineWidth', 1.0);
     end
 
-    % Jittered dots
+    % Jittered dots. Values that exceed the y-axis cap are clamped to the
+    % top tick and tagged with an upward arrow above the cap, so the data
+    % point is preserved visually without breaking the floating-axis cap.
+    y_top = y_ticks(end);  % visible top tick (e.g. 4 with y_limits = [0 4.4])
     for g = 1:n_groups
         idx = all_grp_idx == g;
         vals = all_vals(idx);
         x = g + 0.25 * (rand(size(vals)) - 0.5);
-        scatter(ax, x, vals, 20, colors(g, :), 'filled', 'MarkerFaceAlpha', 0.5);
+        over_mask = vals > y_top;
+        % In-range dots
+        if any(~over_mask)
+            scatter(ax, x(~over_mask), vals(~over_mask), 12, colors(g, :), ...
+                'filled', 'MarkerFaceAlpha', 0.5);
+        end
+        % Capped overflow dots: drawn at y_top, then small up-arrow above
+        if any(over_mask)
+            x_ov = x(over_mask);
+            scatter(ax, x_ov, y_top * ones(size(x_ov)), 12, colors(g, :), ...
+                'filled', 'MarkerFaceAlpha', 0.5);
+            % Up-arrow just above each capped dot (~50% larger than initial sizing)
+            arrow_dy = 0.09 * diff(y_limits);     % 9% of y range
+            arrow_hw = 0.09;                       % half-width in x units
+            for j = 1:numel(x_ov)
+                tip_y = y_top + arrow_dy;
+                base_y = y_top + 0.02 * diff(y_limits);
+                % Triangle: tip up, base wider below
+                patch(ax, ...
+                    [x_ov(j) - arrow_hw, x_ov(j) + arrow_hw, x_ov(j)], ...
+                    [base_y, base_y, tip_y], ...
+                    colors(g, :), 'EdgeColor', 'none', 'Clipping', 'off');
+            end
+        end
     end
 
     ylim(ax, y_limits);
@@ -1111,9 +1197,10 @@ function draw_ar_panel(ax, results)
         'VerticalAlignment', 'top');
 
     % Wilcoxon brackets
-    % Bracket height: ~4% of data range; y0 near top of data
+    % Bracket height: ~4% of data range; y0 shifted just above the cap so
+    % overflow up-arrows (drawn just above y_top) have clearance below.
     bracket_dy = 0.04 * diff(y_limits);
-    y0 = y_limits(2) - 0.02 * diff(y_limits);
+    y0 = y_limits(2) + 0.05 * diff(y_limits);
 
     if numel(group_data{1}) >= 2 && numel(group_data{2}) >= 2
         p = ranksum(group_data{1}, group_data{2});
@@ -1147,6 +1234,8 @@ function [axPolar, axFill] = plot_polar_with_patch(ax_position, ...
     if ~isfield(opts, 'ttl_label'),       opts.ttl_label       = '{\ittutl-}'; end
     if ~isfield(opts, 'dir_stats'),      opts.dir_stats       = []; end
     if ~isfield(opts, 'rpad_factor'),    opts.rpad_factor     = 1.10; end
+    if ~isfield(opts, 'rot_offset'),     opts.rot_offset      = 0; end
+    rot = opts.rot_offset;
 
     axPolar = polaraxes('Position', ax_position);
     hold(axPolar, 'on');
@@ -1177,15 +1266,17 @@ function [axPolar, axFill] = plot_polar_with_patch(ax_position, ...
     plot(axFill, 30*cos(th_circ), 30*sin(th_circ), 'k-', 'LineWidth', 0.4);
 
 
+    % Apply rotation by passing theta+rot to draw_polar_patch (pol2cart inside)
+    theta_rot = theta + rot;
     hCtrl = gobjects(1, 1);
     if ~isempty(center_ctrl) && any(~isnan(center_ctrl))
-        hCtrl = draw_polar_patch(axFill, theta, center_ctrl, spread_ctrl, ...
+        hCtrl = draw_polar_patch(axFill, theta_rot, center_ctrl, spread_ctrl, ...
             opts.ctrl_line_color, opts.ctrl_fill_color, opts.alpha, 0.75);
     end
 
     hTtl = gobjects(1, 1);
     if ~isempty(center_ttl) && any(~isnan(center_ttl))
-        hTtl = draw_polar_patch(axFill, theta, center_ttl, spread_ttl, ...
+        hTtl = draw_polar_patch(axFill, theta_rot, center_ttl, spread_ttl, ...
             opts.ttl_line_color, opts.ttl_fill_color, opts.alpha, 0.75);
     end
 
@@ -1205,31 +1296,44 @@ function [axPolar, axFill] = plot_polar_with_patch(ax_position, ...
     axPolar.FontSize = 5;
     axPolar.LineWidth = 0.5;
 
-    % "30 mV" label at 3 o'clock (0 deg = right side)
+    % "30 mV" label — sits at theta=0 spoke (3 o'clock when rot=0; 12 o'clock when rot=pi/2)
     rL = rlim(axPolar);
-    text(axFill, rL(2)*1.05, 0, '30 mV', 'FontSize', 5, ...
-        'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
+    [lab_x, lab_y] = pol2cart(rot, rL(2)*1.05);
+    if rot == 0
+        ha = 'left'; va = 'middle';
+    else
+        ha = 'center'; va = 'bottom';   % rot=pi/2: text sits above the tip
+    end
+    text(axFill, lab_x, lab_y, '30 mV', 'FontSize', 5, ...
+        'HorizontalAlignment', ha, 'VerticalAlignment', va);
 
-    % --- Per-direction significance asterisks (raw p, no FDR) ---
-    if ~isempty(opts.dir_stats) && numel(opts.dir_stats) == 16
-        rL = rlim(axPolar);
-        r_ast = rL(2) * 1.20;  % clearly outside the outer ring
-        for di = 1:16
-            p_raw = opts.dir_stats(di).p_raw;
-            if isnan(p_raw) || p_raw >= 0.05, continue; end
-            if p_raw < 0.001
-                ast_str = '***';
-            elseif p_raw < 0.01
-                ast_str = '**';
-            else
-                ast_str = '*';
-            end
-            th_ast = opts.dir_stats(di).angle_rad;
-            [x_ast, y_ast] = pol2cart(th_ast, r_ast);
-            text(axFill, x_ast, y_ast, ast_str, 'FontSize', 6, ...
-                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
-                'FontWeight', 'bold', 'Color', 'k');
-        end
+    % --- Outward direction arrows on the polar plot (16 spokes, always on) ---
+    % Drawn in axFill data coords so they sit exactly on the polar grid spokes.
+    % Thin shaft + filled triangular arrowhead, sitting just outside the polar
+    % box edge (rpad). Anchoring to rpad — not rL(2) — keeps the arrows visibly
+    % outside the polar across different rpad_factor values (main vs supp).
+    r_tail = rpad * 1.02;    % small whitespace gap just outside the polar box
+    r_head = rpad * 1.15;    % outward tip
+    head_len   = (r_head - r_tail) * 0.50;   % triangular head
+    barb_angle = deg2rad(155);                % obtuse angle = swept-back triangle
+    theta_spokes = (0:22.5:337.5) * pi / 180;
+    for di = 1:numel(theta_spokes)
+        th = theta_spokes(di) + rot;  % rotated spoke direction
+        ux = cos(th); uy = sin(th);  % outward unit direction
+        [xt, yt] = pol2cart(th, r_tail);
+        [xh, yh] = pol2cart(th, r_head);
+        % Triangle base corners (swept back from tip)
+        ca = cos(barb_angle); sa = sin(barb_angle);
+        bx1 = ux * ca - uy * sa;   by1 = ux * sa + uy * ca;
+        bx2 = ux * ca + uy * sa;   by2 = -ux * sa + uy * ca;
+        tx1 = xh + head_len * bx1; ty1 = yh + head_len * by1;
+        tx2 = xh + head_len * bx2; ty2 = yh + head_len * by2;
+        % Shaft: end at base-midpoint of the triangle so the head sits flush
+        bxm = (tx1 + tx2) / 2;     bym = (ty1 + ty2) / 2;
+        plot(axFill, [xt, bxm], [yt, bym], 'k-', 'LineWidth', 0.6, 'Clipping', 'off');
+        % Filled triangle arrowhead
+        patch(axFill, [xh tx1 tx2], [yh ty1 ty2], 'k', ...
+            'EdgeColor', 'none', 'Clipping', 'off');
     end
 end
 
